@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "DocumentWindow.h"
 #include "Resource.h"
+#include <codecvt>
 
 HRESULT DocumentWindow::registerClass(HINSTANCE hInstance)
 {
@@ -34,8 +35,11 @@ LRESULT DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 }
 
 DocumentWindow::DocumentWindow(std::wstring path)
-    : myPath(path)
+    : myRenderer(nullptr)
 {
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::string utf8 = converter.to_bytes(path);
+    myRenderer = TPRendererCreate(utf8.c_str(), TPRendererTimeExternal, nullptr, nullptr);
 }
 
 
@@ -45,5 +49,6 @@ DocumentWindow::~DocumentWindow()
 
 const std::wstring & DocumentWindow::getPath() const
 {
-    return myPath;
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.from_bytes(TPRendererGetPath(myRenderer));
 }

@@ -1,0 +1,3 @@
+[submodule "tdplugin"]
+	path = tdplugin
+	url = git@github.com:bangnoise/tdplugin.git

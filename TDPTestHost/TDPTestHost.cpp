@@ -208,6 +208,7 @@ bool Open(HWND hWnd)
             }
         }
         documents.push_back(new DocumentWindow(buffer));
+        return true;
     }
     return false;
 }

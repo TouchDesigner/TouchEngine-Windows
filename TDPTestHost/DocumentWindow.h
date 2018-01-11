@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <TouchPlugIn/TouchPlugIn.h>
 
 class DocumentWindow
 {
@@ -11,6 +12,6 @@ public:
     ~DocumentWindow();
     const std::wstring& getPath() const;
 private:
-    std::wstring myPath;
+    TPRendererRef myRenderer;
 };
 
