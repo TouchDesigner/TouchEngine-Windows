@@ -2,6 +2,7 @@
 
 #include <string>
 #include <TouchPlugIn/TouchPlugIn.h>
+#include "Device.h"
 
 class DocumentWindow
 {
@@ -17,5 +18,6 @@ private:
     static wchar_t *WindowClassName;
     TPRendererRef myRenderer;
     HWND myWindow;
+    Device myDevice;
 };
 

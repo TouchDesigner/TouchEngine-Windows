@@ -119,14 +119,21 @@ void DocumentWindow::openWindow(HWND parent)
         theInstance,
         0);
 
+    HRESULT result;
     if (myWindow)
     {
         ShowWindow(myWindow, SW_SHOW);
         UpdateWindow(myWindow);
+        result = S_OK;
     }
     else
     {
         DWORD error = GetLastError();
-        HRESULT result = HRESULT_FROM_WIN32(error);
+        result = HRESULT_FROM_WIN32(error);
+    }
+    if (SUCCEEDED(result))
+    {
+        myDevice.createDeviceResources();
+        myDevice.createWindowResources(myWindow);
     }
 }
