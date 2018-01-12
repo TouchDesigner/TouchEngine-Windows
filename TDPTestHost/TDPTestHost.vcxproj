@@ -153,6 +153,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DocumentManager.h" />
     <ClInclude Include="DocumentWindow.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -160,6 +161,7 @@
     <ClInclude Include="TDPTestHost.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DocumentManager.cpp" />
     <ClCompile Include="DocumentWindow.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

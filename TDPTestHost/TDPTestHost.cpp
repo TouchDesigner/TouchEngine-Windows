@@ -5,6 +5,7 @@
 #include <commdlg.h>
 #include <vector>
 #include "TDPTestHost.h"
+#include "DocumentManager.h"
 #include "DocumentWindow.h"
 
 #define MAX_LOADSTRING 100
@@ -49,12 +50,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MSG msg;
 
     // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
+    msg.message = WM_NULL;
+
+    while (msg.message != WM_QUIT)
     {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+        bool got = PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE) != 0;
+        if (got)
         {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+        }
+        else
+        {
+            // TODO: render here
         }
     }
 
@@ -103,8 +114,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
 
+   RECT rc;
+   SetRect(&rc, 0, 0, 600, 320);
+   AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
+
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+      CW_USEDEFAULT, CW_USEDEFAULT,
+      (rc.right - rc.left), (rc.bottom - rc.top), nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
    {
@@ -199,16 +215,7 @@ bool Open(HWND hWnd)
     BOOL result = GetOpenFileName(&ofns);
     if (result)
     {
-        for each (auto doc in documents)
-        {
-            if (doc->getPath() == buffer)
-            {
-                // already open
-                return true;
-            }
-        }
-        documents.push_back(new DocumentWindow(buffer));
-        return true;
+        return DocumentManager::sharedManager().open(buffer, hWnd);
     }
     return false;
 }

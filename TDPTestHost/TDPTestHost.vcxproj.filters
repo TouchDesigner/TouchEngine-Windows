@@ -33,6 +33,9 @@
     <ClInclude Include="DocumentWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DocumentManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -42,6 +45,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DocumentWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocumentManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
