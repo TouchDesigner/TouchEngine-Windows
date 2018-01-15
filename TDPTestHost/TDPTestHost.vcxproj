@@ -181,7 +181,7 @@
     <Image Include="TDPTestHost.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tdplugin\TouchPlugIn.vcxproj">
+    <ProjectReference Include="..\tdplugin\TouchPlugIn.vcxproj">
       <Project>{8e259f64-56e1-47d8-a26b-18399baa0614}</Project>
     </ProjectReference>
   </ItemGroup>

@@ -8,7 +8,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TDPTestHost", "TDPTestHost\
 		{8E259F64-56E1-47D8-A26B-18399BAA0614} = {8E259F64-56E1-47D8-A26B-18399BAA0614}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TouchPlugIn", "..\tdplugin\TouchPlugIn.vcxproj", "{8E259F64-56E1-47D8-A26B-18399BAA0614}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TouchPlugIn", "tdplugin\TouchPlugIn.vcxproj", "{8E259F64-56E1-47D8-A26B-18399BAA0614}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
