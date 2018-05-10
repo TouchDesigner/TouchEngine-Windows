@@ -65,7 +65,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
         else
         {
-            // TODO: render here
+            DocumentManager::sharedManager().render();
         }
     }
 

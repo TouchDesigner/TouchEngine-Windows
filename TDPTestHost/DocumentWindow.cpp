@@ -3,6 +3,7 @@
 #include "DocumentManager.h"
 #include "Resource.h"
 #include <codecvt>
+#include <array>
 
 wchar_t *DocumentWindow::WindowClassName = L"DocumentWindow";
 
@@ -72,10 +73,63 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
         DocumentManager::sharedManager().didClose(hWnd);
         break;
     }
+    case WM_LBUTTONUP:
+    {
+        auto document = DocumentManager::sharedManager().lookup(hWnd);
+        if (document)
+        {
+            TPRendererPingaling(document->myRenderer);
+        }
+        break;
+    }
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
     return LRESULT();
+}
+
+void DocumentWindow::frameCallback(double time, TPError error, void * TP_NULLABLE info /* TODO: etc. */)
+{
+    DocumentWindow *window = static_cast<DocumentWindow *>(info);
+    window->endFrame(time, error);
+}
+
+void DocumentWindow::endFrame(double time, TPError error)
+{
+    if (error != TPErrorNone)
+    {
+        // TODO: pass it out
+    }
+    else
+    {
+        std::array<float, 300> channel1;
+        std::array<float, 300> channel2;
+        std::array<float *, 2> channels{ channel1.data(), channel2.data() };
+        uint64_t length = 300;
+        TPRendererPropertyGetStreamValues(myRenderer, TPScopeOutput, 0, channels.data(), 2, &length);
+        if (channel1 != channel2)
+        {
+            int i = 2;
+        }
+        for (auto value : channel1)
+        {
+            if (myLastStreamValue != value - 1.0)
+            {
+                int i = 3;
+            }
+            myLastStreamValue = value;
+        }
+    }
+}
+
+static void myPropertyStateCallback(void *info)
+{
+
+}
+
+static void myPropertyValueCallback(TPScope scope, unsigned int index, void *info)
+{
+
 }
 
 DocumentWindow::DocumentWindow(std::wstring path)
@@ -83,7 +137,7 @@ DocumentWindow::DocumentWindow(std::wstring path)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::string utf8 = converter.to_bytes(path);
-    myRenderer = TPRendererCreate(utf8.c_str(), TPRendererTimeExternal, nullptr, nullptr);
+    myRenderer = TPRendererCreate(utf8.c_str(), TPTimeExternal, frameCallback, myPropertyStateCallback, myPropertyValueCallback, this);
 }
 
 
@@ -136,4 +190,9 @@ void DocumentWindow::openWindow(HWND parent)
         myDevice.createDeviceResources();
         myDevice.createWindowResources(myWindow);
     }
+}
+
+void DocumentWindow::render()
+{
+    TPRendererStartFrame(myRenderer);
 }

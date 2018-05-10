@@ -12,6 +12,7 @@ public:
     static DocumentManager & sharedManager();
     bool open(const std::wstring &path, HWND parent);
     std::shared_ptr<DocumentWindow> lookup(HWND window) const;
+    void render();
     void didClose(HWND window);
 private:
     DocumentManager();

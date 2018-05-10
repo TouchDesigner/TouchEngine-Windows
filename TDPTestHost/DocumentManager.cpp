@@ -37,6 +37,14 @@ std::shared_ptr<DocumentWindow> DocumentManager::lookup(HWND window) const
     }
 }
 
+void DocumentManager::render()
+{
+    for (auto doc : myDocuments)
+    {
+        doc.second->render();
+    }
+}
+
 void DocumentManager::didClose(HWND window)
 {
     myDocuments.erase(window);
