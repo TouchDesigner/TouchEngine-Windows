@@ -111,11 +111,14 @@ void DocumentWindow::endFrame(double time, TPError error)
         {
             int i = 2;
         }
-        for (auto value : channel1)
+        
+        for (int i = 0; i < length; i++)
         {
+            float value = channel1[i];
             if (myLastStreamValue != value - 1.0)
             {
-                int i = 3;
+                // This will "fail" when it reaches the first integer that can't be represented by a float, that's ok
+                int j = 3;
             }
             myLastStreamValue = value;
         }
@@ -133,7 +136,7 @@ static void myPropertyValueCallback(TPScope scope, unsigned int index, void *inf
 }
 
 DocumentWindow::DocumentWindow(std::wstring path)
-    : myRenderer(nullptr), myWindow(nullptr)
+    : myRenderer(nullptr), myWindow(nullptr), myLastStreamValue(-1.0f)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::string utf8 = converter.to_bytes(path);
