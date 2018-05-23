@@ -78,7 +78,7 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
         auto document = DocumentManager::sharedManager().lookup(hWnd);
         if (document)
         {
-            TPRendererPingaling(document->myRenderer);
+            // 
         }
         break;
     }
@@ -105,14 +105,14 @@ void DocumentWindow::endFrame(double time, TPError error)
         std::array<float, 300> channel1;
         std::array<float, 300> channel2;
         std::array<float *, 2> channels{ channel1.data(), channel2.data() };
-        uint64_t length = 300;
+        int64_t length = 300;
         TPRendererPropertyGetStreamValues(myRenderer, TPScopeOutput, 0, channels.data(), 2, &length);
         if (channel1 != channel2)
         {
             int i = 2;
         }
         
-        for (int i = 0; i < length; i++)
+        for (int64_t i = 0; i < length; i++)
         {
             float value = channel1[i];
             if (myLastStreamValue != value - 1.0)
@@ -130,7 +130,7 @@ static void myPropertyStateCallback(void *info)
 
 }
 
-static void myPropertyValueCallback(TPScope scope, unsigned int index, void *info)
+static void myPropertyValueCallback(TPScope scope, int32_t index, void *info)
 {
 
 }
