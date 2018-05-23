@@ -19,7 +19,7 @@ private:
     static wchar_t *WindowClassName;
     static void frameCallback(double time, TPError error, void * TP_NULLABLE info);
     void endFrame(double time, TPError error);
-    TPRenderer *myRenderer;
+    TPInstance *myInstance;
     HWND myWindow;
     Device myDevice;
     float myLastStreamValue;

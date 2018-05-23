@@ -106,7 +106,7 @@ void DocumentWindow::endFrame(double time, TPError error)
         std::array<float, 300> channel2;
         std::array<float *, 2> channels{ channel1.data(), channel2.data() };
         int64_t length = 300;
-        TPRendererPropertyGetStreamValues(myRenderer, TPScopeOutput, 0, channels.data(), 2, &length);
+        TPInstancePropertyGetStreamValues(myInstance, TPScopeOutput, 0, channels.data(), 2, &length);
         if (channel1 != channel2)
         {
             int i = 2;
@@ -136,11 +136,11 @@ static void myPropertyValueCallback(TPScope scope, int32_t index, void *info)
 }
 
 DocumentWindow::DocumentWindow(std::wstring path)
-    : myRenderer(nullptr), myWindow(nullptr), myLastStreamValue(-1.0f)
+    : myInstance(nullptr), myWindow(nullptr), myLastStreamValue(-1.0f)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::string utf8 = converter.to_bytes(path);
-    myRenderer = TPRendererCreate(utf8.c_str(), TPTimeExternal, frameCallback, myPropertyStateCallback, myPropertyValueCallback, this);
+    myInstance = TPInstanceCreate(utf8.c_str(), TPTimeExternal, frameCallback, myPropertyStateCallback, myPropertyValueCallback, this);
 }
 
 
@@ -150,13 +150,13 @@ DocumentWindow::~DocumentWindow()
     {
         PostMessageW(myWindow, WM_CLOSE, 0, 0);
     }
-    TPRendererDestroy(myRenderer);
+    TPInstanceDestroy(myInstance);
 }
 
 const std::wstring DocumentWindow::getPath() const
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.from_bytes(TPRendererGetPath(myRenderer));
+    return converter.from_bytes(TPInstanceGetPath(myInstance));
 }
 
 void DocumentWindow::openWindow(HWND parent)
@@ -197,5 +197,5 @@ void DocumentWindow::openWindow(HWND parent)
 
 void DocumentWindow::render()
 {
-    TPRendererStartFrame(myRenderer);
+    TPInstanceStartFrame(myInstance);
 }
