@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TouchDesignerRunner", "tdpl
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IPM", "tdplugin\IPM\IPM.vcxproj", "{20D6978D-3E1D-4BD1-9897-E8F538E8EBAC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TouchPlugInCommon", "tdplugin\TouchPlugInCommon\TouchPlugInCommon.vcxproj", "{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -57,6 +59,14 @@ Global
 		{20D6978D-3E1D-4BD1-9897-E8F538E8EBAC}.Release|x64.Build.0 = Release|x64
 		{20D6978D-3E1D-4BD1-9897-E8F538E8EBAC}.Release|x86.ActiveCfg = Release|Win32
 		{20D6978D-3E1D-4BD1-9897-E8F538E8EBAC}.Release|x86.Build.0 = Release|Win32
+		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Debug|x64.ActiveCfg = Debug|x64
+		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Debug|x64.Build.0 = Debug|x64
+		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Debug|x86.ActiveCfg = Debug|Win32
+		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Debug|x86.Build.0 = Debug|Win32
+		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Release|x64.ActiveCfg = Release|x64
+		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Release|x64.Build.0 = Release|x64
+		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Release|x86.ActiveCfg = Release|Win32
+		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
