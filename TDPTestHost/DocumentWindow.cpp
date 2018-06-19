@@ -88,10 +88,27 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
     return LRESULT();
 }
 
-void DocumentWindow::frameCallback(double time, TPError error, void * TP_NULLABLE info /* TODO: etc. */)
+void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPError error, double time, void * info)
 {
     DocumentWindow *window = static_cast<DocumentWindow *>(info);
-    window->endFrame(time, error);
+
+    switch (event)
+    {
+    case TPEventInstanceDidLoad:
+        break;
+    case TPEventInstancePropertyLayoutDidChange:
+        break;
+    case TPEventFrameDidFinish:
+        window->endFrame(time, error);
+        break;
+    default:
+        break;
+    }
+}
+
+void DocumentWindow::propertyValueCallback(TPInstance * instance, TPScope scope, int32_t index, void * info)
+{
+
 }
 
 void DocumentWindow::endFrame(double time, TPError error)
@@ -125,22 +142,12 @@ void DocumentWindow::endFrame(double time, TPError error)
     }
 }
 
-static void myPropertyStateCallback(void *info)
-{
-
-}
-
-static void myPropertyValueCallback(TPScope scope, int32_t index, void *info)
-{
-
-}
-
 DocumentWindow::DocumentWindow(std::wstring path)
     : myInstance(nullptr), myWindow(nullptr), myLastStreamValue(-1.0f)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::string utf8 = converter.to_bytes(path);
-    myInstance = TPInstanceCreate(utf8.c_str(), TPTimeExternal, frameCallback, myPropertyStateCallback, myPropertyValueCallback, this);
+    myInstance = TPInstanceCreate(utf8.c_str(), TPTimeExternal, eventCallback, propertyValueCallback, this);
 }
 
 

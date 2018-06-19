@@ -17,7 +17,8 @@ public:
     void render();
 private:
     static wchar_t *WindowClassName;
-    static void frameCallback(double time, TPError error, void * TP_NULLABLE info);
+    static void eventCallback(TPInstance *instance, TPEvent event, TPError error, double time, void * info);
+    static void propertyValueCallback(TPInstance *instance, TPScope scope, int32_t index, void *info);
     void endFrame(double time, TPError error);
     TPInstance *myInstance;
     HWND myWindow;
