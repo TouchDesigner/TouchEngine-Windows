@@ -88,7 +88,7 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
     return LRESULT();
 }
 
-void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPError error, double time, void * info)
+void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPError error, int64_t time_value, int32_t time_scale, void * info)
 {
     DocumentWindow *window = static_cast<DocumentWindow *>(info);
 
@@ -100,7 +100,7 @@ void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPError
     case TPEventInstancePropertyLayoutDidChange:
         break;
     case TPEventFrameDidFinish:
-        window->endFrame(time, error);
+        window->endFrame(time_value, time_scale, error);
         break;
     default:
         break;
@@ -112,7 +112,7 @@ void DocumentWindow::propertyValueCallback(TPInstance * instance, TPScope scope,
 
 }
 
-void DocumentWindow::endFrame(double time, TPError error)
+void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPError error)
 {
     if (error != TPErrorNone)
     {

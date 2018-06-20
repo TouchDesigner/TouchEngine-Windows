@@ -20,9 +20,9 @@ public:
     void cancelFrame();
 private:
     static wchar_t *WindowClassName;
-    static void eventCallback(TPInstance *instance, TPEvent event, TPError error, double time, void * info);
+    static void eventCallback(TPInstance *instance, TPEvent event, TPError error, int64_t time_value, int32_t time_scale, void * info);
     static void propertyValueCallback(TPInstance *instance, TPScope scope, int32_t index, void *info);
-    void endFrame(double time, TPError error);
+    void endFrame(int64_t time_value, int32_t time_scale, TPError error);
     TPInstance *myInstance;
     HWND myWindow;
     Device myDevice;
