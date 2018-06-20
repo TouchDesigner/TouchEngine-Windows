@@ -78,7 +78,7 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
         auto document = DocumentManager::sharedManager().lookup(hWnd);
         if (document)
         {
-            // 
+            // document->cancelFrame();
         }
         break;
     }
@@ -95,6 +95,7 @@ void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPError
     switch (event)
     {
     case TPEventInstanceDidLoad:
+        window->didLoad();
         break;
     case TPEventInstancePropertyLayoutDidChange:
         break;
@@ -123,7 +124,7 @@ void DocumentWindow::endFrame(double time, TPError error)
         std::array<float, 300> channel2;
         std::array<float *, 2> channels{ channel1.data(), channel2.data() };
         int64_t length = 300;
-        TPInstancePropertyGetStreamValues(myInstance, TPScopeOutput, 0, channels.data(), 2, &length);
+        TPInstancePropertyGetStreamValues(myInstance, TPScopeOutput, 1, channels.data(), 2, &length);
         if (channel1 != channel2)
         {
             int i = 2;
@@ -140,10 +141,11 @@ void DocumentWindow::endFrame(double time, TPError error)
             myLastStreamValue = value;
         }
     }
+    myInFrame = false;
 }
 
 DocumentWindow::DocumentWindow(std::wstring path)
-    : myInstance(nullptr), myWindow(nullptr), myLastStreamValue(-1.0f)
+    : myInstance(nullptr), myWindow(nullptr), myDidLoad(false), myInFrame(false), myLastStreamValue(-1.0f)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::string utf8 = converter.to_bytes(path);
@@ -204,5 +206,18 @@ void DocumentWindow::openWindow(HWND parent)
 
 void DocumentWindow::render()
 {
-    TPInstanceStartFrame(myInstance);
+    if (myDidLoad && !myInFrame)
+    {
+        myInFrame = true;
+        TPInstanceStartFrame(myInstance);
+    }
+}
+
+void DocumentWindow::cancelFrame()
+{
+    TPError result = TPInstanceCancelFrame(myInstance);
+    if (result != TPErrorNone)
+    {
+        // TODO: post it
+    }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <atomic>
 #include <TouchPlugIn/TouchPlugIn.h>
 #include "Device.h"
 
@@ -14,7 +15,9 @@ public:
     const std::wstring getPath() const;
     void openWindow(HWND parent);
     HWND getWindow() const { return myWindow; };
+    void didLoad() { myDidLoad = true; };
     void render();
+    void cancelFrame();
 private:
     static wchar_t *WindowClassName;
     static void eventCallback(TPInstance *instance, TPEvent event, TPError error, double time, void * info);
@@ -23,6 +26,8 @@ private:
     TPInstance *myInstance;
     HWND myWindow;
     Device myDevice;
+    std::atomic<bool> myDidLoad;
+    std::atomic<bool> myInFrame;
     float myLastStreamValue;
 };
 
