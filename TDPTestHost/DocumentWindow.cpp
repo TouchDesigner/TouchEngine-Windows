@@ -209,7 +209,7 @@ void DocumentWindow::render()
     if (myDidLoad && !myInFrame)
     {
         myInFrame = true;
-        TPInstanceStartFrame(myInstance);
+        TPInstanceStartFrameAtTime(myInstance, 1000, 1000 * 1000);
     }
 }
 
