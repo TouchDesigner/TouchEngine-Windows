@@ -98,6 +98,7 @@ void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPError
         window->didLoad();
         break;
     case TPEventInstancePropertyLayoutDidChange:
+        window->propertyLayoutDidChange();
         break;
     case TPEventFrameDidFinish:
         window->endFrame(time_value, time_scale, error);
@@ -124,21 +125,10 @@ void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPError er
         std::array<float, 300> channel2;
         std::array<float *, 2> channels{ channel1.data(), channel2.data() };
         int64_t length = 300;
-        TPInstancePropertyGetStreamValues(myInstance, TPScopeOutput, 1, channels.data(), 2, &length);
-        if (channel1 != channel2)
+        error = TPInstancePropertyGetStreamValues(myInstance, TPScopeOutput, 1, channels.data(), 2, &length);
+        if (error == TPErrorNone)
         {
-            int i = 2;
-        }
-        
-        for (int64_t i = 0; i < length; i++)
-        {
-            float value = channel1[i];
-            if (myLastStreamValue != value - 1.0)
-            {
-                // This will "fail" when it reaches the first integer that can't be represented by a float, that's ok
-                int j = 3;
-            }
-            myLastStreamValue = value;
+            // We would use the channel data here
         }
     }
     myInFrame = false;
@@ -201,6 +191,20 @@ void DocumentWindow::openWindow(HWND parent)
     {
         myDevice.createDeviceResources();
         myDevice.createWindowResources(myWindow);
+    }
+}
+
+void DocumentWindow::propertyLayoutDidChange()
+{
+    int32_t count = TPInstanceGetPropertyCount(myInstance, TPScopeInput);
+    for (int32_t i = 0; i < count; i++)
+    {
+        TPPropertyType type;
+        TPError result = TPInstancePropertyGetType(myInstance, TPScopeInput, i, &type);
+        if (result == TPErrorNone && type == TPPropertyTypeFloatStream)
+        {
+            result = TPInstancePropertySetInputStreamDescription(myInstance, i, 400.0, 1, 4000);
+        }
     }
 }
 

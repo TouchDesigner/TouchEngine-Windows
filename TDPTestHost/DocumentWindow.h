@@ -16,6 +16,7 @@ public:
     void openWindow(HWND parent);
     HWND getWindow() const { return myWindow; };
     void didLoad() { myDidLoad = true; };
+    void propertyLayoutDidChange();
     void render();
     void cancelFrame();
 private:
