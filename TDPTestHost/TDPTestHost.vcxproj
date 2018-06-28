@@ -181,9 +181,6 @@
     <Image Include="TDPTestHost.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\tdplugin\IPM\IPM.vcxproj">
-      <Project>{20d6978d-3e1d-4bd1-9897-e8f538e8ebac}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\tdplugin\TouchPlugIn.vcxproj">
       <Project>{8e259f64-56e1-47d8-a26b-18399baa0614}</Project>
     </ProjectReference>
