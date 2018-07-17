@@ -108,7 +108,7 @@ void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPError
     }
 }
 
-void DocumentWindow::propertyValueCallback(TPInstance * instance, TPScope scope, int32_t index, void * info)
+void DocumentWindow::propertyValueCallback(TPInstance * instance, TPScope scope, int32_t group, int32_t index, void * info)
 {
 
 }
@@ -125,7 +125,7 @@ void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPError er
         std::array<float, 300> channel2;
         std::array<float *, 2> channels{ channel1.data(), channel2.data() };
         int64_t length = 300;
-        error = TPInstancePropertyGetStreamValues(myInstance, TPScopeOutput, 1, channels.data(), 2, &length);
+        error = TPInstancePropertyGetStreamValues(myInstance, TPScopeOutput, 0, 1, channels.data(), 2, &length);
         if (error == TPErrorNone)
         {
             // We would use the channel data here
@@ -196,14 +196,26 @@ void DocumentWindow::openWindow(HWND parent)
 
 void DocumentWindow::propertyLayoutDidChange()
 {
-    int32_t count = TPInstanceGetPropertyCount(myInstance, TPScopeInput);
-    for (int32_t i = 0; i < count; i++)
+    int32_t groups;
+    TPError result = TPInstanceGetPropertyGroupCount(myInstance, TPScopeInput, &groups);
+    if (result == TPErrorNone)
     {
-        TPPropertyType type;
-        TPError result = TPInstancePropertyGetType(myInstance, TPScopeInput, i, &type);
-        if (result == TPErrorNone && type == TPPropertyTypeFloatStream)
+        for (int32_t i = 0; i < groups; i++)
         {
-            result = TPInstancePropertySetInputStreamDescription(myInstance, i, 400.0, 1, 4000);
+            int32_t properties;
+            result = TPInstanceGetPropertyCount(myInstance, TPScopeInput, i, &properties);
+            if (result == TPErrorNone)
+            {
+                for (int32_t j = 0; j < properties; j++)
+                {
+                    TPPropertyType type;
+                    TPError result = TPInstancePropertyGetType(myInstance, TPScopeInput, i, j, &type);
+                    if (result == TPErrorNone && type == TPPropertyTypeFloatStream)
+                    {
+                        result = TPInstancePropertySetInputStreamDescription(myInstance, i, j, 400.0, 1, 4000);
+                    }
+                }
+            }
         }
     }
 }
