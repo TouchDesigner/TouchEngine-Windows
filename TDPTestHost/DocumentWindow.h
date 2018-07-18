@@ -2,7 +2,7 @@
 
 #include <string>
 #include <atomic>
-#include <TouchPlugIn/TouchPlugIn.h>
+#include <TDP/TouchPlugIn.h>
 #include "Device.h"
 
 class DocumentWindow
@@ -16,7 +16,7 @@ public:
     void openWindow(HWND parent);
     HWND getWindow() const { return myWindow; };
     void didLoad() { myDidLoad = true; };
-    void propertyLayoutDidChange();
+    void parameterLayoutDidChange();
     void render();
     void cancelFrame();
 private:
