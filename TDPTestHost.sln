@@ -4,20 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TDPTestHost", "TDPTestHost\TDPTestHost.vcxproj", "{55CCF31C-35CD-49D8-8A38-94ABDF79CC53}"
-	ProjectSection(ProjectDependencies) = postProject
-		{8E259F64-56E1-47D8-A26B-18399BAA0614} = {8E259F64-56E1-47D8-A26B-18399BAA0614}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TDP", "..\src\touch\lib\H_UT\TDP\TDP.vcxproj", "{8E259F64-56E1-47D8-A26B-18399BAA0614}"
-	ProjectSection(ProjectDependencies) = postProject
-		{509F3F91-A64A-4E54-B709-7BD1E44F81B4} = {509F3F91-A64A-4E54-B709-7BD1E44F81B4}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TouchDesignerRunner", "..\src\touch\bin\author\TouchPlugIn\TouchDesignerRunner\TouchDesignerRunner.vcxproj", "{509F3F91-A64A-4E54-B709-7BD1E44F81B4}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IPM", "..\src\touch\lib\H_UT\IPM\IPM.vcxproj", "{20D6978D-3E1D-4BD1-9897-E8F538E8EBAC}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TPC", "..\src\touch\lib\H_UT\TPC\TPC.vcxproj", "{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,30 +21,6 @@ Global
 		{55CCF31C-35CD-49D8-8A38-94ABDF79CC53}.Release|x64.Build.0 = Release|x64
 		{55CCF31C-35CD-49D8-8A38-94ABDF79CC53}.Release|x86.ActiveCfg = Release|Win32
 		{55CCF31C-35CD-49D8-8A38-94ABDF79CC53}.Release|x86.Build.0 = Release|Win32
-		{8E259F64-56E1-47D8-A26B-18399BAA0614}.Debug|x64.ActiveCfg = Debug|x64
-		{8E259F64-56E1-47D8-A26B-18399BAA0614}.Debug|x64.Build.0 = Debug|x64
-		{8E259F64-56E1-47D8-A26B-18399BAA0614}.Debug|x86.ActiveCfg = Debug|x64
-		{8E259F64-56E1-47D8-A26B-18399BAA0614}.Release|x64.ActiveCfg = Release|x64
-		{8E259F64-56E1-47D8-A26B-18399BAA0614}.Release|x64.Build.0 = Release|x64
-		{8E259F64-56E1-47D8-A26B-18399BAA0614}.Release|x86.ActiveCfg = Release|x64
-		{509F3F91-A64A-4E54-B709-7BD1E44F81B4}.Debug|x64.ActiveCfg = Debug|x64
-		{509F3F91-A64A-4E54-B709-7BD1E44F81B4}.Debug|x64.Build.0 = Debug|x64
-		{509F3F91-A64A-4E54-B709-7BD1E44F81B4}.Debug|x86.ActiveCfg = Debug|x64
-		{509F3F91-A64A-4E54-B709-7BD1E44F81B4}.Release|x64.ActiveCfg = Release|x64
-		{509F3F91-A64A-4E54-B709-7BD1E44F81B4}.Release|x64.Build.0 = Release|x64
-		{509F3F91-A64A-4E54-B709-7BD1E44F81B4}.Release|x86.ActiveCfg = Release|x64
-		{20D6978D-3E1D-4BD1-9897-E8F538E8EBAC}.Debug|x64.ActiveCfg = Debug|x64
-		{20D6978D-3E1D-4BD1-9897-E8F538E8EBAC}.Debug|x64.Build.0 = Debug|x64
-		{20D6978D-3E1D-4BD1-9897-E8F538E8EBAC}.Debug|x86.ActiveCfg = Debug|x64
-		{20D6978D-3E1D-4BD1-9897-E8F538E8EBAC}.Release|x64.ActiveCfg = Release|x64
-		{20D6978D-3E1D-4BD1-9897-E8F538E8EBAC}.Release|x64.Build.0 = Release|x64
-		{20D6978D-3E1D-4BD1-9897-E8F538E8EBAC}.Release|x86.ActiveCfg = Release|x64
-		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Debug|x64.ActiveCfg = Debug|x64
-		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Debug|x64.Build.0 = Debug|x64
-		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Debug|x86.ActiveCfg = Debug|x64
-		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Release|x64.ActiveCfg = Release|x64
-		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Release|x64.Build.0 = Release|x64
-		{A14FACDC-A4E9-4A16-91B9-DF668F1F00B3}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

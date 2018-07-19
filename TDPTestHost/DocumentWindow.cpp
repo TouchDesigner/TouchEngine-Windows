@@ -149,11 +149,18 @@ DocumentWindow::~DocumentWindow()
     {
         PostMessageW(myWindow, WM_CLOSE, 0, 0);
     }
-    TPInstanceDestroy(myInstance);
+    if (myInstance)
+    {
+        TPInstanceDestroy(myInstance);
+    }
 }
 
 const std::wstring DocumentWindow::getPath() const
 {
+    if (myInstance == nullptr)
+    {
+        return std::wstring();
+    }
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     return converter.from_bytes(TPInstanceGetPath(myInstance));
 }
