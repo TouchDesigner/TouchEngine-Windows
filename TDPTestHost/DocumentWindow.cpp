@@ -88,7 +88,7 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
     return LRESULT();
 }
 
-void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPError error, int64_t time_value, int32_t time_scale, void * info)
+void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPResult result, int64_t time_value, int32_t time_scale, void * info)
 {
     DocumentWindow *window = static_cast<DocumentWindow *>(info);
 
@@ -101,7 +101,7 @@ void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPError
         window->parameterLayoutDidChange();
         break;
     case TPEventFrameDidFinish:
-        window->endFrame(time_value, time_scale, error);
+        window->endFrame(time_value, time_scale, result);
         break;
     default:
         break;
@@ -113,9 +113,9 @@ void DocumentWindow::propertyValueCallback(TPInstance * instance, TPScope scope,
 
 }
 
-void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPError error)
+void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPResult result)
 {
-    if (error != TPErrorNone)
+    if (result != TPResultSuccess)
     {
         // TODO: pass it out
     }
@@ -125,8 +125,8 @@ void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPError er
         std::array<float, 300> channel2;
         std::array<float *, 2> channels{ channel1.data(), channel2.data() };
         int64_t length = 300;
-        error = TPInstanceParameterGetOutputStreamValues(myInstance, 0, 1, channels.data(), 2, &length);
-        if (error == TPErrorNone)
+        result = TPInstanceParameterGetOutputStreamValues(myInstance, 0, 1, channels.data(), 2, &length);
+        if (result == TPResultSuccess)
         {
             // We would use the channel data here
         }
@@ -204,20 +204,20 @@ void DocumentWindow::openWindow(HWND parent)
 void DocumentWindow::parameterLayoutDidChange()
 {
     int32_t groups;
-    TPError result = TPInstanceGetParameterGroupCount(myInstance, TPScopeInput, &groups);
-    if (result == TPErrorNone)
+    TPResult result = TPInstanceGetParameterGroupCount(myInstance, TPScopeInput, &groups);
+    if (result == TPResultSuccess)
     {
         for (int32_t i = 0; i < groups; i++)
         {
             int32_t properties;
             result = TPInstanceGetParameterCount(myInstance, TPScopeInput, i, &properties);
-            if (result == TPErrorNone)
+            if (result == TPResultSuccess)
             {
                 for (int32_t j = 0; j < properties; j++)
                 {
                     TPParameterType type;
-                    TPError result = TPInstanceParameterGetType(myInstance, TPScopeInput, i, j, &type);
-                    if (result == TPErrorNone && type == TPParameterTypeFloatStream)
+                    TPResult result = TPInstanceParameterGetType(myInstance, TPScopeInput, i, j, &type);
+                    if (result == TPResultSuccess && type == TPParameterTypeFloatStream)
                     {
                         result = TPInstanceParameterSetInputStreamDescription(myInstance, i, j, 400.0, 1, 4000);
                     }
@@ -238,8 +238,8 @@ void DocumentWindow::render()
 
 void DocumentWindow::cancelFrame()
 {
-    TPError result = TPInstanceCancelFrame(myInstance);
-    if (result != TPErrorNone)
+    TPResult result = TPInstanceCancelFrame(myInstance);
+    if (result != TPResultSuccess)
     {
         // TODO: post it
     }
