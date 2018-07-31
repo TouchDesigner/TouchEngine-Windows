@@ -22,13 +22,17 @@ public:
 private:
     static wchar_t *WindowClassName;
     static void eventCallback(TPInstance *instance, TPEvent event, TPResult result, int64_t time_value, int32_t time_scale, void * info);
-    static void propertyValueCallback(TPInstance *instance, TPScope scope, int32_t group, int32_t index, void *info);
+    static void parameterValueCallback(TPInstance *instance, TPScope scope, int32_t group, int32_t index, void *info);
+    static const double InputSampleRate;
+    static const int32_t InputChannelCount;
+    static const int64_t InputSampleLimit;
     void endFrame(int64_t time_value, int32_t time_scale, TPResult result);
     TPInstance *myInstance;
     HWND myWindow;
     Device myDevice;
     std::atomic<bool> myDidLoad;
     std::atomic<bool> myInFrame;
+    double myLastFloatValue;
     float myLastStreamValue;
 };
 
