@@ -3,6 +3,7 @@
 #include "DocumentManager.h"
 #include "Resource.h"
 #include <codecvt>
+#include <vector>
 #include <array>
 
 wchar_t *DocumentWindow::WindowClassName = L"DocumentWindow";
@@ -154,14 +155,32 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, TPScope scope
             }
             case TPParameterTypeFloatStream:
             {
-                std::array<float, 300> channel1;
-                std::array<float, 300> channel2;
-                std::array<float *, 2> channels{ channel1.data(), channel2.data() };
-                int64_t length = 300;
-                result = TPInstanceParameterGetOutputStreamValues(doc->myInstance, group, index, channels.data(), 2, &length);
+                double rate;
+                int32_t channelCount;
+                int64_t maxSamples;
+
+                result = TPInstanceParameterGetStreamDescription(doc->myInstance, scope, group, index, &rate, &channelCount, &maxSamples);
+
                 if (result == TPResultSuccess)
                 {
-                    // We would use the channel data here
+                    std::vector <std::array<float, 300>> store(channelCount);
+                    std::vector<float *> channels;
+
+                    for (auto &arr : store)
+                    {
+                        channels.emplace_back(arr.data());
+                    }
+
+                    int64_t length = 300;
+                    result = TPInstanceParameterGetOutputStreamValues(doc->myInstance, group, index, channels.data(), channels.size(), &length);
+                    if (result == TPResultSuccess)
+                    {
+                        // Use the channel data here
+                        if (length > 0 && channels.size() > 0)
+                        {
+                            doc->myLastStreamValue = store.back()[length];
+                        }
+                    }
                 }
             }
                 break;
