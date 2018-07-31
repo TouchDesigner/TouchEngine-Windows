@@ -178,11 +178,11 @@ void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPResult r
 }
 
 DocumentWindow::DocumentWindow(std::wstring path)
-    : myInstance(nullptr), myWindow(nullptr), myDidLoad(false), myInFrame(false), myLastStreamValue(-1.0f), myLastFloatValue(0.0)
+    : myInstance(nullptr), myWindow(nullptr), myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::string utf8 = converter.to_bytes(path);
-    myInstance = TPInstanceCreate(utf8.c_str(), TPTimeExternal, eventCallback, parameterValueCallback, this);
+    myInstance = TPInstanceCreate(utf8.c_str(), TPTimeInternal, eventCallback, parameterValueCallback, this);
 }
 
 
@@ -327,6 +327,10 @@ void DocumentWindow::render()
 
         myLastFloatValue += 0.02;
     }
+
+    myDevice.setRenderTarget();
+    myDevice.clear(0.9f * myLastStreamValue, 0.3f * myLastStreamValue, 0.1f * myLastStreamValue, 1.0f);
+    myDevice.present();
 }
 
 void DocumentWindow::cancelFrame()
