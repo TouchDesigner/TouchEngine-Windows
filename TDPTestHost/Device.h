@@ -6,6 +6,9 @@ public:
     ~Device();
     HRESULT createDeviceResources();
     HRESULT createWindowResources(HWND window);
+    void setRenderTarget();
+    void clear(float r, float g, float b, float a);
+    void present();
 private:
     HRESULT configureBackBuffer();
     HRESULT releaseBackBuffer();

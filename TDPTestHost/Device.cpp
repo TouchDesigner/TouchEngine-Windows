@@ -110,6 +110,22 @@ HRESULT Device::createWindowResources(HWND window)
     return result;
 }
 
+void Device::setRenderTarget()
+{
+    myDeviceContext->OMSetRenderTargets(1, &myRenderTarget, myDepthStencilView);
+}
+
+void Device::clear(float r, float g, float b, float a)
+{
+    const float color[4] = { r, g, b, a };
+    myDeviceContext->ClearRenderTargetView(myRenderTarget, color);
+}
+
+void Device::present()
+{
+    mySwapChain->Present(1, 0);
+}
+
 HRESULT Device::configureBackBuffer()
 {
     HRESULT result = mySwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&myBackBuffer);
