@@ -178,7 +178,7 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, TPScope scope
                         // Use the channel data here
                         if (length > 0 && channels.size() > 0)
                         {
-                            doc->myLastStreamValue = store.back()[length];
+                            doc->myLastStreamValue = store.back()[length - 1];
                         }
                     }
                 }
