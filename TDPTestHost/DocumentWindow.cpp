@@ -96,6 +96,10 @@ void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPResul
 {
     DocumentWindow *window = static_cast<DocumentWindow *>(info);
 
+    if (result != TPResultSuccess)
+    {
+        int i = 32;
+    }
     switch (event)
     {
     case TPEventInstanceDidLoad:
@@ -291,10 +295,9 @@ void DocumentWindow::parameterLayoutDidChange()
 
 void DocumentWindow::render()
 {
+    float color[4] = { myDidLoad ? 0.6f : 0.6f, myDidLoad ? 0.6f : 0.6f, myDidLoad ? 1.0f : 0.6f, 1.0f};
     if (myDidLoad && !myInFrame)
     {
-        myInFrame = true;
-
         int32_t groups;
         TPResult result = TPInstanceGetParameterGroupCount(myInstance, TPScopeInput, &groups);
         if (result == TPResultSuccess)
@@ -313,7 +316,7 @@ void DocumentWindow::render()
                             switch (type)
                             {
                             case TPParameterTypeFloat:
-                                result = TPInstanceParameterSetFloatValue(myInstance, i, j, fmod(myLastFloatValue, 1.0));
+                                result = TPInstanceParameterSetFloatValue(myInstance, i, j, fmodf(myLastFloatValue, 1.0f));
                                 break;
                             case TPParameterTypeIndex:
                                 result = TPInstanceParameterSetIndexValue(myInstance, i, j, static_cast<int>(myLastFloatValue * 00) % 100);
@@ -342,13 +345,21 @@ void DocumentWindow::render()
             }
         }
 
-        TPInstanceStartFrameAtTime(myInstance, 1000, 1000 * 1000);
-
-        myLastFloatValue += 0.02;
+        if (TPInstanceStartFrameAtTime(myInstance, 1000, 1000 * 1000) == TPResultSuccess)
+        {
+            myInFrame = true;
+            myLastFloatValue += 1/(60 * 8);
+        }
+        else
+        {
+            myLastStreamValue = 1.0;
+            color[0] = 1.0f;
+            color[1] = color[2] = 0.2f;
+        }
     }
 
     myDevice.setRenderTarget();
-    myDevice.clear(0.9f * myLastStreamValue, 0.3f * myLastStreamValue, 0.1f * myLastStreamValue, 1.0f);
+    myDevice.clear(color[0] * myLastStreamValue, color[1] * myLastStreamValue, color[2] * myLastStreamValue, color[3]);
     myDevice.present();
 }
 
