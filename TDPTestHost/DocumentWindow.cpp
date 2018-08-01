@@ -101,7 +101,7 @@ void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPResul
     case TPEventInstanceDidLoad:
         window->didLoad();
         break;
-    case TPEventInstanceParameterLayoutDidChange:
+    case TPEventParameterLayoutDidChange:
         window->parameterLayoutDidChange();
         break;
     case TPEventFrameDidFinish:
