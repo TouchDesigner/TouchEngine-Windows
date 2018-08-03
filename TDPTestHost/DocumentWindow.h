@@ -26,6 +26,7 @@ private:
     static const double InputSampleRate;
     static const int32_t InputChannelCount;
     static const int64_t InputSampleLimit;
+    static const int64_t InputSamplesPerFrame;
     void endFrame(int64_t time_value, int32_t time_scale, TPResult result);
     TPInstance *myInstance;
     HWND myWindow;

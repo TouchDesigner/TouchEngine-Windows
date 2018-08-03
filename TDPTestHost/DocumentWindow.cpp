@@ -9,7 +9,8 @@
 wchar_t *DocumentWindow::WindowClassName = L"DocumentWindow";
 const int32_t DocumentWindow::InputChannelCount = 2;
 const double DocumentWindow::InputSampleRate = 44100.0;
-const int64_t DocumentWindow::InputSampleLimit = 400;
+const int64_t DocumentWindow::InputSampleLimit = 44100 / 2;
+const int64_t DocumentWindow::InputSamplesPerFrame = 44100 / 60;
 
 HINSTANCE theInstance;
 
@@ -329,7 +330,7 @@ void DocumentWindow::render()
                                 break;
                             case TPParameterTypeFloatStream:
                             {
-                                std::array<float, InputSampleLimit> channel;
+                                std::array<float, InputSamplesPerFrame> channel;
                                 std::fill(channel.begin(), channel.end(), static_cast<float>(fmod(myLastFloatValue, 1.0)));
                                 std::array<const float *, InputChannelCount> channels;
                                 std::fill(channels.begin(), channels.end(), channel.data());
