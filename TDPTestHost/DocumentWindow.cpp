@@ -316,7 +316,7 @@ void DocumentWindow::render()
                             switch (type)
                             {
                             case TPParameterTypeFloat:
-                                result = TPInstanceParameterSetFloatValue(myInstance, i, j, fmodf(myLastFloatValue, 1.0f));
+                                result = TPInstanceParameterSetFloatValue(myInstance, i, j, fmod(myLastFloatValue, 1.0));
                                 break;
                             case TPParameterTypeIndex:
                                 result = TPInstanceParameterSetIndexValue(myInstance, i, j, static_cast<int>(myLastFloatValue * 00) % 100);
