@@ -168,15 +168,16 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, TPScope scope
 
                 if (result == TPResultSuccess)
                 {
-                    std::vector <std::array<float, 300>> store(channelCount);
+                    std::vector <std::vector<float>> store(channelCount);
                     std::vector<float *> channels;
 
-                    for (auto &arr : store)
+                    for (auto &vector : store)
                     {
-                        channels.emplace_back(arr.data());
+                        vector.resize(maxSamples);
+                        channels.emplace_back(vector.data());
                     }
 
-                    int64_t length = 300;
+                    int64_t length = maxSamples;
                     result = TPInstanceParameterGetOutputStreamValues(doc->myInstance, group, index, channels.data(), channels.size(), &length);
                     if (result == TPResultSuccess)
                     {
@@ -351,7 +352,7 @@ void DocumentWindow::render()
         if (TPInstanceStartFrameAtTime(myInstance, 1000, 1000 * 1000) == TPResultSuccess)
         {
             myInFrame = true;
-            myLastFloatValue += 1/(60 * 8);
+            myLastFloatValue += 1.0/(60.0 * 8.0);
         }
         else
         {
@@ -362,7 +363,8 @@ void DocumentWindow::render()
     }
 
     myDevice.setRenderTarget();
-    myDevice.clear(color[0] * myLastStreamValue, color[1] * myLastStreamValue, color[2] * myLastStreamValue, color[3]);
+    float intensity = (myLastStreamValue + 1.0) / 2.0;
+    myDevice.clear(color[0] * intensity, color[1] * intensity, color[2] * intensity, color[3]);
     myDevice.present();
 }
 
