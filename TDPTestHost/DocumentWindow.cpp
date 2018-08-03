@@ -328,13 +328,15 @@ void DocumentWindow::render()
                                 // TODO: 
                                 break;
                             case TPParameterTypeFloatStream:
+                            {
                                 std::array<float, InputSampleLimit> channel;
                                 std::fill(channel.begin(), channel.end(), static_cast<float>(fmod(myLastFloatValue, 1.0)));
                                 std::array<const float *, InputChannelCount> channels;
                                 std::fill(channels.begin(), channels.end(), channel.data());
-                                int64_t filled;
+                                int64_t filled = channel.size();
                                 result = TPInstanceParameterAppendStreamValues(myInstance, i, j, channels.data(), static_cast<int32_t>(channels.size()), &filled);
                                 break;
+                            }
                             default:
                                 break;
                             }
