@@ -130,6 +130,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 
+   DocumentManager::sharedManager().restoreOpenWindows(hWnd);
+
    return TRUE;
 }
 
@@ -175,6 +177,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hWnd, &ps);
         }
         break;
+    case WM_CLOSE:
+    {
+        DocumentManager::sharedManager().storeOpenWindows();
+        DestroyWindow(hWnd);
+        break;
+    }
     case WM_DESTROY:
         PostQuitMessage(0);
         break;

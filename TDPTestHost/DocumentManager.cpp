@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "DocumentManager.h"
-
+#include <ShlObj.h>
+#include <PathCch.h>
+#include <fstream>
 
 DocumentManager & DocumentManager::sharedManager()
 {
@@ -10,19 +12,7 @@ DocumentManager & DocumentManager::sharedManager()
 
 bool DocumentManager::open(const std::wstring & path, HWND parent)
 {
-    for each (auto doc in myDocuments)
-    {
-        if (doc.second->getPath() == path)
-        {
-            // already open
-            // TODO: order to raise to front
-            return true;
-        }
-    }
-    std::shared_ptr<DocumentWindow> opened(std::make_shared<DocumentWindow>(path));
-    opened->openWindow(parent);
-    myDocuments[opened->getWindow()] = opened;
-    return true;
+    return open(path, parent, true);
 }
 
 std::shared_ptr<DocumentWindow> DocumentManager::lookup(HWND window) const
@@ -50,6 +40,56 @@ void DocumentManager::didClose(HWND window)
     myDocuments.erase(window);
 }
 
+void DocumentManager::storeOpenWindows()
+{
+    if (myDocuments.size() > 0)
+    {
+        std::wstring path = getSettingsPath();
+        if (!path.empty())
+        {
+            std::wofstream stream(path, std::ofstream::out | std::ofstream::trunc);
+            for each (const auto entry in myDocuments)
+            {
+                stream << entry.second->getPath() << std::endl;
+            }
+        }
+    }
+}
+
+bool DocumentManager::open(const std::wstring & path, HWND parent, bool update)
+{
+    for each (auto doc in myDocuments)
+    {
+        if (doc.second->getPath() == path)
+        {
+            // already open
+            SetActiveWindow(doc.second->getWindow());
+            return true;
+        }
+    }
+    std::shared_ptr<DocumentWindow> opened(std::make_shared<DocumentWindow>(path));
+    opened->openWindow(parent);
+    myDocuments[opened->getWindow()] = opened;
+    if (update)
+    {
+        storeOpenWindows();
+    }
+    return true;
+}
+
+void DocumentManager::restoreOpenWindows(HWND parent)
+{
+    std::wstring path = getSettingsPath();
+    if (!path.empty())
+    {
+        std::wifstream stream(path);
+        for (std::wstring line; std::getline(stream, line); )
+        {
+            open(line, parent, false);
+        }
+    }
+}
+
 DocumentManager::DocumentManager()
 {
 }
@@ -57,4 +97,37 @@ DocumentManager::DocumentManager()
 
 DocumentManager::~DocumentManager()
 {
+    
+}
+
+std::wstring DocumentManager::getSettingsPath()
+{
+    PWSTR path;
+    auto result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &path);
+    if (result == S_OK)
+    {
+        WCHAR buffer[MAX_PATH];
+        wcscpy_s(buffer, MAX_PATH, path);
+        result = PathCchAppend(buffer, MAX_PATH, L"Derivative\\TDPTestHost");
+        if (result == S_OK)
+        {
+            if (CreateDirectoryW(buffer, nullptr) == 0 && GetLastError() != ERROR_ALREADY_EXISTS)
+            {
+                result = S_FALSE;
+            }
+        }
+        if (result == S_OK)
+        {
+            result = PathCchAppend(buffer, MAX_PATH, L"OpenFileList.txt");
+        }
+
+
+        CoTaskMemFree(path);
+
+        if (result == S_OK)
+        {
+            return buffer;
+        }
+    }
+    return std::wstring();
 }
