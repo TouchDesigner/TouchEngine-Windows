@@ -203,7 +203,7 @@ void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPResult r
 }
 
 DocumentWindow::DocumentWindow(std::wstring path)
-    : myInstance(nullptr), myWindow(nullptr), myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0)
+    : myInstance(nullptr), myWindow(nullptr), myRenderer(myDevice), myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::string utf8 = converter.to_bytes(path);
@@ -264,8 +264,16 @@ void DocumentWindow::openWindow(HWND parent)
     }
     if (SUCCEEDED(result))
     {
-        myDevice.createDeviceResources();
-        myDevice.createWindowResources(myWindow);
+        result = myDevice.createDeviceResources();
+    }
+    if (SUCCEEDED(result))
+    {
+        // Create window resources with no depth-stencil buffer
+        result = myDevice.createWindowResources(myWindow, false);
+    }
+    if (SUCCEEDED(result))
+    {
+        result = myRenderer.setup() ? S_OK : EIO;
     }
 }
 
@@ -362,10 +370,9 @@ void DocumentWindow::render()
         }
     }
 
-    myDevice.setRenderTarget();
     float intensity = (myLastStreamValue + 1.0) / 2.0;
-    myDevice.clear(color[0] * intensity, color[1] * intensity, color[2] * intensity, color[3]);
-    myDevice.present();
+    myRenderer.setBackgroundColor(color[0] * intensity, color[1] * intensity, color[2] * intensity);
+    myRenderer.render();
 }
 
 void DocumentWindow::cancelFrame()

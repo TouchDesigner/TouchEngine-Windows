@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "Device.h"
-
+#include "FileReader.h"
 
 Device::Device()
+    : myDepthStencil(nullptr), myDepthStencilView(nullptr)
 {
 }
 
@@ -56,7 +57,7 @@ HRESULT Device::createDeviceResources()
     return result;
 }
 
-HRESULT Device::createWindowResources(HWND window)
+HRESULT Device::createWindowResources(HWND window, bool depth)
 {
     DXGI_SWAP_CHAIN_DESC desc;
     ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
@@ -104,10 +105,103 @@ HRESULT Device::createWindowResources(HWND window)
 
     if (SUCCEEDED(result))
     {
-        result = configureBackBuffer();
+        result = configureBackBuffer(depth);
     }
 
     return result;
+}
+
+VertexShader Device::loadVertexShader(const std::wstring & file, const D3D11_INPUT_ELEMENT_DESC *layoutDescription, int count)
+{
+    VertexShader out;
+    HRESULT result = S_OK;
+
+    std::wstring path = getResourcePath();
+
+    if (path.empty())
+    {
+        result = EBADF;
+    }
+
+
+    FileReader reader(path + file);
+    std::vector<unsigned char> compiled;
+
+    if (!reader.read(compiled))
+    {
+        result = EBADF;
+    }
+
+    ID3D11VertexShader *shader = nullptr;
+
+    if (SUCCEEDED(result))
+    {
+        result = myDevice->CreateVertexShader(compiled.data(), compiled.size(), nullptr, &shader);
+    }
+    
+    ID3D11InputLayout *layout = nullptr;
+
+    if (SUCCEEDED(result))
+    {
+        result = myDevice->CreateInputLayout(layoutDescription, count, compiled.data(), compiled.size(), &layout);
+    }
+    if (SUCCEEDED(result))
+    {
+        out = VertexShader(shader, layout);
+    }
+    if (shader)
+    {
+        shader->Release();
+    }
+    if (layout)
+    {
+        layout->Release();
+    }
+    return out;
+}
+
+ID3D11PixelShader * Device::loadPixelShader(const std::wstring & file)
+{
+    HRESULT result = S_OK;
+
+    std::wstring path = getResourcePath();
+
+    if (path.empty())
+    {
+        result = EBADF;
+    }
+
+
+    FileReader reader(path + file);
+    std::vector<unsigned char> compiled;
+
+    if (!reader.read(compiled))
+    {
+        result = EBADF;
+    }
+
+    ID3D11PixelShader *shader = nullptr;
+
+    if (SUCCEEDED(result))
+    {
+        result = myDevice->CreatePixelShader(compiled.data(), compiled.size(), nullptr, &shader);
+    }
+
+    if (SUCCEEDED(result))
+    {
+        return shader;
+    }
+    return nullptr;
+}
+
+ID3D11Buffer * Device::loadIndexBuffer(unsigned short * indices, int count)
+{
+    return loadBuffer(sizeof(unsigned short) * count, D3D11_BIND_INDEX_BUFFER, indices);
+}
+
+DirectXTexture Device::loadTexture(const unsigned char * src, int bytesPerRow, int width, int height)
+{
+    return DirectXTexture(myDevice, src, bytesPerRow, width, height);
 }
 
 void Device::setRenderTarget()
@@ -126,7 +220,58 @@ void Device::present()
     mySwapChain->Present(1, 0);
 }
 
-HRESULT Device::configureBackBuffer()
+void Device::setInputLayout(VertexShader & shader)
+{
+    shader.setInputLayout(myDeviceContext);
+}
+
+void Device::setIndexBuffer(ID3D11Buffer * buffer)
+{
+    myDeviceContext->IASetIndexBuffer(buffer, DXGI_FORMAT_R16_UINT, 0);
+}
+
+void Device::setTriangleListTopology()
+{
+    myDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+void Device::setVertexShader(VertexShader & shader)
+{
+    shader.setShader(myDeviceContext);
+}
+
+void Device::setPixelShader(ID3D11PixelShader * shader)
+{
+    myDeviceContext->PSSetShader(shader, nullptr, 0);
+}
+
+void Device::setShaderResourceAndSampler(DirectXTexture & texture)
+{
+    texture.setResourceAndSampler(myDeviceContext);
+}
+
+void Device::drawIndexed(int count)
+{
+    myDeviceContext->DrawIndexed(count, 0, 0);
+}
+
+std::wstring Device::getResourcePath() const
+{
+    WCHAR buffer[MAX_PATH];
+    std::wstring prefix;
+    if (GetModuleFileName(nullptr, buffer, MAX_PATH))
+    {
+        WCHAR drive[_MAX_DRIVE];
+        WCHAR dir[_MAX_DIR];
+        if (_wsplitpath_s(buffer, drive, _MAX_DRIVE, dir, _MAX_DIR, nullptr, 0, nullptr, 0) == 0)
+        {
+            return std::wstring(drive) + dir;
+        }
+    }
+    return std::wstring();
+}
+
+HRESULT Device::configureBackBuffer(bool depth)
 {
     HRESULT result = mySwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&myBackBuffer);
 
@@ -137,18 +282,22 @@ HRESULT Device::configureBackBuffer()
     if (SUCCEEDED(result))
     {
         myBackBuffer->GetDesc(&myBackBufferDescription);
-        CD3D11_TEXTURE2D_DESC depthStencilDesc(DXGI_FORMAT_D24_UNORM_S8_UINT,
-            static_cast<UINT>(myBackBufferDescription.Width),
-            static_cast<UINT>(myBackBufferDescription.Height),
-            1,
-            1,
-            D3D11_BIND_DEPTH_STENCIL);
 
-        myDevice->CreateTexture2D(&depthStencilDesc, nullptr, &myDepthStencil);
+        if (depth)
+        {
+            CD3D11_TEXTURE2D_DESC depthStencilDesc(DXGI_FORMAT_D24_UNORM_S8_UINT,
+                static_cast<UINT>(myBackBufferDescription.Width),
+                static_cast<UINT>(myBackBufferDescription.Height),
+                1,
+                1,
+                D3D11_BIND_DEPTH_STENCIL);
 
-        CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
+            myDevice->CreateTexture2D(&depthStencilDesc, nullptr, &myDepthStencil);
 
-        myDevice->CreateDepthStencilView(myDepthStencil, &depthStencilViewDesc, &myDepthStencilView);
+            CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
+
+            myDevice->CreateDepthStencilView(myDepthStencil, &depthStencilViewDesc, &myDepthStencilView);
+        }
 
         ZeroMemory(&myViewport, sizeof(D3D11_VIEWPORT));
         myViewport.Height = (float)myBackBufferDescription.Height;
@@ -187,4 +336,30 @@ HRESULT Device::releaseBackBuffer()
     }
     myDeviceContext->Flush();
     return S_OK;
+}
+
+ID3D11Buffer * Device::loadBuffer(unsigned int size, D3D11_BIND_FLAG flags, const void *data)
+{
+    D3D11_BUFFER_DESC bufferDescription = { 0 };
+    bufferDescription.ByteWidth = size;
+    bufferDescription.Usage = D3D11_USAGE_DEFAULT;
+    bufferDescription.BindFlags = flags;
+    bufferDescription.CPUAccessFlags = 0;
+    bufferDescription.MiscFlags = 0;
+    bufferDescription.StructureByteStride = 0;
+
+    D3D11_SUBRESOURCE_DATA vertexBufferData;
+    vertexBufferData.pSysMem = data;
+    vertexBufferData.SysMemPitch = 0;
+    vertexBufferData.SysMemSlicePitch = 0;
+
+    ID3D11Buffer *buffer;
+
+    HRESULT result = myDevice->CreateBuffer(&bufferDescription, &vertexBufferData, &buffer);
+
+    if (SUCCEEDED(result))
+    {
+        return buffer;
+    }
+    return nullptr;
 }

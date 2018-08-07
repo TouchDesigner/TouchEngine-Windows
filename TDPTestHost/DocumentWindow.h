@@ -4,6 +4,7 @@
 #include <atomic>
 #include <TDP/TouchPlugIn.h>
 #include "Device.h"
+#include "DirectXRenderer.h"
 
 class DocumentWindow
 {
@@ -31,6 +32,7 @@ private:
     TPInstance *myInstance;
     HWND myWindow;
     Device myDevice;
+    DirectXRenderer myRenderer;
     std::atomic<bool> myDidLoad;
     std::atomic<bool> myInFrame;
     double myLastFloatValue;
