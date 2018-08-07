@@ -377,9 +377,12 @@ void DocumentWindow::render()
 
 void DocumentWindow::cancelFrame()
 {
-    TPResult result = TPInstanceCancelFrame(myInstance);
-    if (result != TPResultSuccess)
+    if (myInFrame)
     {
-        // TODO: post it
+        TPResult result = TPInstanceCancelFrame(myInstance);
+        if (result != TPResultSuccess)
+        {
+            // TODO: post it
+        }
     }
 }
