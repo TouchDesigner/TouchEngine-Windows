@@ -9,6 +9,7 @@ public:
     DirectXTexture(DirectXTexture &&o);
     DirectXTexture &operator=(DirectXTexture &&o);
     ~DirectXTexture();
+    ID3D11Texture2D *getTexture() const;
     bool isValid() const;
     void setResourceAndSampler(ID3D11DeviceContext *context);
 private:

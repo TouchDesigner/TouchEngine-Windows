@@ -335,8 +335,13 @@ void DocumentWindow::render()
                                 result = TPInstanceParameterSetStringValue(myInstance, i, j, "test input");
                                 break;
                             case TPParameterTypeTexture:
-                                // TODO: 
+                            {
+                                ID3D11Texture2D *t = myRenderer.getTexture();
+                                TPD3DTexture *texture = TPD3DTextureCreate(t);
+                                result = TPInstanceParameterSetTextureValue(myInstance, i, j, texture);
+                                TPTextureRelease(texture);
                                 break;
+                            }
                             case TPParameterTypeFloatStream:
                             {
                                 std::array<float, InputSamplesPerFrame> channel;

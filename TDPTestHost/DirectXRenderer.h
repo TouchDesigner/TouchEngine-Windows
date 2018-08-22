@@ -14,6 +14,9 @@ public:
     virtual ~DirectXRenderer();
     virtual bool setup() override;
     virtual bool render() override;
+    ID3D11Texture2D *getTexture() const {
+        return myTexture.getTexture();
+    }
 private:
     struct BasicVertex
     {

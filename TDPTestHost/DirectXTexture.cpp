@@ -35,6 +35,11 @@ DirectXTexture::~DirectXTexture()
     releaseResources();
 }
 
+ID3D11Texture2D * DirectXTexture::getTexture() const
+{
+    return myTexture;
+}
+
 bool DirectXTexture::isValid() const
 {
     if (myTexture && myTextureView && mySampler)
@@ -79,7 +84,7 @@ DirectXTexture::DirectXTexture(ID3D11Device *device, const unsigned char * src, 
     D3D11_TEXTURE2D_DESC description = { 0 };
     description.Width = width;
     description.Height = height;
-    description.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    description.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
     description.Usage = D3D11_USAGE_DEFAULT;
     description.CPUAccessFlags = 0;
     description.MiscFlags = 0;
