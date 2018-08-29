@@ -132,7 +132,7 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, TPScope scope
             case TPParameterTypeDouble:
             {
                 double value;
-                result = TPInstanceParameterGetFloatValue(doc->myInstance, scope, group, index, &value);
+                result = TPInstanceParameterGetDoubleValue(doc->myInstance, scope, group, index, &value);
                 break;
             }
             case TPParameterTypeInt32:
@@ -326,7 +326,7 @@ void DocumentWindow::render()
                             switch (type)
                             {
                             case TPParameterTypeDouble:
-                                result = TPInstanceParameterSetFloatValue(myInstance, i, j, fmod(myLastFloatValue, 1.0));
+                                result = TPInstanceParameterSetDoubleValue(myInstance, i, j, fmod(myLastFloatValue, 1.0));
                                 break;
                             case TPParameterTypeInt32:
                                 result = TPInstanceParameterSetInt32Value(myInstance, i, j, static_cast<int>(myLastFloatValue * 00) % 100);
