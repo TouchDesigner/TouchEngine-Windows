@@ -135,10 +135,10 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, TPScope scope
                 result = TPInstanceParameterGetFloatValue(doc->myInstance, scope, group, index, &value);
                 break;
             }
-            case TPParameterTypeIndex:
+            case TPParameterTypeInt32:
             {
-                int64_t value;
-                result = TPInstanceParameterGetIndexValue(doc->myInstance, scope, group, index, &value);
+                int32_t value;
+                result = TPInstanceParameterGetInt32Value(doc->myInstance, scope, group, index, &value);
                 break;
             }
             case TPParameterTypeString:
@@ -328,8 +328,8 @@ void DocumentWindow::render()
                             case TPParameterTypeDouble:
                                 result = TPInstanceParameterSetFloatValue(myInstance, i, j, fmod(myLastFloatValue, 1.0));
                                 break;
-                            case TPParameterTypeIndex:
-                                result = TPInstanceParameterSetIndexValue(myInstance, i, j, static_cast<int>(myLastFloatValue * 00) % 100);
+                            case TPParameterTypeInt32:
+                                result = TPInstanceParameterSetInt32Value(myInstance, i, j, static_cast<int>(myLastFloatValue * 00) % 100);
                                 break;
                             case TPParameterTypeString:
                                 result = TPInstanceParameterSetStringValue(myInstance, i, j, "test input");
