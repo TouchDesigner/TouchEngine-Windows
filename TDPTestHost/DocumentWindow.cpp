@@ -153,8 +153,40 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, TPScope scope
                 result = TPInstanceParameterCopyTextureValue(doc->myInstance, scope, group, index, &texture);
                 if (result == TPResultSuccess)
                 {
-                    // Do something with the texture here
-                    TPTextureRelease(texture);
+                    size_t imageIndex = doc->myOutputParameterTextureMap[std::make_pair(group, index)].first;
+
+                    TPTexture *d3d = nullptr;
+                    if (texture && TPTextureGetType(texture) == TPTextureTypeD3D)
+                    {
+                        // Retain as we release <d3d> and <texture>
+                        d3d = TPTextureRetain(texture);
+                    }
+                    else if (texture && TPTextureGetType(texture) == TPTextureTypeDXGI)
+                    {
+                        // TODO: check multi-threading allowed on ID3D11Device here
+                        d3d = TPD3DTextureCreateFromDXGI(doc->myDevice.getDevice(), texture);
+                    }
+                    else if (texture && TPTextureGetType(texture) == TPTextureTypeOpenGL)
+                    {
+                        // TODO: or document output is always TPTextureTypeDXGI
+                    }
+                    if (d3d)
+                    {
+                        DirectXTexture tex(TPD3DTextureGetTexture(d3d));
+                        doc->myRenderer.replaceRightSideTexture(imageIndex, tex);
+                        doc->myOutputParameterTextureMap[std::make_pair(group, index)].second = std::shared_ptr<TPTexture *>(new TPTexture *(d3d), [] (TPTexture **t) {
+                            TPTextureRelease(*t);
+                            delete t;
+                        });
+                    }
+                    else
+                    {
+                        doc->myRenderer.replaceRightSideTexture(imageIndex, DirectXTexture());
+                    }
+                    if (texture)
+                    {
+                        TPTextureRelease(texture);
+                    }
                 }
                 break;
             }
@@ -213,13 +245,16 @@ DocumentWindow::DocumentWindow(std::wstring path)
 
 DocumentWindow::~DocumentWindow()
 {
-    if (myWindow)
-    {
-        PostMessageW(myWindow, WM_CLOSE, 0, 0);
-    }
     if (myInstance)
     {
         TPInstanceDestroy(myInstance);
+    }
+    myRenderer.stop();
+    myDevice.stop();
+    
+    if (myWindow)
+    {
+        PostMessageW(myWindow, WM_CLOSE, 0, 0);
     }
 }
 
@@ -279,28 +314,63 @@ void DocumentWindow::openWindow(HWND parent)
 
 void DocumentWindow::parameterLayoutDidChange()
 {
-    int32_t groups;
-    TPResult result = TPInstanceGetParameterGroupCount(myInstance, TPScopeInput, &groups);
-    if (result == TPResultSuccess)
+    myRenderer.clearLeftSideImages();
+    myRenderer.clearRightSideImages();
+    myOutputParameterTextureMap.clear();
+
+    std::array<TPScope, 2> scopes{ TPScopeInput, TPScopeOutput };
+
+    for (auto scope : scopes)
     {
-        for (int32_t i = 0; i < groups; i++)
+        int32_t groups;
+        TPResult result = TPInstanceGetParameterGroupCount(myInstance, scope, &groups);
+        if (result == TPResultSuccess)
         {
-            int32_t properties;
-            result = TPInstanceGetParameterCount(myInstance, TPScopeInput, i, &properties);
-            if (result == TPResultSuccess)
+            for (int32_t i = 0; i < groups; i++)
             {
-                for (int32_t j = 0; j < properties; j++)
+                int32_t properties;
+                result = TPInstanceGetParameterCount(myInstance, scope, i, &properties);
+                if (result == TPResultSuccess)
                 {
-                    TPParameterType type;
-                    TPResult result = TPInstanceParameterGetType(myInstance, TPScopeInput, i, j, &type);
-                    if (result == TPResultSuccess && type == TPParameterTypeFloatStream)
+                    for (int32_t j = 0; j < properties; j++)
                     {
-                        result = TPInstanceParameterSetInputStreamDescription(myInstance, i, j, InputSampleRate, InputChannelCount, InputSampleLimit);
+                        TPParameterType type;
+                        TPResult result = TPInstanceParameterGetType(myInstance, scope, i, j, &type);
+                        if (result == TPResultSuccess && type == TPParameterTypeFloatStream && scope == TPScopeInput)
+                        {
+                            result = TPInstanceParameterSetInputStreamDescription(myInstance, i, j, InputSampleRate, InputChannelCount, InputSampleLimit);
+                        }
+                        else if (result == TPResultSuccess && type == TPParameterTypeTexture)
+                        {
+                            if (scope == TPScopeInput)
+                            {
+                                std::array<unsigned char, 256 * 256 * 4> tex;
+
+                                for (int y = 0; y < 256; y++)
+                                {
+                                    for (int x = 0; x < 256; x++)
+                                    {
+                                        tex[(y * 256 * 4) + (x * 4) + 0] = x;
+                                        tex[(y * 256 * 4) + (x * 4) + 1] = 40;
+                                        tex[(y * 256 * 4) + (x * 4) + 2] = y;
+                                        tex[(y * 256 * 4) + (x * 4) + 3] = 255;
+                                    }
+                                }
+
+                                DirectXTexture texture = myDevice.loadTexture(tex.data(), 256 * 4, 256, 256);
+                                myRenderer.addLeftSideTexture(texture);
+                            }
+                            else
+                            {
+                                myRenderer.addRightSideImage();
+                                myOutputParameterTextureMap[std::make_pair(i, j)] = std::make_pair(myRenderer.getRightSideImageCount() - 1, nullptr);
+                            }
+                        }
                     }
                 }
             }
         }
-    }
+    }    
 }
 
 void DocumentWindow::render()
@@ -312,6 +382,7 @@ void DocumentWindow::render()
         TPResult result = TPInstanceGetParameterGroupCount(myInstance, TPScopeInput, &groups);
         if (result == TPResultSuccess)
         {
+            int textureCount = 0;
             for (int32_t i = 0; i < groups; i++)
             {
                 int32_t properties;
@@ -336,10 +407,12 @@ void DocumentWindow::render()
                                 break;
                             case TPParameterTypeTexture:
                             {
-                                ID3D11Texture2D *t = myRenderer.getTexture();
+                                ID3D11Texture2D *t = myRenderer.getLeftSideImage(textureCount).getTexture();
                                 TPD3DTexture *texture = TPD3DTextureCreate(t);
                                 result = TPInstanceParameterSetTextureValue(myInstance, i, j, texture);
                                 TPTextureRelease(texture);
+
+                                textureCount++;
                                 break;
                             }
                             case TPParameterTypeFloatStream:

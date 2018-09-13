@@ -2,8 +2,9 @@
 
 #include <string>
 #include <atomic>
+#include <map>
 #include <TDP/TouchPlugIn.h>
-#include "Device.h"
+#include "DirectXDevice.h"
 #include "DirectXRenderer.h"
 
 class DocumentWindow
@@ -31,11 +32,13 @@ private:
     void endFrame(int64_t time_value, int32_t time_scale, TPResult result);
     TPInstance *myInstance;
     HWND myWindow;
-    Device myDevice;
+    DirectXDevice myDevice;
     DirectXRenderer myRenderer;
     std::atomic<bool> myDidLoad;
     std::atomic<bool> myInFrame;
     double myLastFloatValue;
     float myLastStreamValue;
+    // TP group/index pair to renderer index/TPTexture pair
+    std::map<std::pair<int32_t, int32_t>, std::pair<size_t, std::shared_ptr<TPTexture *>>> myOutputParameterTextureMap;
 };
 

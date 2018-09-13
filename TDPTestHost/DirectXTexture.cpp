@@ -9,7 +9,7 @@ DirectXTexture::DirectXTexture()
 
 
 DirectXTexture::DirectXTexture(DirectXTexture && o)
-    : myTexture(o.myTexture), myTextureView(o.myTextureView), mySampler(o.mySampler), myWidth(o.myWidth), myHeight(o.myHeight)
+    : myTexture(o.myTexture), myTextureView(o.myTextureView), mySampler(o.mySampler)
 {
     o.myTexture = nullptr;
     o.myTextureView = nullptr;
@@ -25,8 +25,6 @@ DirectXTexture & DirectXTexture::operator=(DirectXTexture && o)
     o.myTextureView = nullptr;
     mySampler = o.mySampler;
     o.mySampler = nullptr;
-    myWidth = o.myWidth;
-    myHeight = o.myHeight;
     return *this;
 }
 
@@ -55,6 +53,62 @@ void DirectXTexture::setResourceAndSampler(ID3D11DeviceContext * context)
     context->PSSetSamplers(0, 1, &mySampler);
 }
 
+int DirectXTexture::getWidth() const
+{
+    if (myTexture)
+    {
+        D3D11_TEXTURE2D_DESC description;
+        myTexture->GetDesc(&description);
+        return description.Width;
+    }
+    return 0;
+}
+
+int DirectXTexture::getHeight() const
+{
+    if (myTexture)
+    {
+        D3D11_TEXTURE2D_DESC description;
+        myTexture->GetDesc(&description);
+        return description.Height;
+    }
+    return 0;
+}
+
+HRESULT DirectXTexture::createShaderResourceView(ID3D11Device *device, const D3D11_TEXTURE2D_DESC & description)
+{
+    D3D11_SHADER_RESOURCE_VIEW_DESC textureViewDescription;
+    ZeroMemory(&textureViewDescription, sizeof(textureViewDescription));
+    textureViewDescription.Format = description.Format;
+    textureViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    textureViewDescription.Texture2D.MipLevels = description.MipLevels;
+    textureViewDescription.Texture2D.MostDetailedMip = 0;
+    return device->CreateShaderResourceView(myTexture, &textureViewDescription, &myTextureView);
+}
+
+HRESULT DirectXTexture::createSamplerState(ID3D11Device * device, const D3D11_TEXTURE2D_DESC & description)
+{
+    D3D11_SAMPLER_DESC samplerDescription;
+    ZeroMemory(&samplerDescription, sizeof(samplerDescription));
+
+    samplerDescription.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+
+    samplerDescription.MaxAnisotropy = 0;
+    samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDescription.MipLODBias = 0.0f;
+    samplerDescription.MinLOD = 0;
+    samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
+    samplerDescription.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    samplerDescription.BorderColor[0] = 0.0f;
+    samplerDescription.BorderColor[1] = 0.0f;
+    samplerDescription.BorderColor[2] = 0.0f;
+    samplerDescription.BorderColor[3] = 0.0f;
+
+    return device->CreateSamplerState(&samplerDescription, &mySampler);
+}
+
 void DirectXTexture::releaseResources()
 {
     if (myTexture)
@@ -75,6 +129,7 @@ void DirectXTexture::releaseResources()
 }
 
 DirectXTexture::DirectXTexture(ID3D11Device *device, const unsigned char * src, int bytesPerRow, int width, int height)
+    : myTexture(nullptr), myTextureView(nullptr), mySampler(nullptr)
 {
     D3D11_SUBRESOURCE_DATA subresource = { 0 };
     subresource.pSysMem = src;
@@ -98,46 +153,81 @@ DirectXTexture::DirectXTexture(ID3D11Device *device, const unsigned char * src, 
 
     if (SUCCEEDED(result))
     {
-        D3D11_SHADER_RESOURCE_VIEW_DESC textureViewDescription;
-        ZeroMemory(&textureViewDescription, sizeof(textureViewDescription));
-        textureViewDescription.Format = description.Format;
-        textureViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        textureViewDescription.Texture2D.MipLevels = description.MipLevels;
-        textureViewDescription.Texture2D.MostDetailedMip = 0;
-        result = device->CreateShaderResourceView(myTexture, &textureViewDescription, &myTextureView);
+        result = createShaderResourceView(device, description);
     }
 
     if (SUCCEEDED(result))
     {
-        D3D11_SAMPLER_DESC samplerDescription;
-        ZeroMemory(&samplerDescription, sizeof(samplerDescription));
-
-        samplerDescription.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-
-        samplerDescription.MaxAnisotropy = 0;
-        samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-        samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-        samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-        samplerDescription.MipLODBias = 0.0f;
-        samplerDescription.MinLOD = 0;
-        samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
-        samplerDescription.ComparisonFunc = D3D11_COMPARISON_NEVER;
-        samplerDescription.BorderColor[0] = 0.0f;
-        samplerDescription.BorderColor[1] = 0.0f;
-        samplerDescription.BorderColor[2] = 0.0f;
-        samplerDescription.BorderColor[3] = 0.0f;
-
-        result = device->CreateSamplerState(&samplerDescription, &mySampler);
+        result = createSamplerState(device, description);
     }
 
-    if (SUCCEEDED(result))
-    {
-        myWidth = width;
-        myHeight = height;
-    }
-    else
+    if (!SUCCEEDED(result))
     {
         releaseResources();
     }
 }
 
+DirectXTexture::DirectXTexture(ID3D11Texture2D * texture)
+    : myTexture(texture), myTextureView(nullptr), mySampler(nullptr)
+{
+    texture->AddRef();
+
+    D3D11_TEXTURE2D_DESC description = { 0 };
+    myTexture->GetDesc(&description);
+
+    ID3D11Device *device;
+    texture->GetDevice(&device);
+
+    HRESULT result = createShaderResourceView(device, description);
+
+    if (SUCCEEDED(result))
+    {
+        result = createSamplerState(device, description);
+    }
+
+    if (!SUCCEEDED(result))
+    {
+        releaseResources();
+    }
+}
+
+DirectXTexture::DirectXTexture(const DirectXTexture & o)
+    : myTexture(o.myTexture), myTextureView(o.myTextureView), mySampler(o.mySampler)
+{
+    if (myTexture)
+    {
+        myTexture->AddRef();
+    }
+    if (myTextureView)
+    {
+        myTextureView->AddRef();
+    }
+    if (mySampler)
+    {
+        mySampler->AddRef();
+    }
+}
+
+DirectXTexture & DirectXTexture::operator=(const DirectXTexture & o)
+{
+    if (&o != this)
+    {
+        releaseResources();
+        myTexture = o.myTexture;
+        if (myTexture)
+        {
+            myTexture->AddRef();
+        }
+        myTextureView = o.myTextureView;
+        if (myTextureView)
+        {
+            myTextureView->AddRef();
+        }
+        mySampler = o.mySampler;
+        if (mySampler)
+        {
+            mySampler->AddRef();
+        }
+    }
+    return *this;
+}

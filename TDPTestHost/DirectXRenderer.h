@@ -1,33 +1,35 @@
 #pragma once
 #include "Renderer.h"
 #include "VertexShader.h"
-#include "DirectXTexture.h"
-#include <DirectXMath.h>
+#include "DirectXImage.h"
+#include <vector>
+#include <mutex>
 
-class Device;
+class DirectXDevice;
 
 class DirectXRenderer :
     public Renderer
 {
 public:
-    DirectXRenderer(Device &device);
+    DirectXRenderer(DirectXDevice &device);
     virtual ~DirectXRenderer();
     virtual bool setup() override;
+    void stop();
     virtual bool render() override;
-    ID3D11Texture2D *getTexture() const {
-        return myTexture.getTexture();
-    }
+    size_t getLeftSideImageCount() const { return myLeftSideImages.size(); }
+    const DirectXImage &getLeftSideImage(int index) const { return myLeftSideImages.at(index); }
+    void addLeftSideTexture(DirectXTexture &texture);
+    void clearLeftSideImages();
+    size_t getRightSideImageCount() const { return myRightSideImages.size(); }
+    const DirectXImage &getRightSideImage(int index) const { return myRightSideImages.at(index); }
+    void addRightSideImage();
+    void replaceRightSideTexture(size_t index, DirectXTexture &texture);
+    void clearRightSideImages();
 private:
-    struct BasicVertex
-    {
-        DirectX::XMFLOAT2 pos;
-        DirectX::XMFLOAT2 tex;
-    };
-    Device &myDevice;
-    VertexShader myVertexShader;
-    ID3D11PixelShader *myPixelShader;
-    ID3D11Buffer *myVertexBuffer;
-    ID3D11Buffer *myIndexBuffer;
-    DirectXTexture myTexture;
+    void drawImages(std::vector<DirectXImage> &images, float scale, float xOffset);
+    DirectXDevice &myDevice;
+    std::vector<DirectXImage> myLeftSideImages;
+    std::vector<DirectXImage> myRightSideImages;
+    std::mutex myMutex;
 };
 

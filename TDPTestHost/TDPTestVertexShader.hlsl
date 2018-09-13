@@ -10,11 +10,16 @@ struct PixelShaderInput
     float2 tex : TEXCOORD;
 };
 
+cbuffer ConstantBuffer : register(b0)
+{
+    matrix Matrix;
+}
+
 PixelShaderInput main(VertexShaderInput input)
 {
     PixelShaderInput vertexShaderOutput;
 
-    vertexShaderOutput.pos = float4(input.pos, 0.5f, 1.0f);
+    vertexShaderOutput.pos = mul(float4(input.pos, 0.5f, 1.0f), Matrix);
     vertexShaderOutput.tex = input.tex;
     return vertexShaderOutput;
 }
