@@ -132,25 +132,25 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, TPScope scope
             case TPParameterTypeDouble:
             {
                 double value;
-                result = TPInstanceParameterGetDoubleValue(doc->myInstance, scope, group, index, &value);
+                result = TPInstanceParameterGetDoubleValue(doc->myInstance, scope, group, index, TPParameterValueCurrent, &value, 1);
                 break;
             }
             case TPParameterTypeInt32:
             {
                 int32_t value;
-                result = TPInstanceParameterGetInt32Value(doc->myInstance, scope, group, index, &value);
+                result = TPInstanceParameterGetInt32Value(doc->myInstance, scope, group, index, TPParameterValueCurrent, &value, 1);
                 break;
             }
             case TPParameterTypeString:
             {
                 char value[512];
-                result = TPInstanceParameterGetStringValue(doc->myInstance, scope, group, index, value, 512);
+                result = TPInstanceParameterGetStringValue(doc->myInstance, scope, group, index, TPParameterValueCurrent, value, 512);
                 break;
             }
             case TPParameterTypeTexture:
             {
                 TPTexture *texture = nullptr;
-                result = TPInstanceParameterCopyTextureValue(doc->myInstance, scope, group, index, &texture);
+                result = TPInstanceParameterCopyTextureValue(doc->myInstance, scope, group, index, TPParameterValueCurrent, &texture);
                 if (result == TPResultSuccess)
                 {
                     size_t imageIndex = doc->myOutputParameterTextureMap[std::make_pair(group, index)].first;
@@ -397,11 +397,17 @@ void DocumentWindow::render()
                             switch (type)
                             {
                             case TPParameterTypeDouble:
-                                result = TPInstanceParameterSetDoubleValue(myInstance, i, j, fmod(myLastFloatValue, 1.0));
-                                break;
+							{
+								double d = fmod(myLastFloatValue, 1.0);
+								result = TPInstanceParameterSetDoubleValue(myInstance, i, j, &d, 1);
+								break;
+							}
                             case TPParameterTypeInt32:
-                                result = TPInstanceParameterSetInt32Value(myInstance, i, j, static_cast<int>(myLastFloatValue * 00) % 100);
-                                break;
+							{
+								int v = static_cast<int>(myLastFloatValue * 00) % 100;
+								result = TPInstanceParameterSetInt32Value(myInstance, i, j, &v, 1);
+								break;
+							}
                             case TPParameterTypeString:
                                 result = TPInstanceParameterSetStringValue(myInstance, i, j, "test input");
                                 break;
