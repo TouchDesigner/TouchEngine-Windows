@@ -159,7 +159,7 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, TPScope scope
                     if (texture && TPTextureGetType(texture) == TPTextureTypeD3D)
                     {
                         // Retain as we release <d3d> and <texture>
-                        d3d = TPTextureRetain(texture);
+                        d3d = TPRetain(texture);
                     }
                     else if (texture && TPTextureGetType(texture) == TPTextureTypeDXGI)
                     {
@@ -175,7 +175,7 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, TPScope scope
                         DirectXTexture tex(TPD3DTextureGetTexture(d3d));
                         doc->myRenderer.replaceRightSideTexture(imageIndex, tex);
                         doc->myOutputParameterTextureMap[std::make_pair(group, index)].second = std::shared_ptr<TPTexture *>(new TPTexture *(d3d), [] (TPTexture **t) {
-                            TPTextureRelease(*t);
+                            TPRelease(*t);
                             delete t;
                         });
                     }
@@ -185,7 +185,7 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, TPScope scope
                     }
                     if (texture)
                     {
-                        TPTextureRelease(texture);
+                        TPRelease(texture);
                     }
                 }
                 break;
@@ -416,7 +416,7 @@ void DocumentWindow::render()
                                 ID3D11Texture2D *t = myRenderer.getLeftSideImage(textureCount).getTexture();
                                 TPD3DTexture *texture = TPD3DTextureCreate(t);
                                 result = TPInstanceParameterSetTextureValue(myInstance, i, j, texture);
-                                TPTextureRelease(texture);
+                                TPRelease(texture);
 
                                 textureCount++;
                                 break;
