@@ -3,9 +3,9 @@
 #include <string>
 #include <atomic>
 #include <map>
+#include <memory>
 #include <TDP/TouchPlugIn.h>
-#include "DirectXDevice.h"
-#include "DirectXRenderer.h"
+#include "Renderer.h"
 
 class DocumentWindow
 {
@@ -32,13 +32,12 @@ private:
     void endFrame(int64_t time_value, int32_t time_scale, TPResult result);
     TPInstance *myInstance;
     HWND myWindow;
-    DirectXDevice myDevice;
-    DirectXRenderer myRenderer;
+    std::unique_ptr<Renderer> myRenderer;
     std::atomic<bool> myDidLoad;
     std::atomic<bool> myInFrame;
     double myLastFloatValue;
     float myLastStreamValue;
-    // TP group/index pair to renderer index/TPTexture pair
-    std::map<std::pair<int32_t, int32_t>, std::pair<size_t, std::shared_ptr<TPTexture *>>> myOutputParameterTextureMap;
+    // TP group/index pair to renderer index
+    std::map<std::pair<int32_t, int32_t>, size_t> myOutputParameterTextureMap;
 };
 

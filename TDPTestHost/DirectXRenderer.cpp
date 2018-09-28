@@ -1,10 +1,11 @@
 #include "stdafx.h"
 #include "DirectXRenderer.h"
 #include "DirectXDevice.h"
+#include <TDP/TouchPlugIn.h>
 #include <array>
 
-DirectXRenderer::DirectXRenderer(DirectXDevice &device)
-    : myDevice(device)
+DirectXRenderer::DirectXRenderer()
+    : Renderer(), myDevice()
 {
 }
 
@@ -14,15 +15,23 @@ DirectXRenderer::~DirectXRenderer()
     
 }
 
-bool DirectXRenderer::setup()
+bool DirectXRenderer::setup(HWND window)
 {
-    return true;
+	Renderer::setup(window);
+	HRESULT result = myDevice.createDeviceResources();
+	if (SUCCEEDED(result))
+	{
+		// Create window resources with no depth-stencil buffer
+		result = myDevice.createWindowResources(getWindow(), false);
+	}
+    return SUCCEEDED(result);
 }
 
 void DirectXRenderer::stop()
 {
     myLeftSideImages.clear();
-    myRightSideImages.clear(); 
+    myRightSideImages.clear();
+	myDevice.stop();
 }
 
 bool DirectXRenderer::render()
@@ -40,12 +49,20 @@ bool DirectXRenderer::render()
     return true;
 }
 
-void DirectXRenderer::addLeftSideTexture(DirectXTexture & texture)
+void DirectXRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesPerRow, int width, int height)
 {
-    std::lock_guard<std::mutex> guard(myMutex);
+	std::lock_guard<std::mutex> guard(myMutex);
 
-    myLeftSideImages.emplace_back(texture);
-    myLeftSideImages.back().setup(myDevice);
+	DirectXTexture texture = myDevice.loadTexture(rgba, bytesPerRow, width, height);
+
+	myLeftSideImages.emplace_back(texture);
+	myLeftSideImages.back().setup(myDevice);
+}
+
+TPTexture * DirectXRenderer::createLeftSideImage(size_t index)
+{
+	auto &texture = myLeftSideImages[index];
+	return TPD3DTextureCreate(texture.getTexture());
 }
 
 void DirectXRenderer::clearLeftSideImages()
@@ -61,13 +78,51 @@ void DirectXRenderer::addRightSideImage()
 
     myRightSideImages.emplace_back();
     myRightSideImages.back().setup(myDevice);
+
+	Renderer::addRightSideImage();
 }
 
-void DirectXRenderer::replaceRightSideTexture(size_t index, DirectXTexture & texture)
+void DirectXRenderer::setRightSideImage(size_t index, TPTexture * texture)
 {
-    std::lock_guard<std::mutex> guard(myMutex);
+	std::lock_guard<std::mutex> guard(myMutex);
 
-    myRightSideImages.at(index).update(texture);
+	TPTexture *d3d = nullptr;
+	if (texture && TPTextureGetType(texture) == TPTextureTypeD3D)
+	{
+		// Retain as we release d3d and texture
+		d3d = TPRetain(texture);
+	}
+	else if (texture && TPTextureGetType(texture) == TPTextureTypeDXGI)
+	{
+		d3d = TPD3DTextureCreateFromDXGI(myDevice.getDevice(), texture);
+	}
+	else if (texture && TPTextureGetType(texture) == TPTextureTypeOpenGL)
+	{
+		// TODO: or document output is always TPTextureTypeDXGI
+	}
+	if (d3d)
+	{
+		DirectXTexture tex(TPD3DTextureGetTexture(d3d));
+
+		myRightSideImages.at(index).update(tex);
+	}
+	else
+	{
+		myRightSideImages.at(index).update(DirectXTexture());
+	}
+
+	// TODO: work out lifetime of which what what?
+	Renderer::setRightSideImage(index, d3d);
+	//Renderer::setRightSideImage(index, texture);
+	
+	if (texture)
+	{
+		TPRelease(texture);
+	}
+	if (d3d)
+	{
+		TPRelease(d3d);
+	}
 }
 
 void DirectXRenderer::clearRightSideImages()
@@ -75,6 +130,8 @@ void DirectXRenderer::clearRightSideImages()
     std::lock_guard<std::mutex> guard(myMutex);
 
     myRightSideImages.clear();
+
+	Renderer::clearRightSideImages();
 }
 
 void DirectXRenderer::drawImages(std::vector<DirectXImage>& images, float scale, float xOffset)

@@ -2,6 +2,7 @@
 #include "DocumentWindow.h"
 #include "DocumentManager.h"
 #include "Resource.h"
+#include "DirectXRenderer.h"
 #include <codecvt>
 #include <vector>
 #include <array>
@@ -153,40 +154,14 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, TPScope scope
                 result = TPInstanceParameterCopyTextureValue(doc->myInstance, scope, group, index, TPParameterValueCurrent, &texture);
                 if (result == TPResultSuccess)
                 {
-                    size_t imageIndex = doc->myOutputParameterTextureMap[std::make_pair(group, index)].first;
+                    size_t imageIndex = doc->myOutputParameterTextureMap[std::make_pair(group, index)];
 
-                    TPTexture *d3d = nullptr;
-                    if (texture && TPTextureGetType(texture) == TPTextureTypeD3D)
-                    {
-                        // Retain as we release <d3d> and <texture>
-                        d3d = TPRetain(texture);
-                    }
-                    else if (texture && TPTextureGetType(texture) == TPTextureTypeDXGI)
-                    {
-                        // TODO: check multi-threading allowed on ID3D11Device here
-                        d3d = TPD3DTextureCreateFromDXGI(doc->myDevice.getDevice(), texture);
-                    }
-                    else if (texture && TPTextureGetType(texture) == TPTextureTypeOpenGL)
-                    {
-                        // TODO: or document output is always TPTextureTypeDXGI
-                    }
-                    if (d3d)
-                    {
-                        DirectXTexture tex(TPD3DTextureGetTexture(d3d));
-                        doc->myRenderer.replaceRightSideTexture(imageIndex, tex);
-                        doc->myOutputParameterTextureMap[std::make_pair(group, index)].second = std::shared_ptr<TPTexture *>(new TPTexture *(d3d), [] (TPTexture **t) {
-                            TPRelease(*t);
-                            delete t;
-                        });
-                    }
-                    else
-                    {
-                        doc->myRenderer.replaceRightSideTexture(imageIndex, DirectXTexture());
-                    }
-                    if (texture)
-                    {
-                        TPRelease(texture);
-                    }
+					doc->myRenderer->setRightSideImage(imageIndex, texture);
+
+					if (texture)
+					{
+						TPRelease(texture);
+					}
                 }
                 break;
             }
@@ -235,7 +210,7 @@ void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPResult r
 }
 
 DocumentWindow::DocumentWindow(std::wstring path)
-    : myInstance(nullptr), myWindow(nullptr), myRenderer(myDevice), myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0)
+    : myInstance(nullptr), myWindow(nullptr), myRenderer(std::make_unique<DirectXRenderer>()), myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::string utf8 = converter.to_bytes(path);
@@ -249,8 +224,7 @@ DocumentWindow::~DocumentWindow()
     {
         TPInstanceDestroy(myInstance);
     }
-    myRenderer.stop();
-    myDevice.stop();
+    myRenderer->stop();
     
     if (myWindow)
     {
@@ -299,23 +273,14 @@ void DocumentWindow::openWindow(HWND parent)
     }
     if (SUCCEEDED(result))
     {
-        result = myDevice.createDeviceResources();
-    }
-    if (SUCCEEDED(result))
-    {
-        // Create window resources with no depth-stencil buffer
-        result = myDevice.createWindowResources(myWindow, false);
-    }
-    if (SUCCEEDED(result))
-    {
-        result = myRenderer.setup() ? S_OK : EIO;
+        result = myRenderer->setup(myWindow) ? S_OK : EIO;
     }
 }
 
 void DocumentWindow::parameterLayoutDidChange()
 {
-    myRenderer.clearLeftSideImages();
-    myRenderer.clearRightSideImages();
+    myRenderer->clearLeftSideImages();
+    myRenderer->clearRightSideImages();
     myOutputParameterTextureMap.clear();
 
     std::array<TPScope, 2> scopes{ TPScopeInput, TPScopeOutput };
@@ -356,14 +321,12 @@ void DocumentWindow::parameterLayoutDidChange()
                                         tex[(y * 256 * 4) + (x * 4) + 3] = 255;
                                     }
                                 }
-
-                                DirectXTexture texture = myDevice.loadTexture(tex.data(), 256 * 4, 256, 256);
-                                myRenderer.addLeftSideTexture(texture);
+								myRenderer->addLeftSideImage(tex.data(), 256 * 4, 256, 256);
                             }
                             else
                             {
-                                myRenderer.addRightSideImage();
-                                myOutputParameterTextureMap[std::make_pair(i, j)] = std::make_pair(myRenderer.getRightSideImageCount() - 1, nullptr);
+                                myRenderer->addRightSideImage();
+                                myOutputParameterTextureMap[std::make_pair(i, j)] = myRenderer->getRightSideImageCount() - 1;
                             }
                         }
                     }
@@ -413,8 +376,7 @@ void DocumentWindow::render()
                                 break;
                             case TPParameterTypeTexture:
                             {
-                                ID3D11Texture2D *t = myRenderer.getLeftSideImage(textureCount).getTexture();
-                                TPD3DTexture *texture = TPD3DTextureCreate(t);
+                                TPD3DTexture *texture = myRenderer->createLeftSideImage(textureCount);
                                 result = TPInstanceParameterSetTextureValue(myInstance, i, j, texture);
                                 TPRelease(texture);
 
@@ -455,8 +417,8 @@ void DocumentWindow::render()
     }
 
     float intensity = (myLastStreamValue + 1.0) / 2.0;
-    myRenderer.setBackgroundColor(color[0] * intensity, color[1] * intensity, color[2] * intensity);
-    myRenderer.render();
+    myRenderer->setBackgroundColor(color[0] * intensity, color[1] * intensity, color[2] * intensity);
+    myRenderer->render();
 }
 
 void DocumentWindow::cancelFrame()
