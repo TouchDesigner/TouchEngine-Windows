@@ -237,7 +237,7 @@ DocumentWindow::~DocumentWindow()
 
 	if (myInstance)
 	{
-		TPInstanceDestroy(myInstance);
+		TPRelease(myInstance);
 	}
 
     myRenderer->stop();
