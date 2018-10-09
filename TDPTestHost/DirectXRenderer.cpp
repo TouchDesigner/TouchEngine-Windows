@@ -27,6 +27,12 @@ bool DirectXRenderer::setup(HWND window)
     return SUCCEEDED(result);
 }
 
+void DirectXRenderer::resize(int width, int height)
+{
+	std::lock_guard<std::mutex> guard(myMutex);
+	myDevice.resize();
+}
+
 void DirectXRenderer::stop()
 {
     myLeftSideImages.clear();

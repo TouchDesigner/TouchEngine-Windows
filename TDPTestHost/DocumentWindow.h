@@ -10,9 +10,13 @@
 class DocumentWindow
 {
 public:
+	enum class Mode {
+		DirectX,
+		OpenGL
+	};
     static HRESULT registerClass(HINSTANCE hInstance);
     static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-    DocumentWindow(std::wstring path);
+    DocumentWindow(std::wstring path, Mode mode);
     ~DocumentWindow();
     const std::wstring getPath() const;
     void openWindow(HWND parent);
@@ -30,6 +34,7 @@ private:
     static const int64_t InputSampleLimit;
     static const int64_t InputSamplesPerFrame;
     void endFrame(int64_t time_value, int32_t time_scale, TPResult result);
+	std::wstring myPath;
     TPInstance *myInstance;
     HWND myWindow;
     std::unique_ptr<Renderer> myRenderer;

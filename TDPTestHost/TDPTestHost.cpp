@@ -21,7 +21,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-bool                Open(HWND);
+bool                Open(HWND, DocumentWindow::Mode mode);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -162,8 +162,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DestroyWindow(hWnd);
                 break;
             case ID_FILE_OPEN:
-                Open(hWnd);
+                Open(hWnd, DocumentWindow::Mode::DirectX);
                 break;
+			case ID_FILE_OPENOPENGL:
+				Open(hWnd, DocumentWindow::Mode::OpenGL);
+				break;
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
@@ -212,7 +215,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
-bool Open(HWND hWnd)
+bool Open(HWND hWnd, DocumentWindow::Mode mode)
 {
     WCHAR buffer[MAX_PATH + 1] = { 0 };
     OPENFILENAME ofns = { 0 };
@@ -223,7 +226,7 @@ bool Open(HWND hWnd)
     BOOL result = GetOpenFileName(&ofns);
     if (result)
     {
-        return DocumentManager::sharedManager().open(buffer, hWnd);
+        return DocumentManager::sharedManager().open(buffer, hWnd, mode);
     }
     return false;
 }

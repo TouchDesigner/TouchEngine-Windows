@@ -98,6 +98,22 @@ HRESULT DirectXDevice::createWindowResources(HWND window, bool depth)
     return result;
 }
 
+HRESULT DirectXDevice::resize()
+{
+	bool hasDepth = myDepthStencil != nullptr;
+
+	myDeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+	
+	releaseBackBuffer();
+
+	HRESULT result = mySwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+	if (SUCCEEDED(result))
+	{
+		result = configureBackBuffer(hasDepth);
+	}
+	return result;
+}
+
 VertexShader DirectXDevice::loadVertexShader(const std::wstring & file, const D3D11_INPUT_ELEMENT_DESC *layoutDescription, int count)
 {
     VertexShader out;
@@ -309,8 +325,6 @@ HRESULT DirectXDevice::configureBackBuffer(bool depth)
         myViewport.MaxDepth = 1;
 
         myDeviceContext->RSSetViewports(1, &myViewport);
-
-        return result;
     }
     return result;
 }

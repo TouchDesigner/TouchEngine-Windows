@@ -15,7 +15,7 @@ Renderer::~Renderer()
 bool Renderer::setup(HWND window)
 {
 	myWindow = window;
-	return false;
+	return true;
 }
 
 void Renderer::stop()

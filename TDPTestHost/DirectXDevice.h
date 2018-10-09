@@ -13,6 +13,7 @@ public:
     DirectXDevice &operator=(const DirectXDevice &o) = delete;
     HRESULT createDeviceResources();
     HRESULT createWindowResources(HWND window, bool depth);
+	HRESULT resize();
     VertexShader loadVertexShader(const std::wstring &file, const D3D11_INPUT_ELEMENT_DESC *layout, int count);
     ID3D11PixelShader *loadPixelShader(const std::wstring &file);
     template <class T>

@@ -3,6 +3,7 @@
 #include "DocumentManager.h"
 #include "Resource.h"
 #include "DirectXRenderer.h"
+#include "OpenGLRenderer.h"
 #include <codecvt>
 #include <vector>
 #include <array>
@@ -88,6 +89,15 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
         }
         break;
     }
+	case WM_SIZE:
+	{
+		auto document = DocumentManager::sharedManager().lookup(hWnd);
+		if (document)
+		{
+			document->myRenderer->resize(0, 0);
+		}
+		break;
+	}
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -209,23 +219,27 @@ void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPResult r
     myInFrame = false;
 }
 
-DocumentWindow::DocumentWindow(std::wstring path)
-    : myInstance(nullptr), myWindow(nullptr), myRenderer(std::make_unique<DirectXRenderer>()), myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0)
+DocumentWindow::DocumentWindow(std::wstring path, Mode mode)
+    : myPath(path), myInstance(nullptr), myWindow(nullptr),
+	myRenderer(mode == Mode::DirectX ? static_cast<std::unique_ptr<Renderer>>(std::make_unique<DirectXRenderer>()) : static_cast<std::unique_ptr<Renderer>>(std::make_unique<OpenGLRenderer>())),
+	myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0)
 {
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    std::string utf8 = converter.to_bytes(path);
-    myInstance = TPInstanceCreate(utf8.c_str(), TPTimeInternal, eventCallback, parameterValueCallback, this);
 }
 
 
 DocumentWindow::~DocumentWindow()
 {
-    if (myInstance)
-    {
-        TPInstanceDestroy(myInstance);
-    }
+	// TODO: we shouldn't have to do this but TPTextures are holding on to the connection which gets invalidated
+	myRenderer->clearLeftSideImages();
+	myRenderer->clearRightSideImages();
+
+	if (myInstance)
+	{
+		TPInstanceDestroy(myInstance);
+	}
+
     myRenderer->stop();
-    
+
     if (myWindow)
     {
         PostMessageW(myWindow, WM_CLOSE, 0, 0);
@@ -234,12 +248,7 @@ DocumentWindow::~DocumentWindow()
 
 const std::wstring DocumentWindow::getPath() const
 {
-    if (myInstance == nullptr)
-    {
-        return std::wstring();
-    }
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.from_bytes(TPInstanceGetPath(myInstance));
+	return myPath;
 }
 
 void DocumentWindow::openWindow(HWND parent)
@@ -251,7 +260,7 @@ void DocumentWindow::openWindow(HWND parent)
     std::wstring path = getPath();
     myWindow = CreateWindowW(WindowClassName,
         path.data(),
-        WS_OVERLAPPEDWINDOW,
+        WS_OVERLAPPEDWINDOW | myRenderer->getWindowStyleFlags(),
         CW_USEDEFAULT, CW_USEDEFAULT,
         (rc.right - rc.left), (rc.bottom - rc.top),
         parent,
@@ -275,6 +284,12 @@ void DocumentWindow::openWindow(HWND parent)
     {
         result = myRenderer->setup(myWindow) ? S_OK : EIO;
     }
+	if (SUCCEEDED(result))
+	{
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		std::string utf8 = converter.to_bytes(path);
+		myInstance = TPInstanceCreate(utf8.c_str(), TPTimeInternal, eventCallback, parameterValueCallback, this);
+	}
 }
 
 void DocumentWindow::parameterLayoutDidChange()

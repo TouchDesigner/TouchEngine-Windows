@@ -13,6 +13,7 @@ public:
     DirectXRenderer();
     virtual ~DirectXRenderer();
     virtual bool setup(HWND window) override;
+	virtual void resize(int width, int height) override;
     virtual void stop() override;
     virtual bool render() override;
     virtual size_t getLeftSideImageCount() const override { return myLeftSideImages.size(); }

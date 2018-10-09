@@ -10,7 +10,9 @@ public:
     Renderer();
     virtual ~Renderer();
 	HWND getWindow() const { return myWindow; }
+	virtual DWORD getWindowStyleFlags() const { return 0; }
     virtual bool setup(HWND window);
+	virtual void resize(int width, int height) = 0;
 	virtual void stop();
     virtual bool render() = 0;
     void setBackgroundColor(float r, float g, float b);

@@ -10,9 +10,9 @@ DocumentManager & DocumentManager::sharedManager()
     return manager;
 }
 
-bool DocumentManager::open(const std::wstring & path, HWND parent)
+bool DocumentManager::open(const std::wstring & path, HWND parent, DocumentWindow::Mode mode)
 {
-    return open(path, parent, true);
+    return open(path, parent, true, mode);
 }
 
 std::shared_ptr<DocumentWindow> DocumentManager::lookup(HWND window) const
@@ -56,7 +56,7 @@ void DocumentManager::storeOpenWindows()
     }
 }
 
-bool DocumentManager::open(const std::wstring & path, HWND parent, bool update)
+bool DocumentManager::open(const std::wstring & path, HWND parent, bool update, DocumentWindow::Mode mode)
 {
     for each (auto doc in myDocuments)
     {
@@ -67,7 +67,7 @@ bool DocumentManager::open(const std::wstring & path, HWND parent, bool update)
             return true;
         }
     }
-    std::shared_ptr<DocumentWindow> opened(std::make_shared<DocumentWindow>(path));
+    std::shared_ptr<DocumentWindow> opened(std::make_shared<DocumentWindow>(path, mode));
     opened->openWindow(parent);
     myDocuments[opened->getWindow()] = opened;
     if (update)
@@ -85,7 +85,7 @@ void DocumentManager::restoreOpenWindows(HWND parent)
         std::wifstream stream(path);
         for (std::wstring line; std::getline(stream, line); )
         {
-            open(line, parent, false);
+            open(line, parent, false, DocumentWindow::Mode::DirectX); // TODO: store/get the mode
         }
     }
 }
