@@ -121,10 +121,6 @@ void DirectXRenderer::setRightSideImage(size_t index, TPTexture * texture)
 	Renderer::setRightSideImage(index, d3d);
 	//Renderer::setRightSideImage(index, texture);
 	
-	if (texture)
-	{
-		TPRelease(texture);
-	}
 	if (d3d)
 	{
 		TPRelease(d3d);
