@@ -148,10 +148,10 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
                 result = TPInstanceParameterGetDoubleValue(doc->myInstance, identifier, TPParameterValueCurrent, &value, 1);
                 break;
             }
-            case TPParameterTypeInt32:
+            case TPParameterTypeInt:
             {
                 int32_t value;
-                result = TPInstanceParameterGetInt32Value(doc->myInstance, identifier, TPParameterValueCurrent, &value, 1);
+                result = TPInstanceParameterGetIntValue(doc->myInstance, identifier, TPParameterValueCurrent, &value, 1);
                 break;
             }
             case TPParameterTypeString:
@@ -393,10 +393,10 @@ void DocumentWindow::render()
 								result = TPInstanceParameterSetDoubleValue(myInstance, identifier.data(), &d, 1);
 								break;
 							}
-                            case TPParameterTypeInt32:
+                            case TPParameterTypeInt:
 							{
 								int v = static_cast<int>(myLastFloatValue * 00) % 100;
-								result = TPInstanceParameterSetInt32Value(myInstance, identifier.data(), &v, 1);
+								result = TPInstanceParameterSetIntValue(myInstance, identifier.data(), &v, 1);
 								break;
 							}
                             case TPParameterTypeString:
