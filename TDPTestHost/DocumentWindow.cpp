@@ -172,7 +172,7 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
 
 					if (texture)
 					{
-						TPRelease(texture);
+						TPRelease(&texture);
 					}
                 }
                 break;
@@ -237,7 +237,7 @@ DocumentWindow::~DocumentWindow()
 
 	if (myInstance)
 	{
-		TPRelease(myInstance);
+		TPRelease(&myInstance);
 	}
 
     myRenderer->stop();
@@ -408,7 +408,7 @@ void DocumentWindow::render()
 								if (texture)
 								{
 									result = TPInstanceParameterSetTextureValue(myInstance,identifier.data(), texture);
-									TPRelease(texture);
+									TPRelease(&texture);
 								}
 
                                 textureCount++;

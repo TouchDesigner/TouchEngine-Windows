@@ -47,7 +47,7 @@ void Renderer::setRightSideImage(size_t index, TPTexture * texture)
 		TPRetain(texture);
 
 		myRightSideImages[index] = std::shared_ptr<TPTexture *>(new TPTexture *(texture), [](TPTexture **t) {
-			TPRelease(*t);
+			TPRelease(t);
 			delete t;
 		});
 	}
