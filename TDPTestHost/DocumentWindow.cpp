@@ -300,61 +300,56 @@ void DocumentWindow::parameterLayoutDidChange()
     myRenderer->clearRightSideImages();
     myOutputParameterTextureMap.clear();
 
-    std::array<TPScope, 2> scopes{ TPScopeInput, TPScopeOutput };
-
-    for (auto scope : scopes)
+    for (auto scope : { TPScopeInput, TPScopeOutput })
     {
-        int32_t groups;
-        TPResult result = TPInstanceGetParameterGroupCount(myInstance, scope, &groups);
+        TPStringArray *groups;
+		TPResult result = TPInstanceGetParameterGroups(myInstance, scope, &groups);
         if (result == TPResultSuccess)
         {
-            for (int32_t i = 0; i < groups; i++)
+            for (int32_t i = 0; i < groups->count; i++)
             {
-                int32_t properties;
-                result = TPInstanceGetParameterCount(myInstance, scope, i, &properties);
+				TPStringArray *children;
+				result = TPInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
                 if (result == TPResultSuccess)
                 {
-                    for (int32_t j = 0; j < properties; j++)
+                    for (int32_t j = 0; j < children->count; j++)
                     {
-						std::array<char, 1024> identifier;
-						TPResult result = TPInstanceParameterGetIdentifier(myInstance, scope, i, j, identifier.data(), identifier.size());
-
-						TPParameterType type;
-
+						TPParameterInfo *info;
+						result = TPInstanceParameterGetInfo(myInstance, children->strings[j], &info);
 						if (result == TPResultSuccess)
 						{
-							result = TPInstanceParameterGetType(myInstance, identifier.data(), &type);
-						}
-                        
-                        if (result == TPResultSuccess && type == TPParameterTypeFloatStream && scope == TPScopeInput)
-                        {
-                            result = TPInstanceParameterSetInputStreamDescription(myInstance, identifier.data(), InputSampleRate, InputChannelCount, InputSampleLimit);
-                        }
-                        else if (result == TPResultSuccess && type == TPParameterTypeTexture)
-                        {
-                            if (scope == TPScopeInput)
-                            {
-                                std::array<unsigned char, 256 * 256 * 4> tex;
+							if (info->type == TPParameterTypeFloatStream && scope == TPScopeInput)
+							{
+								result = TPInstanceParameterSetInputStreamDescription(myInstance, info->identifier, InputSampleRate, InputChannelCount, InputSampleLimit);
+							}
+							else if (result == TPResultSuccess && info->type == TPParameterTypeTexture)
+							{
+								if (scope == TPScopeInput)
+								{
+									std::array<unsigned char, 256 * 256 * 4> tex;
 
-                                for (int y = 0; y < 256; y++)
-                                {
-                                    for (int x = 0; x < 256; x++)
-                                    {
-                                        tex[(y * 256 * 4) + (x * 4) + 0] = x;
-                                        tex[(y * 256 * 4) + (x * 4) + 1] = 40;
-                                        tex[(y * 256 * 4) + (x * 4) + 2] = y;
-                                        tex[(y * 256 * 4) + (x * 4) + 3] = 255;
-                                    }
-                                }
-								myRenderer->addLeftSideImage(tex.data(), 256 * 4, 256, 256);
-                            }
-                            else
-                            {
-                                myRenderer->addRightSideImage();
-                                myOutputParameterTextureMap[identifier.data()] = myRenderer->getRightSideImageCount() - 1;
-                            }
-                        }
+									for (int y = 0; y < 256; y++)
+									{
+										for (int x = 0; x < 256; x++)
+										{
+											tex[(y * 256 * 4) + (x * 4) + 0] = x;
+											tex[(y * 256 * 4) + (x * 4) + 1] = 40;
+											tex[(y * 256 * 4) + (x * 4) + 2] = y;
+											tex[(y * 256 * 4) + (x * 4) + 3] = 255;
+										}
+									}
+									myRenderer->addLeftSideImage(tex.data(), 256 * 4, 256, 256);
+								}
+								else
+								{
+									myRenderer->addRightSideImage();
+									myOutputParameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
+								}
+							}
+							TPRelease(&info);
+						}
                     }
+					TPRelease(&children);
                 }
             }
         }
@@ -366,48 +361,46 @@ void DocumentWindow::render()
     float color[4] = { myDidLoad ? 0.6f : 0.6f, myDidLoad ? 0.6f : 0.6f, myDidLoad ? 1.0f : 0.6f, 1.0f};
     if (myDidLoad && !myInFrame)
     {
-        int32_t groups;
-        TPResult result = TPInstanceGetParameterGroupCount(myInstance, TPScopeInput, &groups);
+		TPStringArray *groups;
+		TPResult result = TPInstanceGetParameterGroups(myInstance, TPScopeInput, &groups);
         if (result == TPResultSuccess)
         {
             int textureCount = 0;
-            for (int32_t i = 0; i < groups; i++)
+            for (int32_t i = 0; i < groups->count; i++)
             {
-                int32_t properties;
-                result = TPInstanceGetParameterCount(myInstance, TPScopeInput, i, &properties);
-                if (result == TPResultSuccess)
+				TPStringArray *children;
+				result = TPInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
+				if (result == TPResultSuccess)
                 {
-                    for (int32_t j = 0; j < properties; j++)
+                    for (int32_t j = 0; j < children->count; j++)
                     {
-						std::array<char, 1024> identifier;
-						TPResult result = TPInstanceParameterGetIdentifier(myInstance, TPScopeInput, i, j, identifier.data(), identifier.size());
-
-                        TPParameterType type;
-                        if (result == TPResultSuccess && TPInstanceParameterGetType(myInstance, identifier.data(), &type) == TPResultSuccess)
+						TPParameterInfo *info;
+						result = TPInstanceParameterGetInfo(myInstance, children->strings[j], &info);
+						if (result == TPResultSuccess)
                         {
-                            switch (type)
+                            switch (info->type)
                             {
                             case TPParameterTypeDouble:
 							{
 								double d = fmod(myLastFloatValue, 1.0);
-								result = TPInstanceParameterSetDoubleValue(myInstance, identifier.data(), &d, 1);
+								result = TPInstanceParameterSetDoubleValue(myInstance, info->identifier, &d, 1);
 								break;
 							}
                             case TPParameterTypeInt:
 							{
 								int v = static_cast<int>(myLastFloatValue * 00) % 100;
-								result = TPInstanceParameterSetIntValue(myInstance, identifier.data(), &v, 1);
+								result = TPInstanceParameterSetIntValue(myInstance, info->identifier, &v, 1);
 								break;
 							}
                             case TPParameterTypeString:
-                                result = TPInstanceParameterSetStringValue(myInstance, identifier.data(), "test input");
+                                result = TPInstanceParameterSetStringValue(myInstance, info->identifier, "test input");
                                 break;
                             case TPParameterTypeTexture:
                             {
                                 TPD3DTexture *texture = myRenderer->createLeftSideImage(textureCount);
 								if (texture)
 								{
-									result = TPInstanceParameterSetTextureValue(myInstance,identifier.data(), texture);
+									result = TPInstanceParameterSetTextureValue(myInstance, info->identifier, texture);
 									TPRelease(&texture);
 								}
 
@@ -421,15 +414,17 @@ void DocumentWindow::render()
                                 std::array<const float *, InputChannelCount> channels;
                                 std::fill(channels.begin(), channels.end(), channel.data());
                                 int64_t filled = channel.size();
-                                result = TPInstanceParameterAppendStreamValues(myInstance, identifier.data(), channels.data(), static_cast<int32_t>(channels.size()), &filled);
+                                result = TPInstanceParameterAppendStreamValues(myInstance, info->identifier, channels.data(), static_cast<int32_t>(channels.size()), &filled);
                                 break;
                             }
                             default:
                                 break;
                             }
+							TPRelease(&info);
                         }
                         
                     }
+					TPRelease(&children);
                 }
             }
         }
