@@ -132,88 +132,89 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
 {
     DocumentWindow *doc = static_cast<DocumentWindow *>(info);
 
-	TPScope scope;
-	TPResult result = TPInstanceParameterGetLocation(instance, identifier, &scope, nullptr, nullptr);
-    if (result == TPResultSuccess && scope == TPScopeOutput)
+	TPParameterInfo *param = nullptr;
+	TPResult result = TPInstanceParameterGetInfo(instance, identifier, &param);
+    if (result == TPResultSuccess && param->scope == TPScopeOutput)
     {
-        TPParameterType type;
-        TPResult result = TPInstanceParameterGetType(instance, identifier, &type);
-        if (result == TPResultSuccess)
-        {
-            switch (type)
-            {
-            case TPParameterTypeDouble:
-            {
-                double value;
-                result = TPInstanceParameterGetDoubleValue(doc->myInstance, identifier, TPParameterValueCurrent, &value, 1);
-                break;
-            }
-            case TPParameterTypeInt:
-            {
-                int32_t value;
-                result = TPInstanceParameterGetIntValue(doc->myInstance, identifier, TPParameterValueCurrent, &value, 1);
-                break;
-            }
-            case TPParameterTypeString:
-            {
-                char value[512];
-                result = TPInstanceParameterGetStringValue(doc->myInstance, identifier, TPParameterValueCurrent, value, 512);
-                break;
-            }
-            case TPParameterTypeTexture:
-            {
-                TPTexture *texture = nullptr;
-                result = TPInstanceParameterCopyTextureValue(doc->myInstance, identifier, TPParameterValueCurrent, &texture);
-                if (result == TPResultSuccess)
-                {
-                    size_t imageIndex = doc->myOutputParameterTextureMap[identifier];
+		switch (param->type)
+		{
+		case TPParameterTypeDouble:
+		{
+			double value;
+			result = TPInstanceParameterGetDoubleValue(doc->myInstance, identifier, TPParameterValueCurrent, &value, 1);
+			break;
+		}
+		case TPParameterTypeInt:
+		{
+			int32_t value;
+			result = TPInstanceParameterGetIntValue(doc->myInstance, identifier, TPParameterValueCurrent, &value, 1);
+			break;
+		}
+		case TPParameterTypeString:
+		{
+			TPString *value;
+			result = TPInstanceParameterGetStringValue(doc->myInstance, identifier, TPParameterValueCurrent, &value);
+			if (result == TPResultSuccess)
+			{
+				// Use value->string here
+				TPRelease(value);
+			}
+			break;
+		}
+		case TPParameterTypeTexture:
+		{
+			TPTexture *texture = nullptr;
+			result = TPInstanceParameterCopyTextureValue(doc->myInstance, identifier, TPParameterValueCurrent, &texture);
+			if (result == TPResultSuccess)
+			{
+				size_t imageIndex = doc->myOutputParameterTextureMap[identifier];
 
-					doc->myRenderer->setRightSideImage(imageIndex, texture);
+				doc->myRenderer->setRightSideImage(imageIndex, texture);
 
-					if (texture)
+				if (texture)
+				{
+					TPRelease(&texture);
+				}
+			}
+			break;
+		}
+		case TPParameterTypeFloatStream:
+		{
+			double rate;
+			int32_t channelCount;
+			int64_t maxSamples;
+
+			result = TPInstanceParameterGetStreamDescription(doc->myInstance, identifier, &rate, &channelCount, &maxSamples);
+
+			if (result == TPResultSuccess)
+			{
+				std::vector <std::vector<float>> store(channelCount);
+				std::vector<float *> channels;
+
+				for (auto &vector : store)
+				{
+					vector.resize(maxSamples);
+					channels.emplace_back(vector.data());
+				}
+
+				int64_t length = maxSamples;
+				result = TPInstanceParameterGetOutputStreamValues(doc->myInstance, identifier, channels.data(), channels.size(), &length);
+				if (result == TPResultSuccess)
+				{
+					// Use the channel data here
+					if (length > 0 && channels.size() > 0)
 					{
-						TPRelease(&texture);
+						doc->myLastStreamValue = store.back()[length - 1];
 					}
-                }
-                break;
-            }
-            case TPParameterTypeFloatStream:
-            {
-                double rate;
-                int32_t channelCount;
-                int64_t maxSamples;
-
-                result = TPInstanceParameterGetStreamDescription(doc->myInstance, identifier, &rate, &channelCount, &maxSamples);
-
-                if (result == TPResultSuccess)
-                {
-                    std::vector <std::vector<float>> store(channelCount);
-                    std::vector<float *> channels;
-
-                    for (auto &vector : store)
-                    {
-                        vector.resize(maxSamples);
-                        channels.emplace_back(vector.data());
-                    }
-
-                    int64_t length = maxSamples;
-                    result = TPInstanceParameterGetOutputStreamValues(doc->myInstance, identifier, channels.data(), channels.size(), &length);
-                    if (result == TPResultSuccess)
-                    {
-                        // Use the channel data here
-                        if (length > 0 && channels.size() > 0)
-                        {
-                            doc->myLastStreamValue = store.back()[length - 1];
-                        }
-                    }
-                }
-            }
-                break;
-            default:
-                break;
-            }
-        }
+				}
+			}
+		}
+		break;
+		default:
+			break;
+		}
     }
+	TPRelease(&param);
 }
 
 void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPResult result)
@@ -308,8 +309,18 @@ void DocumentWindow::parameterLayoutDidChange()
         {
             for (int32_t i = 0; i < groups->count; i++)
             {
-				TPStringArray *children;
-				result = TPInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
+				TPParameterInfo *group;
+				result = TPInstanceParameterGetInfo(myInstance, groups->strings[i], &group);
+				if (result == TPResultSuccess)
+				{
+					// Use group info here
+					TPRelease(&group);
+				}
+				TPStringArray *children = nullptr;
+				if (result == TPResultSuccess)
+				{
+					result = TPInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
+				}
                 if (result == TPResultSuccess)
                 {
                     for (int32_t j = 0; j < children->count; j++)
