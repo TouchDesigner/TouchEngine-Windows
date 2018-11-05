@@ -180,17 +180,17 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
 		}
 		case TPParameterTypeFloatStream:
 		{
-			double rate;
-			int32_t channelCount;
-			int64_t maxSamples;
 
-			result = TPInstanceParameterGetStreamDescription(doc->myInstance, identifier, &rate, &channelCount, &maxSamples);
+			TPStreamDesc *desc = nullptr;
+			result = TPInstanceParameterGetStreamDesc(doc->myInstance, identifier, &desc);
 
 			if (result == TPResultSuccess)
 			{
+				int32_t channelCount = desc->numChannels;
 				std::vector <std::vector<float>> store(channelCount);
 				std::vector<float *> channels;
 
+				int64_t maxSamples = desc->maxSamples;
 				for (auto &vector : store)
 				{
 					vector.resize(maxSamples);
@@ -207,7 +207,9 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
 						doc->myLastStreamValue = store.back()[length - 1];
 					}
 				}
+				TPRelease(&desc);
 			}
+			
 		}
 		break;
 		default:
@@ -331,7 +333,11 @@ void DocumentWindow::parameterLayoutDidChange()
 						{
 							if (info->type == TPParameterTypeFloatStream && scope == TPScopeInput)
 							{
-								result = TPInstanceParameterSetInputStreamDescription(myInstance, info->identifier, InputSampleRate, InputChannelCount, InputSampleLimit);
+								TPStreamDesc desc;
+								desc.rate = InputSampleRate;
+								desc.numChannels = InputChannelCount;
+								desc.maxSamples = InputSampleLimit;
+								result = TPInstanceParameterSetInputStreamDesc(myInstance, info->identifier, &desc);
 							}
 							else if (result == TPResultSuccess && info->type == TPParameterTypeTexture)
 							{
