@@ -133,7 +133,7 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
     DocumentWindow *doc = static_cast<DocumentWindow *>(info);
 
 	TPParameterInfo *param = nullptr;
-	TPResult result = TPInstanceParameterGetInfo(instance, identifier, &param);
+	TPResult result = TPInstanceParameterCopyInfo(instance, identifier, &param);
     if (result == TPResultSuccess && param->scope == TPScopeOutput)
     {
 		switch (param->type)
@@ -153,7 +153,7 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
 		case TPParameterTypeString:
 		{
 			TPString *value;
-			result = TPInstanceParameterGetStringValue(doc->myInstance, identifier, TPParameterValueCurrent, &value);
+			result = TPInstanceParameterCopyStringValue(doc->myInstance, identifier, TPParameterValueCurrent, &value);
 			if (result == TPResultSuccess)
 			{
 				// Use value->string here
@@ -182,7 +182,7 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
 		{
 
 			TPStreamDescription *desc = nullptr;
-			result = TPInstanceParameterGetStreamDescription(doc->myInstance, identifier, &desc);
+			result = TPInstanceParameterCopyStreamDescription(doc->myInstance, identifier, &desc);
 
 			if (result == TPResultSuccess)
 			{
@@ -306,13 +306,13 @@ void DocumentWindow::parameterLayoutDidChange()
     for (auto scope : { TPScopeInput, TPScopeOutput })
     {
         TPStringArray *groups;
-		TPResult result = TPInstanceGetParameterGroups(myInstance, scope, &groups);
+		TPResult result = TPInstanceCopyParameterGroups(myInstance, scope, &groups);
         if (result == TPResultSuccess)
         {
             for (int32_t i = 0; i < groups->count; i++)
             {
 				TPParameterInfo *group;
-				result = TPInstanceParameterGetInfo(myInstance, groups->strings[i], &group);
+				result = TPInstanceParameterCopyInfo(myInstance, groups->strings[i], &group);
 				if (result == TPResultSuccess)
 				{
 					// Use group info here
@@ -321,14 +321,14 @@ void DocumentWindow::parameterLayoutDidChange()
 				TPStringArray *children = nullptr;
 				if (result == TPResultSuccess)
 				{
-					result = TPInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
+					result = TPInstanceParameterCopyChildren(myInstance, groups->strings[i], &children);
 				}
                 if (result == TPResultSuccess)
                 {
                     for (int32_t j = 0; j < children->count; j++)
                     {
 						TPParameterInfo *info;
-						result = TPInstanceParameterGetInfo(myInstance, children->strings[j], &info);
+						result = TPInstanceParameterCopyInfo(myInstance, children->strings[j], &info);
 						if (result == TPResultSuccess)
 						{
 							if (info->type == TPParameterTypeFloatStream && scope == TPScopeInput)
@@ -379,20 +379,20 @@ void DocumentWindow::render()
     if (myDidLoad && !myInFrame)
     {
 		TPStringArray *groups;
-		TPResult result = TPInstanceGetParameterGroups(myInstance, TPScopeInput, &groups);
+		TPResult result = TPInstanceCopyParameterGroups(myInstance, TPScopeInput, &groups);
         if (result == TPResultSuccess)
         {
             int textureCount = 0;
             for (int32_t i = 0; i < groups->count; i++)
             {
 				TPStringArray *children;
-				result = TPInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
+				result = TPInstanceParameterCopyChildren(myInstance, groups->strings[i], &children);
 				if (result == TPResultSuccess)
                 {
                     for (int32_t j = 0; j < children->count; j++)
                     {
 						TPParameterInfo *info;
-						result = TPInstanceParameterGetInfo(myInstance, children->strings[j], &info);
+						result = TPInstanceParameterCopyInfo(myInstance, children->strings[j], &info);
 						if (result == TPResultSuccess)
                         {
                             switch (info->type)
