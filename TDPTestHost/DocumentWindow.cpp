@@ -181,8 +181,8 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
 		case TPParameterTypeFloatStream:
 		{
 
-			TPStreamDesc *desc = nullptr;
-			result = TPInstanceParameterGetStreamDesc(doc->myInstance, identifier, &desc);
+			TPStreamDescription *desc = nullptr;
+			result = TPInstanceParameterGetStreamDescription(doc->myInstance, identifier, &desc);
 
 			if (result == TPResultSuccess)
 			{
@@ -333,11 +333,11 @@ void DocumentWindow::parameterLayoutDidChange()
 						{
 							if (info->type == TPParameterTypeFloatStream && scope == TPScopeInput)
 							{
-								TPStreamDesc desc;
+								TPStreamDescription desc;
 								desc.rate = InputSampleRate;
 								desc.numChannels = InputChannelCount;
 								desc.maxSamples = InputSampleLimit;
-								result = TPInstanceParameterSetInputStreamDesc(myInstance, info->identifier, &desc);
+								result = TPInstanceParameterSetInputStreamDescription(myInstance, info->identifier, &desc);
 							}
 							else if (result == TPResultSuccess && info->type == TPParameterTypeTexture)
 							{
