@@ -44,26 +44,30 @@ typedef void (*TPInstanceParameterValueCallback)(TPInstance *instance, const cha
 TP_EXPORT TPResult TPInstanceCopySupportedFileExtensions(struct TPStringArray * TP_NULLABLE * TP_NONNULL extensions);
 
 /*
- Creates an instance for a file at path
+ Creates an instance for a .tox file localted at 'path'.
+ 'path' is assumed to be UTF-8 encoded.
  The file is loaded asynchronously after this function returns.
- event_callback will be called with TPEventInstanceDidLoad when file loading is complete, or a TPResult indicating an error
+ 'event_callback' will be called with TPEventInstanceDidLoad when file loading is complete, or a TPResult indicating an error.
+ 'callback_info' will be passed into the callbacks as the 'info' argument.
  The caller is responsible for releasing the returned TPInstance using TPRelease()
  */
 // TODO: TPTimeMode is currently ignored
 #ifdef __APPLE__
-TP_EXPORT TPInstance * TP_NULLABLE TPInstanceCreate(const char *path,
-												   CGLContextObj context,
-												   TPTimeMode mode,
-												   TPInstanceEventCallback event_callback,
-												   TPInstanceParameterValueCallback prop_value_callback,
-												   void * TP_NULLABLE info);
+TP_EXPORT TPResult TPInstanceCreate(const char *path,
+								   CGLContextObj context,
+								   TPTimeMode mode,
+								   TPInstanceEventCallback event_callback,
+								   TPInstanceParameterValueCallback prop_value_callback,
+								   void * TP_NULLABLE callback_info,
+								   TPInstance **instanceOut);
 #else
 // TODO: currently an instance on Windows is not tied to a specific DX or GL renderer
-TP_EXPORT TP_NULLABLE TPInstance *TPInstanceCreate(const char *path,
-												   TPTimeMode mode,
-												   TPInstanceEventCallback frame_callback,
-												   TPInstanceParameterValueCallback prop_value_callback,
-												   void * TP_NULLABLE info);
+TP_EXPORT TPResult TPInstanceCreate(const char *path,
+								   TPTimeMode mode,
+								   TPInstanceEventCallback frame_callback,
+								   TPInstanceParameterValueCallback prop_value_callback,
+								   void * TP_NULLABLE callback_info,
+								   TPInstance **instanceOut);
 #endif
 
 TP_EXPORT const char *TPInstanceGetPath(TPInstance *instance);

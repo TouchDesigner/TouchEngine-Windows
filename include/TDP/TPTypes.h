@@ -60,9 +60,25 @@ typedef TP_ENUM(TPResult, int32_t)
 	TPResultFileError,
 
 	/*
-	The version of TouchDesigner being used is older than the one used to create the file being opened.
+	The version/build of TouchEngine being used is older than the one used to create the file being opened.
 	*/
 	TPResultVersionError,
+
+	/*
+	Unable to find TouchEngine executable to launch.
+	*/
+	TPResultTouchEngineNotFound,
+
+	/*
+	Launching the TouchEngine executable failed.
+	*/
+	TPResultFailedToLaunchTouchEngine,
+
+	/* 
+    Invalid argument given to function.
+    */
+	TPResultInvalidArgument,
+
 };
 
 typedef TP_ENUM(TPEvent, int32_t) 

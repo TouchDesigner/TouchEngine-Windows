@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include <commdlg.h>
 #include "DocumentWindow.h"
-#include "DocumentManager.h"
 #include "Resource.h"
 #include "DirectXRenderer.h"
 #include "OpenGLRenderer.h"
@@ -14,6 +13,8 @@ const int32_t DocumentWindow::InputChannelCount = 2;
 const double DocumentWindow::InputSampleRate = 44100.0;
 const int64_t DocumentWindow::InputSampleLimit = 44100 / 2;
 const int64_t DocumentWindow::InputSamplesPerFrame = 44100 / 60;
+
+static std::shared_ptr<DocumentWindow> theOpenDocument;
 
 #define MAX_LOADSTRING 100
 
@@ -29,7 +30,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-bool                Open(HWND, DocumentWindow::Mode mode);
+std::shared_ptr<DocumentWindow>   Open(HWND, DocumentWindow::Mode mode);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -71,9 +72,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				DispatchMessage(&msg);
 			}
 		}
-		else
+		else if (theOpenDocument)
 		{
-			DocumentManager::sharedManager().render();
+			theOpenDocument->render();
 		}
 	}
 
@@ -138,8 +139,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
-	DocumentManager::sharedManager().restoreOpenWindows(hWnd);
-
 	return TRUE;
 }
 
@@ -170,10 +169,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			DestroyWindow(hWnd);
 			break;
 		case ID_FILE_OPEN:
-			Open(hWnd, DocumentWindow::Mode::DirectX);
+			theOpenDocument = Open(hWnd, DocumentWindow::Mode::DirectX);
 			break;
 		case ID_FILE_OPENOPENGL:
-			Open(hWnd, DocumentWindow::Mode::OpenGL);
+			theOpenDocument = Open(hWnd, DocumentWindow::Mode::OpenGL);
 			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
@@ -190,7 +189,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_CLOSE:
 	{
-		DocumentManager::sharedManager().storeOpenWindows();
 		DestroyWindow(hWnd);
 		break;
 	}
@@ -223,7 +221,8 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	return (INT_PTR)FALSE;
 }
 
-bool Open(HWND hWnd, DocumentWindow::Mode mode)
+std::shared_ptr<DocumentWindow> 
+Open(HWND hWnd, DocumentWindow::Mode mode)
 {
 	WCHAR buffer[MAX_PATH + 1] = { 0 };
 	OPENFILENAME ofns = { 0 };
@@ -234,9 +233,12 @@ bool Open(HWND hWnd, DocumentWindow::Mode mode)
 	BOOL result = GetOpenFileName(&ofns);
 	if (result)
 	{
-		return DocumentManager::sharedManager().open(buffer, hWnd, mode);
+		std::shared_ptr<DocumentWindow> win(std::make_shared<DocumentWindow>(buffer, mode));
+		win->openWindow(hWnd);
+
+		return win;
 	}
-	return false;
+	return std::shared_ptr<DocumentWindow>();
 }
 
 
@@ -296,18 +298,15 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
     }
     case WM_DESTROY:
     {
-        auto document = DocumentManager::sharedManager().lookup(hWnd);
-        if (document)
-        {
-            document->myWindow = nullptr;
-        }
-        DocumentManager::sharedManager().didClose(hWnd);
+		if (theOpenDocument && theOpenDocument->getWindow() == hWnd)
+		{
+			theOpenDocument = nullptr;
+		}
         break;
     }
     case WM_LBUTTONUP:
     {
-        auto document = DocumentManager::sharedManager().lookup(hWnd);
-        if (document)
+		if (theOpenDocument && theOpenDocument->getWindow() == hWnd)
         {
             // document->cancelFrame();
         }
@@ -315,10 +314,9 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
     }
 	case WM_SIZE:
 	{
-		auto document = DocumentManager::sharedManager().lookup(hWnd);
-		if (document)
+		if (theOpenDocument && theOpenDocument->getWindow() == hWnd)
 		{
-			document->myRenderer->resize(0, 0);
+			theOpenDocument->myRenderer->resize(0, 0);
 		}
 		break;
 	}
