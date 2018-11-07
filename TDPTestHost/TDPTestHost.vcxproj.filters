@@ -30,9 +30,6 @@
     <ClInclude Include="DocumentWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DocumentManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FileReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -75,9 +72,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DocumentWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DocumentManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FileReader.cpp">
