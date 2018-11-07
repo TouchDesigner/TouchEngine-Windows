@@ -515,7 +515,7 @@ void DocumentWindow::openWindow(HWND parent)
 	{
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 		std::string utf8 = converter.to_bytes(path);
-		myInstance = TPInstanceCreate(utf8.c_str(), TPTimeInternal, eventCallback, parameterValueCallback, this);
+		TPResult tpResult = TPInstanceCreate(utf8.c_str(), TPTimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
 	}
 }
 
