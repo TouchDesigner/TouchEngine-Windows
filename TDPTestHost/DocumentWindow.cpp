@@ -198,7 +198,7 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
 				}
 
 				int64_t length = maxSamples;
-				result = TPInstanceParameterGetOutputStreamValues(doc->myInstance, identifier, channels.data(), channels.size(), &length);
+				result = TPInstanceParameterGetOutputStreamValues(doc->myInstance, identifier, channels.data(), int32_t(channels.size()), &length);
 				if (result == TPResultSuccess)
 				{
 					// Use the channel data here
@@ -459,7 +459,7 @@ void DocumentWindow::render()
         }
     }
 
-    float intensity = (myLastStreamValue + 1.0) / 2.0;
+    float intensity = (myLastStreamValue + 1.0f) / 2.0f;
     myRenderer->setBackgroundColor(color[0] * intensity, color[1] * intensity, color[2] * intensity);
     myRenderer->render();
 }

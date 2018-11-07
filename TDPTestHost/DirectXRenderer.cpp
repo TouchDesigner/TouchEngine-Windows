@@ -47,7 +47,7 @@ bool DirectXRenderer::render()
     myDevice.setRenderTarget();
     myDevice.clear(myBackgroundColor[0], myBackgroundColor[1], myBackgroundColor[2], 1.0f);
 
-    float scale = 1.0 / (max(myLeftSideImages.size(), myRightSideImages.size()) + 1);
+    float scale = 1.0f / (max(myLeftSideImages.size(), myRightSideImages.size()) + 1.0f);
     drawImages(myLeftSideImages, scale, -0.5f);
     drawImages(myRightSideImages, scale, 0.5f);
 
@@ -59,7 +59,7 @@ void DirectXRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesP
 {
 	std::lock_guard<std::mutex> guard(myMutex);
 
-	DirectXTexture texture = myDevice.loadTexture(rgba, bytesPerRow, width, height);
+	DirectXTexture texture = myDevice.loadTexture(rgba, int32_t(bytesPerRow), width, height);
 
 	myLeftSideImages.emplace_back(texture);
 	myLeftSideImages.back().setup(myDevice);

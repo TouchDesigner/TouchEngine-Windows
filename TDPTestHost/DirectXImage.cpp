@@ -137,6 +137,6 @@ ID3D11Texture2D * DirectXImage::getTexture() const
 void DirectXImage::update(DirectXTexture & texture)
 {
     myTexture = texture;
-    width = myTexture.getWidth();
-    height = myTexture.getHeight();
+    width = (float)myTexture.getWidth();
+    height = (float)myTexture.getHeight();
 }
