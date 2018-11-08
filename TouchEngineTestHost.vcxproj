@@ -92,7 +92,6 @@
     <ClInclude Include="src/DirectXImage.h" />
     <ClInclude Include="src/DirectXRenderer.h" />
     <ClInclude Include="src/DirectXTexture.h" />
-    <ClInclude Include="src/DocumentManager.h" />
     <ClInclude Include="src/DocumentWindow.h" />
     <ClInclude Include="src/Drawable.h" />
     <ClInclude Include="src/FileReader.h" />
@@ -111,7 +110,6 @@
     <ClCompile Include="src/DirectXImage.cpp" />
     <ClCompile Include="src/DirectXRenderer.cpp" />
     <ClCompile Include="src/DirectXTexture.cpp" />
-    <ClCompile Include="src/DocumentManager.cpp" />
     <ClCompile Include="src/DocumentWindow.cpp" />
     <ClCompile Include="src/Drawable.cpp" />
     <ClCompile Include="src/FileReader.cpp" />
