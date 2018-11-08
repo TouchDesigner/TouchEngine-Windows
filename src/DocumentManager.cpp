@@ -50,7 +50,7 @@ void DocumentManager::storeOpenWindows()
             std::wofstream stream(path, std::ofstream::out | std::ofstream::trunc);
             for each (const auto entry in myDocuments)
             {
-                stream << entry.second->geTEath() << std::endl;
+                stream << entry.second->getPath() << std::endl;
             }
         }
     }
@@ -60,7 +60,7 @@ bool DocumentManager::open(const std::wstring & path, HWND parent, bool update, 
 {
     for each (auto doc in myDocuments)
     {
-        if (doc.second->geTEath() == path)
+        if (doc.second->getPath() == path)
         {
             // already open
             SetActiveWindow(doc.second->getWindow());

@@ -18,7 +18,7 @@ public:
     static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
     DocumentWindow(std::wstring path, Mode mode);
     ~DocumentWindow();
-    const std::wstring geTEath() const;
+    const std::wstring getPath() const;
     void openWindow(HWND parent);
     HWND getWindow() const { return myWindow; };
     void didLoad() { myDidLoad = true; };

@@ -475,7 +475,7 @@ DocumentWindow::~DocumentWindow()
     }
 }
 
-const std::wstring DocumentWindow::geTEath() const
+const std::wstring DocumentWindow::getPath() const
 {
 	return myPath;
 }
@@ -486,7 +486,7 @@ void DocumentWindow::openWindow(HWND parent)
     SetRect(&rc, 0, 0, 640, 480);
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
 
-    std::wstring path = geTEath();
+    std::wstring path = getPath();
     myWindow = CreateWindowW(WindowClassName,
         path.data(),
         WS_OVERLAPPEDWINDOW | myRenderer->getWindowStyleFlags(),
