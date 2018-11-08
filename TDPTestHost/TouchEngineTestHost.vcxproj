@@ -13,8 +13,9 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{55CCF31C-35CD-49D8-8A38-94ABDF79CC53}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>TDPTestHost</RootNamespace>
+    <RootNamespace>TouchEngineTestHost</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+    <ProjectName>TouchEngineTestHost</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -87,9 +88,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="DirectXDevice.h" />
     <ClInclude Include="DirectXImage.h" />
     <ClInclude Include="DirectXRenderer.h" />
@@ -133,18 +131,18 @@
     <ClCompile Include="VertexShader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="TDPTestHost.rc" />
+    <ResourceCompile Include="TouchEngineTestHost.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico" />
-    <Image Include="TDPTestHost.ico" />
+    <Image Include="TouchEngineTestHost.ico" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="TDPTestPixelShader.hlsl">
+    <FxCompile Include="TestPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="TDPTestVertexShader.hlsl">
+    <FxCompile Include="TestVertexShader.hlsl">
       <FileType>Document</FileType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
