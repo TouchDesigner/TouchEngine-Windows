@@ -13,29 +13,29 @@
  *
  */
 
-#ifndef TPTexture_h
-#define TPTexture_h
+#ifndef TETexture_h
+#define TETexture_h
 
-#include "TPBase.h"
-#include "TPTypes.h"
+#include "TEBase.h"
+#include "TETypes.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-TP_ASSUME_NONNULL_BEGIN
+TE_ASSUME_NONNULL_BEGIN
 
-typedef TPObject TPTexture;
+typedef TEObject TETexture;
 
 /*
  Returns the type (OpenGL, D3D, DXGI) of texture
  */
-TP_EXPORT TPTextureType TPTextureGetType(TPTexture *texture);
+TE_EXPORT TETextureType TETextureGetType(TETexture *texture);
 
-TP_ASSUME_NONNULL_END
+TE_ASSUME_NONNULL_END
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* TPTexture_h */
+#endif /* TETexture_h */

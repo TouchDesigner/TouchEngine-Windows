@@ -13,28 +13,28 @@
  *
  */
 
-#ifndef TPResult_h
-#define TPResult_h
+#ifndef TEResult_h
+#define TEResult_h
 
-#include "TPBase.h"
-#include "TPTypes.h"
+#include "TEBase.h"
+#include "TETypes.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-TP_ASSUME_NONNULL_BEGIN
+TE_ASSUME_NONNULL_BEGIN
 
 /* 
- Returns a description of the TPResult as a UTF-8 encoded string in English,
- or NULL if the TPResult was invalid.
+ Returns a description of the TEResult as a UTF-8 encoded string in English,
+ or NULL if the TEResult was invalid.
  */
-TP_EXPORT const char * TP_NULLABLE TPResultGetDescription(TPResult result);
+TE_EXPORT const char * TE_NULLABLE TEResultGetDescription(TEResult result);
 
-TP_ASSUME_NONNULL_END
+TE_ASSUME_NONNULL_END
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* TPResult_h */
+#endif /* TEResult_h */

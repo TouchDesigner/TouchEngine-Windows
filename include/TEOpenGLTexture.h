@@ -13,11 +13,11 @@
  *
  */
 
-#ifndef TPOpenGLTexture_h
-#define TPOpenGLTexture_h
+#ifndef TEOpenGLTexture_h
+#define TEOpenGLTexture_h
 
-#include "TPBase.h"
-#include "TPTexture.h"
+#include "TEBase.h"
+#include "TETexture.h"
 #ifdef __APPLE__
 #include <OpenGL/gltypes.h>
 #else
@@ -29,11 +29,11 @@ typedef unsigned int GLuint;
 extern "C" {
 #endif
 
-TP_ASSUME_NONNULL_BEGIN
+TE_ASSUME_NONNULL_BEGIN
 
-typedef TPTexture TPOpenGLTexture;
+typedef TETexture TEOpenGLTexture;
 
-typedef void (*TPOpenGLTextureReleaseCallback)(GLuint texture, void * TP_NULLABLE info);
+typedef void (*TEOpenGLTextureReleaseCallback)(GLuint texture, void * TE_NULLABLE info);
 
 // TODO: target as requirement or argument
 
@@ -41,24 +41,24 @@ typedef void (*TPOpenGLTextureReleaseCallback)(GLuint texture, void * TP_NULLABL
 Create a texture from an OpenGL texture
 callback will be called with the values passed to texture and info when the texture is released - the 
 texture should remain valid until that happens.
-The caller is responsible for releasing the returned TPOpenGLTexture using TPRelease()
+The caller is responsible for releasing the returned TEOpenGLTexture using TERelease()
 */
-TP_EXPORT TPOpenGLTexture *TPOpenGLTextureCreate(GLuint texture, int32_t width, int32_t height, TPOpenGLTextureReleaseCallback TP_NULLABLE callback, void * TP_NULLABLE info);
+TE_EXPORT TEOpenGLTexture *TEOpenGLTextureCreate(GLuint texture, int32_t width, int32_t height, TEOpenGLTextureReleaseCallback TE_NULLABLE callback, void * TE_NULLABLE info);
 
 /*
  Returns the underlying OpenGL texture.
- This texture is owned by the TPOpenGLTexture and should not be used beyond the lifetime of its owner.
+ This texture is owned by the TEOpenGLTexture and should not be used beyond the lifetime of its owner.
  */
-TP_EXPORT GLuint TPOpenGLTextureGetName(TPOpenGLTexture *texture);
+TE_EXPORT GLuint TEOpenGLTextureGetName(TEOpenGLTexture *texture);
 
-TP_EXPORT int32_t TPOpenGLTextureGetWidth(TPTexture *texture);
+TE_EXPORT int32_t TEOpenGLTextureGetWidth(TETexture *texture);
 
-TP_EXPORT int32_t TPOpenGLTextureGetHeight(TPTexture *texture);
+TE_EXPORT int32_t TEOpenGLTextureGetHeight(TETexture *texture);
 
-TP_ASSUME_NONNULL_END
+TE_ASSUME_NONNULL_END
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* TPOpenGLTexture_h */
+#endif /* TEOpenGLTexture_h */

@@ -14,29 +14,29 @@
  */
 
 
-#ifndef TPStructs_h
-#define TPStructs_h
+#ifndef TEStructs_h
+#define TEStructs_h
 
-#include "TPTypes.h"
+#include "TETypes.h"
 #include <assert.h>
 #include <stddef.h>
 
-struct TPParameterInfo
+struct TEParameterInfo
 {
 	/*
 	 The scope (input or output) of the parameter.
 	 */
-	TPScope				scope;
+	TEScope				scope;
 
 	/*
 	 How the parameter is intended to be used.
 	 */
-	TPParameterIntent	intent;
+	TEParameterIntent	intent;
 
 	/*
 	  The type of parameter
 	 */
-	TPParameterType		type;
+	TEParameterType		type;
 
 	/*
 	 For value parameters, the number of values associated with the parameter
@@ -60,7 +60,7 @@ struct TPParameterInfo
 	const char *		identifier;
 };
 
-struct TPString
+struct TEString
 {
 	/*
 	 A null-terminated UTF-8 encoded string
@@ -68,7 +68,7 @@ struct TPString
 	const char *string;
 };
 
-struct TPStringArray
+struct TEStringArray
 {
 	/*
 	 The number of strings in the array
@@ -81,7 +81,7 @@ struct TPStringArray
 	const char * const *	strings;
 };
 
-struct TPStreamDescription
+struct TEStreamDescription
 {
 	/*
 	 Sample rate
@@ -102,16 +102,16 @@ struct TPStreamDescription
 
 #define kStructAlignmentError "struct misaligned for library"
 
-static_assert(offsetof(struct TPParameterInfo, intent) == 4, kStructAlignmentError);
-static_assert(offsetof(struct TPParameterInfo, type) == 8, kStructAlignmentError);
-static_assert(offsetof(struct TPParameterInfo, count) == 12, kStructAlignmentError);
-static_assert(offsetof(struct TPParameterInfo, label) == 16, kStructAlignmentError);
-static_assert(offsetof(struct TPParameterInfo, identifier) == 24, kStructAlignmentError);
+static_assert(offsetof(struct TEParameterInfo, intent) == 4, kStructAlignmentError);
+static_assert(offsetof(struct TEParameterInfo, type) == 8, kStructAlignmentError);
+static_assert(offsetof(struct TEParameterInfo, count) == 12, kStructAlignmentError);
+static_assert(offsetof(struct TEParameterInfo, label) == 16, kStructAlignmentError);
+static_assert(offsetof(struct TEParameterInfo, identifier) == 24, kStructAlignmentError);
 
-static_assert(offsetof(struct TPStringArray, strings) == 8, kStructAlignmentError);
+static_assert(offsetof(struct TEStringArray, strings) == 8, kStructAlignmentError);
 
-static_assert(offsetof(struct TPStreamDescription, maxSamples) == 8, kStructAlignmentError);
-static_assert(offsetof(struct TPStreamDescription, numChannels) == 16, kStructAlignmentError);
+static_assert(offsetof(struct TEStreamDescription, maxSamples) == 8, kStructAlignmentError);
+static_assert(offsetof(struct TEStreamDescription, numChannels) == 16, kStructAlignmentError);
 
 #endif
 

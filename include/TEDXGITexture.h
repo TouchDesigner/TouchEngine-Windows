@@ -13,11 +13,11 @@
  *
  */
 
-#ifndef TPDXGITexture_h
-#define TPDXGITexture_h
+#ifndef TEDXGITexture_h
+#define TEDXGITexture_h
 
-#include "TPBase.h"
-#include "TPTexture.h"
+#include "TEBase.h"
+#include "TETexture.h"
 
 typedef void *HANDLE;
 
@@ -25,35 +25,35 @@ typedef void *HANDLE;
 extern "C" {
 #endif
 
-TP_ASSUME_NONNULL_BEGIN
+TE_ASSUME_NONNULL_BEGIN
 
-typedef TPTexture TPDXGITexture;
-typedef TPTexture TPD3D11Texture;
+typedef TETexture TEDXGITexture;
+typedef TETexture TED3D11Texture;
 
-typedef void (*TPDXGITextureReleaseCallback)(HANDLE handle, void * TP_NULLABLE info);
+typedef void (*TEDXGITextureReleaseCallback)(HANDLE handle, void * TE_NULLABLE info);
 
 /*
 Create a texture from a shared handle
 This must come from IDXGIResource::GetSharedHandle(), and not IDXGIResource1::CreateSharedHandle()
 callback will be called with the values passed to handle and info when the texture is released
-The caller is responsible for releasing the returned TPDXGITexture using TPRelease()
+The caller is responsible for releasing the returned TEDXGITexture using TERelease()
 */
-TP_EXPORT TPDXGITexture *TPDXGITextureCreate(HANDLE handle, TPDXGITextureReleaseCallback TP_NULLABLE callback, void *info);
+TE_EXPORT TEDXGITexture *TEDXGITextureCreate(HANDLE handle, TEDXGITextureReleaseCallback TE_NULLABLE callback, void *info);
 
 /*
- Create a texture from a TPD3D11Texture. Depending on the source texture, this may involve copying
+ Create a texture from a TED3D11Texture. Depending on the source texture, this may involve copying
  the texture to permit sharing.
- The caller is responsible for releasing the returned TPDXGITexture using TPRelease()
+ The caller is responsible for releasing the returned TEDXGITexture using TERelease()
  */
 // TODO: this function may be removed from the API
-TP_EXPORT TPDXGITexture *TPDXGITextureCreateFromD3D(TPD3D11Texture *texture);
+TE_EXPORT TEDXGITexture *TEDXGITextureCreateFromD3D(TED3D11Texture *texture);
 
-TP_EXPORT HANDLE TPDXGITextureGetHandle(TPDXGITexture *texture);
+TE_EXPORT HANDLE TEDXGITextureGetHandle(TEDXGITexture *texture);
 
-TP_ASSUME_NONNULL_END
+TE_ASSUME_NONNULL_END
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* TPDXGITexture_h */
+#endif /* TEDXGITexture_h */

@@ -13,14 +13,14 @@
  *
  */
 
-#include <TDP/TPBase.h>
-#include <TDP/TPTypes.h>
-#include <TDP/TPResult.h>
-#include <TDP/TPStructs.h>
-#include <TDP/TPInstance.h>
-#include <TDP/TPTexture.h>
-#include <TDP/TPOpenGLTexture.h>
+#include <TEBase.h>
+#include <TETypes.h>
+#include <TEResult.h>
+#include <TEStructs.h>
+#include <TEInstance.h>
+#include <TETexture.h>
+#include <TEOpenGLTexture.h>
 #if defined(_WIN32)
-	#include <TDP/TPD3DTexture.h>
-	#include <TDP/TPDXGITexture.h>
+	#include <TED3DTexture.h>
+	#include <TEDXGITexture.h>
 #endif
