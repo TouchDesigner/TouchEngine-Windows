@@ -58,7 +58,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);GLEW_STATIC</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src\touch\lib\H_UT\TDP;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/src;$(SolutionDir)..\src\touch\lib\H_UT\TDP;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -76,7 +76,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);GLEW_STATIC</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src\touch\lib\H_UT\TDP;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/src;$(SolutionDir)..\src\touch\lib\H_UT\TDP;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -88,61 +88,61 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="DirectXDevice.h" />
-    <ClInclude Include="DirectXImage.h" />
-    <ClInclude Include="DirectXRenderer.h" />
-    <ClInclude Include="DirectXTexture.h" />
-    <ClInclude Include="DocumentManager.h" />
-    <ClInclude Include="DocumentWindow.h" />
-    <ClInclude Include="Drawable.h" />
-    <ClInclude Include="FileReader.h" />
-    <ClInclude Include="GL\glew.h" />
-    <ClInclude Include="GL\wglew.h" />
-    <ClInclude Include="OpenGLRenderer.h" />
-    <ClInclude Include="OpenGLTexture.h" />
-    <ClInclude Include="Renderer.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="VertexShader.h" />
+    <ClInclude Include="src/DirectXDevice.h" />
+    <ClInclude Include="src/DirectXImage.h" />
+    <ClInclude Include="src/DirectXRenderer.h" />
+    <ClInclude Include="src/DirectXTexture.h" />
+    <ClInclude Include="src/DocumentManager.h" />
+    <ClInclude Include="src/DocumentWindow.h" />
+    <ClInclude Include="src/Drawable.h" />
+    <ClInclude Include="src/FileReader.h" />
+    <ClInclude Include="src/GL\glew.h" />
+    <ClInclude Include="src/GL\wglew.h" />
+    <ClInclude Include="src/OpenGLRenderer.h" />
+    <ClInclude Include="src/OpenGLTexture.h" />
+    <ClInclude Include="src/Renderer.h" />
+    <ClInclude Include="src/Resource.h" />
+    <ClInclude Include="src/stdafx.h" />
+    <ClInclude Include="src/targetver.h" />
+    <ClInclude Include="src/VertexShader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DirectXDevice.cpp" />
-    <ClCompile Include="DirectXImage.cpp" />
-    <ClCompile Include="DirectXRenderer.cpp" />
-    <ClCompile Include="DirectXTexture.cpp" />
-    <ClCompile Include="DocumentManager.cpp" />
-    <ClCompile Include="DocumentWindow.cpp" />
-    <ClCompile Include="Drawable.cpp" />
-    <ClCompile Include="FileReader.cpp" />
-    <ClCompile Include="glew.c">
+    <ClCompile Include="src/DirectXDevice.cpp" />
+    <ClCompile Include="src/DirectXImage.cpp" />
+    <ClCompile Include="src/DirectXRenderer.cpp" />
+    <ClCompile Include="src/DirectXTexture.cpp" />
+    <ClCompile Include="src/DocumentManager.cpp" />
+    <ClCompile Include="src/DocumentWindow.cpp" />
+    <ClCompile Include="src/Drawable.cpp" />
+    <ClCompile Include="src/FileReader.cpp" />
+    <ClCompile Include="src/glew.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <ClCompile Include="OpenGLRenderer.cpp" />
-    <ClCompile Include="OpenGLTexture.cpp" />
-    <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="src/OpenGLRenderer.cpp" />
+    <ClCompile Include="src/OpenGLTexture.cpp" />
+    <ClCompile Include="src/Renderer.cpp" />
+    <ClCompile Include="src/stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="VertexShader.cpp" />
+    <ClCompile Include="src/VertexShader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="TouchEngineTestHost.rc" />
+    <ResourceCompile Include="src/TouchEngineTestHost.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico" />
-    <Image Include="TouchEngineTestHost.ico" />
+    <Image Include="src/small.ico" />
+    <Image Include="src/TouchEngineTestHost.ico" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="TestPixelShader.hlsl">
+    <FxCompile Include="src/TestPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="TestVertexShader.hlsl">
+    <FxCompile Include="src/TestVertexShader.hlsl">
       <FileType>Document</FileType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>

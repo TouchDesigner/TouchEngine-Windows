@@ -1,115 +1,115 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="TestPixelShader.hlsl">
+    <FxCompile Include="src/TestPixelShader.hlsl">
       <Filter>Source Files</Filter>
     </FxCompile>
-    <FxCompile Include="TestVertexShader.hlsl">
+    <FxCompile Include="src/TestVertexShader.hlsl">
       <Filter>Source Files</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DirectXDevice.cpp">
+    <ClCompile Include="src/DirectXDevice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DirectXImage.cpp">
+    <ClCompile Include="src/DirectXImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DirectXRenderer.cpp">
+    <ClCompile Include="src/DirectXRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DirectXTexture.cpp">
+    <ClCompile Include="src/DirectXTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocumentManager.cpp">
+    <ClCompile Include="src/DocumentManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocumentWindow.cpp">
+    <ClCompile Include="src/DocumentWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Drawable.cpp">
+    <ClCompile Include="src/Drawable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileReader.cpp">
+    <ClCompile Include="src/FileReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="glew.c">
+    <ClCompile Include="src/glew.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenGLRenderer.cpp">
+    <ClCompile Include="src/OpenGLRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenGLTexture.cpp">
+    <ClCompile Include="src/OpenGLTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
+    <ClCompile Include="src/Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="src/stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VertexShader.cpp">
+    <ClCompile Include="src/VertexShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DirectXDevice.h">
+    <ClInclude Include="src/DirectXDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DirectXImage.h">
+    <ClInclude Include="src/DirectXImage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DirectXRenderer.h">
+    <ClInclude Include="src/DirectXRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DirectXTexture.h">
+    <ClInclude Include="src/DirectXTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DocumentManager.h">
+    <ClInclude Include="src/DocumentManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DocumentWindow.h">
+    <ClInclude Include="src/DocumentWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FileReader.h">
+    <ClInclude Include="src/Drawable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Drawable.h">
+    <ClInclude Include="src/FileReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GL\glew.h">
+    <ClInclude Include="src/GL\glew.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OpenGLRenderer.h">
+    <ClInclude Include="src/GL\wglew.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OpenGLTexture.h">
+    <ClInclude Include="src/OpenGLRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Resource.h">
+    <ClInclude Include="src/OpenGLTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h">
+    <ClInclude Include="src/Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="src/Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="targetver.h">
+    <ClInclude Include="src/stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VertexShader.h">
+    <ClInclude Include="src/targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GL\wglew.h">
+    <ClInclude Include="src/VertexShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico">
+    <Image Include="src/small.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="TouchEngineTestHost.ico">
+    <Image Include="src/TouchEngineTestHost.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
@@ -128,7 +128,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="TDPTestHost.rc">
+    <ResourceCompile Include="src/TouchEngineTestHost.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TouchEngineTestHost", "TDPTestHost\TouchEngineTestHost.vcxproj", "{55CCF31C-35CD-49D8-8A38-94ABDF79CC53}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TouchEngineTestHost", "TouchEngineTestHost.vcxproj", "{55CCF31C-35CD-49D8-8A38-94ABDF79CC53}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
