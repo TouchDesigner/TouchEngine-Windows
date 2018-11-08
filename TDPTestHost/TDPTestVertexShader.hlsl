@@ -17,9 +17,9 @@ cbuffer ConstantBuffer : register(b0)
 
 PixelShaderInput main(VertexShaderInput input)
 {
-    PixelShaderInput vertexShaderOuTEut;
+    PixelShaderInput vertexShaderOutput;
 
-    vertexShaderOuTEut.pos = mul(float4(input.pos, 0.5f, 1.0f), Matrix);
-    vertexShaderOuTEut.tex = input.tex;
-    return vertexShaderOuTEut;
+    vertexShaderOutput.pos = mul(float4(input.pos, 0.5f, 1.0f), Matrix);
+    vertexShaderOutput.tex = input.tex;
+    return vertexShaderOutput;
 }
