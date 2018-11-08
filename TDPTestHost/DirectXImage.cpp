@@ -54,7 +54,7 @@ bool DirectXImage::setup(DirectXDevice & device)
     };
 
     myVertexShader = device.loadVertexShader(L"TDPTestVertexShader.cso", layoutDescription, ARRAYSIZE(layoutDescription));
-    myPixelShader = device.loadPixelShader(L"TDPTesTEixelShader.cso");
+    myPixelShader = device.loadPixelShader(L"TDPTestPixelShader.cso");
 
     BasicVertex rectangleVertices[] =
     {
