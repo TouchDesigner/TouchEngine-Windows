@@ -54,7 +54,7 @@ bool DirectXImage::setup(DirectXDevice & device)
     };
 
     myVertexShader = device.loadVertexShader(L"TDPTestVertexShader.cso", layoutDescription, ARRAYSIZE(layoutDescription));
-    myPixelShader = device.loadPixelShader(L"TDPTestPixelShader.cso");
+    myPixelShader = device.loadPixelShader(L"TDPTesTEixelShader.cso");
 
     BasicVertex rectangleVertices[] =
     {
@@ -106,7 +106,7 @@ void DirectXImage::draw(DirectXDevice &device)
         device.setTriangleListTopology();
         device.setVertexShader(myVertexShader);
         device.setConstantBuffer(myConstantBuffer);
-        device.setPixelShader(myPixelShader);
+        device.seTEixelShader(myPixelShader);
         device.setShaderResourceAndSampler(myTexture);
         device.drawIndexed(6);
     }

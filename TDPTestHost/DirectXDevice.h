@@ -42,7 +42,7 @@ public:
     void setIndexBuffer(ID3D11Buffer *buffer);
     void setTriangleListTopology();
     void setVertexShader(VertexShader &shader);
-    void setPixelShader(ID3D11PixelShader *shader);
+    void seTEixelShader(ID3D11PixelShader *shader);
     void setShaderResourceAndSampler(DirectXTexture &texture);
     void updateSubresource(ID3D11Resource *resource, const void *data);
     void setConstantBuffer(ID3D11Buffer *buffer);
