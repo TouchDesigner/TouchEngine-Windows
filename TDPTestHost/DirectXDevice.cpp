@@ -243,7 +243,7 @@ void DirectXDevice::setVertexShader(VertexShader & shader)
     shader.setShader(myDeviceContext);
 }
 
-void DirectXDevice::setPixelShader(ID3D11PixelShader * shader)
+void DirectXDevice::seTEixelShader(ID3D11PixelShader * shader)
 {
     myDeviceContext->PSSetShader(shader, nullptr, 0);
 }

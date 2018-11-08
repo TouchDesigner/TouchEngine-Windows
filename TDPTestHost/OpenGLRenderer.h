@@ -18,10 +18,10 @@ public:
 	virtual bool render();
 	virtual size_t getLeftSideImageCount() const;
 	virtual void addLeftSideImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height);
-	virtual TPTexture *createLeftSideImage(size_t index);
+	virtual TETexture *createLeftSideImage(size_t index);
 	virtual void clearLeftSideImages();
 	virtual void addRightSideImage();
-	virtual void setRightSideImage(size_t index, TPTexture *texture);
+	virtual void setRightSideImage(size_t index, TETexture *texture);
 	virtual void clearRightSideImages();
 private:
 	std::mutex myMutex;

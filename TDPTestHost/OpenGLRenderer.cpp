@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "OpenGLRenderer.h"
-#include <TDP/TouchPlugIn.h>
+#include <TouchEngine.h>
 
 OpenGLRenderer::OpenGLRenderer()
 {
@@ -103,10 +103,10 @@ void OpenGLRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesPe
 	myLeftSideImages.emplace_back(rgba, bytesPerRow, width, height);
 }
 
-TPTexture * OpenGLRenderer::createLeftSideImage(size_t index)
+TETexture * OpenGLRenderer::createLeftSideImage(size_t index)
 {
 	auto &texture = myLeftSideImages[index];
-	//TPOpenGLTexture *texture = TPOpenGLTextureCreate(texture.getName(), texture.getWidth(), texture.getHeight(), GAH HERE YES)
+	//TEOpenGLTexture *texture = TEOpenGLTextureCreate(texture.getName(), texture.getWidth(), texture.getHeight(), GAH HERE YES)
 	return nullptr;
 }
 
@@ -120,7 +120,7 @@ void OpenGLRenderer::addRightSideImage()
 	Renderer::addRightSideImage();
 }
 
-void OpenGLRenderer::setRightSideImage(size_t index, TPTexture * texture)
+void OpenGLRenderer::setRightSideImage(size_t index, TETexture * texture)
 {
 
 	Renderer::setRightSideImage(index, texture);

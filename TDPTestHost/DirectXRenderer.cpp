@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "DirectXRenderer.h"
 #include "DirectXDevice.h"
-#include <TDP/TouchPlugIn.h>
+#include <TouchEngine.h>
 #include <array>
 
 DirectXRenderer::DirectXRenderer()
@@ -65,10 +65,10 @@ void DirectXRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesP
 	myLeftSideImages.back().setup(myDevice);
 }
 
-TPTexture * DirectXRenderer::createLeftSideImage(size_t index)
+TETexture * DirectXRenderer::createLeftSideImage(size_t index)
 {
 	auto &texture = myLeftSideImages[index];
-	return TPD3DTextureCreate(texture.getTexture());
+	return TED3DTextureCreate(texture.getTexture());
 }
 
 void DirectXRenderer::clearLeftSideImages()
@@ -88,27 +88,27 @@ void DirectXRenderer::addRightSideImage()
 	Renderer::addRightSideImage();
 }
 
-void DirectXRenderer::setRightSideImage(size_t index, TPTexture * texture)
+void DirectXRenderer::setRightSideImage(size_t index, TETexture * texture)
 {
 	std::lock_guard<std::mutex> guard(myMutex);
 
-	TPTexture *d3d = nullptr;
-	if (texture && TPTextureGetType(texture) == TPTextureTypeD3D)
+	TETexture *d3d = nullptr;
+	if (texture && TETextureGetType(texture) == TETextureTypeD3D)
 	{
 		// Retain as we release d3d and texture
-		d3d = TPRetain(texture);
+		d3d = TERetain(texture);
 	}
-	else if (texture && TPTextureGetType(texture) == TPTextureTypeDXGI)
+	else if (texture && TETextureGetType(texture) == TETextureTypeDXGI)
 	{
-		d3d = TPD3DTextureCreateFromDXGI(myDevice.getDevice(), texture);
+		d3d = TED3DTextureCreateFromDXGI(myDevice.getDevice(), texture);
 	}
-	else if (texture && TPTextureGetType(texture) == TPTextureTypeOpenGL)
+	else if (texture && TETextureGetType(texture) == TETextureTypeOpenGL)
 	{
-		// TODO: or document output is always TPTextureTypeDXGI
+		// TODO: or document ouTEut is always TETextureTypeDXGI
 	}
 	if (d3d)
 	{
-		DirectXTexture tex(TPD3DTextureGetTexture(d3d));
+		DirectXTexture tex(TED3DTextureGetTexture(d3d));
 
 		myRightSideImages.at(index).update(tex);
 	}
@@ -123,7 +123,7 @@ void DirectXRenderer::setRightSideImage(size_t index, TPTexture * texture)
 	
 	if (d3d)
 	{
-		TPRelease(&d3d);
+		TERelease(&d3d);
 	}
 }
 

@@ -328,23 +328,23 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
     return LRESULT();
 }
 
-void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPResult result, int64_t time_value, int32_t time_scale, void * info)
+void DocumentWindow::eventCallback(TEInstance * instance, TEEvent event, TEResult result, int64_t time_value, int32_t time_scale, void * info)
 {
     DocumentWindow *window = static_cast<DocumentWindow *>(info);
 
-    if (result != TPResultSuccess)
+    if (result != TEResultSuccess)
     {
         int i = 32;
     }
     switch (event)
     {
-    case TPEventInstanceDidLoad:
+    case TEEventInstanceDidLoad:
         window->didLoad();
         break;
-    case TPEventParameterLayoutDidChange:
+    case TEEventParameterLayoutDidChange:
         window->parameterLayoutDidChange();
         break;
-    case TPEventFrameDidFinish:
+    case TEEventFrameDidFinish:
         window->endFrame(time_value, time_scale, result);
         break;
     default:
@@ -352,63 +352,63 @@ void DocumentWindow::eventCallback(TPInstance * instance, TPEvent event, TPResul
     }
 }
 
-void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *identifier, void * info)
+void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *identifier, void * info)
 {
     DocumentWindow *doc = static_cast<DocumentWindow *>(info);
 
-	TPParameterInfo *param = nullptr;
-	TPResult result = TPInstanceParameterCopyInfo(instance, identifier, &param);
-    if (result == TPResultSuccess && param->scope == TPScopeOutput)
+	TEParameterInfo *param = nullptr;
+	TEResult result = TEInstanceParameterCopyInfo(instance, identifier, &param);
+    if (result == TEResultSuccess && param->scope == TEScopeOutput)
     {
 		switch (param->type)
 		{
-		case TPParameterTypeDouble:
+		case TEParameterTypeDouble:
 		{
 			double value;
-			result = TPInstanceParameterGetDoubleValue(doc->myInstance, identifier, TPParameterValueCurrent, &value, 1);
+			result = TEInstanceParameterGetDoubleValue(doc->myInstance, identifier, TEParameterValueCurrent, &value, 1);
 			break;
 		}
-		case TPParameterTypeInt:
+		case TEParameterTypeInt:
 		{
 			int32_t value;
-			result = TPInstanceParameterGetIntValue(doc->myInstance, identifier, TPParameterValueCurrent, &value, 1);
+			result = TEInstanceParameterGetIntValue(doc->myInstance, identifier, TEParameterValueCurrent, &value, 1);
 			break;
 		}
-		case TPParameterTypeString:
+		case TEParameterTypeString:
 		{
-			TPString *value;
-			result = TPInstanceParameterCopyStringValue(doc->myInstance, identifier, TPParameterValueCurrent, &value);
-			if (result == TPResultSuccess)
+			TEString *value;
+			result = TEInstanceParameterCopyStringValue(doc->myInstance, identifier, TEParameterValueCurrent, &value);
+			if (result == TEResultSuccess)
 			{
 				// Use value->string here
-				TPRelease(value);
+				TERelease(value);
 			}
 			break;
 		}
-		case TPParameterTypeTexture:
+		case TEParameterTypeTexture:
 		{
-			TPTexture *texture = nullptr;
-			result = TPInstanceParameterCopyTextureValue(doc->myInstance, identifier, TPParameterValueCurrent, &texture);
-			if (result == TPResultSuccess)
+			TETexture *texture = nullptr;
+			result = TEInstanceParameterCopyTextureValue(doc->myInstance, identifier, TEParameterValueCurrent, &texture);
+			if (result == TEResultSuccess)
 			{
-				size_t imageIndex = doc->myOutputParameterTextureMap[identifier];
+				size_t imageIndex = doc->myOuTEuTEarameterTextureMap[identifier];
 
 				doc->myRenderer->setRightSideImage(imageIndex, texture);
 
 				if (texture)
 				{
-					TPRelease(&texture);
+					TERelease(&texture);
 				}
 			}
 			break;
 		}
-		case TPParameterTypeFloatStream:
+		case TEParameterTypeFloatStream:
 		{
 
-			TPStreamDescription *desc = nullptr;
-			result = TPInstanceParameterCopyStreamDescription(doc->myInstance, identifier, &desc);
+			TEStreamDescription *desc = nullptr;
+			result = TEInstanceParameterCopyStreamDescription(doc->myInstance, identifier, &desc);
 
-			if (result == TPResultSuccess)
+			if (result == TEResultSuccess)
 			{
 				int32_t channelCount = desc->numChannels;
 				std::vector <std::vector<float>> store(channelCount);
@@ -422,8 +422,8 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
 				}
 
 				int64_t length = maxSamples;
-				result = TPInstanceParameterGetOutputStreamValues(doc->myInstance, identifier, channels.data(), int32_t(channels.size()), &length);
-				if (result == TPResultSuccess)
+				result = TEInstanceParameterGetOutputStreamValues(doc->myInstance, identifier, channels.data(), int32_t(channels.size()), &length);
+				if (result == TEResultSuccess)
 				{
 					// Use the channel data here
 					if (length > 0 && channels.size() > 0)
@@ -431,7 +431,7 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
 						doc->myLastStreamValue = store.back()[length - 1];
 					}
 				}
-				TPRelease(&desc);
+				TERelease(&desc);
 			}
 			
 		}
@@ -440,10 +440,10 @@ void DocumentWindow::parameterValueCallback(TPInstance * instance, const char *i
 			break;
 		}
     }
-	TPRelease(&param);
+	TERelease(&param);
 }
 
-void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TPResult result)
+void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TEResult result)
 {
     myInFrame = false;
 }
@@ -458,13 +458,13 @@ DocumentWindow::DocumentWindow(std::wstring path, Mode mode)
 
 DocumentWindow::~DocumentWindow()
 {
-	// TODO: we shouldn't have to do this but TPTextures are holding on to the connection which gets invalidated
+	// TODO: we shouldn't have to do this but TETextures are holding on to the connection which gets invalidated
 	myRenderer->clearLeftSideImages();
 	myRenderer->clearRightSideImages();
 
 	if (myInstance)
 	{
-		TPRelease(&myInstance);
+		TERelease(&myInstance);
 	}
 
     myRenderer->stop();
@@ -475,7 +475,7 @@ DocumentWindow::~DocumentWindow()
     }
 }
 
-const std::wstring DocumentWindow::getPath() const
+const std::wstring DocumentWindow::geTEath() const
 {
 	return myPath;
 }
@@ -486,7 +486,7 @@ void DocumentWindow::openWindow(HWND parent)
     SetRect(&rc, 0, 0, 640, 480);
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
 
-    std::wstring path = getPath();
+    std::wstring path = geTEath();
     myWindow = CreateWindowW(WindowClassName,
         path.data(),
         WS_OVERLAPPEDWINDOW | myRenderer->getWindowStyleFlags(),
@@ -517,7 +517,7 @@ void DocumentWindow::openWindow(HWND parent)
 	{
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 		std::string utf8 = converter.to_bytes(path);
-		TPResult tpResult = TPInstanceCreate(utf8.c_str(), TPTimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+		TEResult TEResult = TEInstanceCreate(utf8.c_str(), TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
 	}
 }
 
@@ -525,47 +525,47 @@ void DocumentWindow::parameterLayoutDidChange()
 {
     myRenderer->clearLeftSideImages();
     myRenderer->clearRightSideImages();
-    myOutputParameterTextureMap.clear();
+    myOuTEuTEarameterTextureMap.clear();
 
-    for (auto scope : { TPScopeInput, TPScopeOutput })
+    for (auto scope : { TEScopeInput, TEScopeOutput })
     {
-        TPStringArray *groups;
-		TPResult result = TPInstanceCopyParameterGroups(myInstance, scope, &groups);
-        if (result == TPResultSuccess)
+        TEStringArray *groups;
+		TEResult result = TEInstanceCopyParameterGroups(myInstance, scope, &groups);
+        if (result == TEResultSuccess)
         {
             for (int32_t i = 0; i < groups->count; i++)
             {
-				TPParameterInfo *group;
-				result = TPInstanceParameterCopyInfo(myInstance, groups->strings[i], &group);
-				if (result == TPResultSuccess)
+				TEParameterInfo *group;
+				result = TEInstanceParameterCopyInfo(myInstance, groups->strings[i], &group);
+				if (result == TEResultSuccess)
 				{
 					// Use group info here
-					TPRelease(&group);
+					TERelease(&group);
 				}
-				TPStringArray *children = nullptr;
-				if (result == TPResultSuccess)
+				TEStringArray *children = nullptr;
+				if (result == TEResultSuccess)
 				{
-					result = TPInstanceParameterCopyChildren(myInstance, groups->strings[i], &children);
+					result = TEInstanceParameterCopyChildren(myInstance, groups->strings[i], &children);
 				}
-                if (result == TPResultSuccess)
+                if (result == TEResultSuccess)
                 {
                     for (int32_t j = 0; j < children->count; j++)
                     {
-						TPParameterInfo *info;
-						result = TPInstanceParameterCopyInfo(myInstance, children->strings[j], &info);
-						if (result == TPResultSuccess)
+						TEParameterInfo *info;
+						result = TEInstanceParameterCopyInfo(myInstance, children->strings[j], &info);
+						if (result == TEResultSuccess)
 						{
-							if (info->type == TPParameterTypeFloatStream && scope == TPScopeInput)
+							if (info->type == TEParameterTypeFloatStream && scope == TEScopeInput)
 							{
-								TPStreamDescription desc;
+								TEStreamDescription desc;
 								desc.rate = InputSampleRate;
 								desc.numChannels = InputChannelCount;
 								desc.maxSamples = InputSampleLimit;
-								result = TPInstanceParameterSetInputStreamDescription(myInstance, info->identifier, &desc);
+								result = TEInstanceParameterSetInputStreamDescription(myInstance, info->identifier, &desc);
 							}
-							else if (result == TPResultSuccess && info->type == TPParameterTypeTexture)
+							else if (result == TEResultSuccess && info->type == TEParameterTypeTexture)
 							{
-								if (scope == TPScopeInput)
+								if (scope == TEScopeInput)
 								{
 									std::array<unsigned char, 256 * 256 * 4> tex;
 
@@ -584,13 +584,13 @@ void DocumentWindow::parameterLayoutDidChange()
 								else
 								{
 									myRenderer->addRightSideImage();
-									myOutputParameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
+									myOuTEuTEarameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
 								}
 							}
-							TPRelease(&info);
+							TERelease(&info);
 						}
                     }
-					TPRelease(&children);
+					TERelease(&children);
                 }
             }
         }
@@ -602,75 +602,75 @@ void DocumentWindow::render()
     float color[4] = { myDidLoad ? 0.6f : 0.6f, myDidLoad ? 0.6f : 0.6f, myDidLoad ? 1.0f : 0.6f, 1.0f};
     if (myDidLoad && !myInFrame)
     {
-		TPStringArray *groups;
-		TPResult result = TPInstanceCopyParameterGroups(myInstance, TPScopeInput, &groups);
-        if (result == TPResultSuccess)
+		TEStringArray *groups;
+		TEResult result = TEInstanceCopyParameterGroups(myInstance, TEScopeInput, &groups);
+        if (result == TEResultSuccess)
         {
             int textureCount = 0;
             for (int32_t i = 0; i < groups->count; i++)
             {
-				TPStringArray *children;
-				result = TPInstanceParameterCopyChildren(myInstance, groups->strings[i], &children);
-				if (result == TPResultSuccess)
+				TEStringArray *children;
+				result = TEInstanceParameterCopyChildren(myInstance, groups->strings[i], &children);
+				if (result == TEResultSuccess)
                 {
                     for (int32_t j = 0; j < children->count; j++)
                     {
-						TPParameterInfo *info;
-						result = TPInstanceParameterCopyInfo(myInstance, children->strings[j], &info);
-						if (result == TPResultSuccess)
+						TEParameterInfo *info;
+						result = TEInstanceParameterCopyInfo(myInstance, children->strings[j], &info);
+						if (result == TEResultSuccess)
                         {
                             switch (info->type)
                             {
-                            case TPParameterTypeDouble:
+                            case TEParameterTypeDouble:
 							{
 								double d = fmod(myLastFloatValue, 1.0);
-								result = TPInstanceParameterSetDoubleValue(myInstance, info->identifier, &d, 1);
+								result = TEInstanceParameterSetDoubleValue(myInstance, info->identifier, &d, 1);
 								break;
 							}
-                            case TPParameterTypeInt:
+                            case TEParameterTypeInt:
 							{
 								int v = static_cast<int>(myLastFloatValue * 00) % 100;
-								result = TPInstanceParameterSetIntValue(myInstance, info->identifier, &v, 1);
+								result = TEInstanceParameterSetIntValue(myInstance, info->identifier, &v, 1);
 								break;
 							}
-                            case TPParameterTypeString:
-                                result = TPInstanceParameterSetStringValue(myInstance, info->identifier, "test input");
+                            case TEParameterTypeString:
+                                result = TEInstanceParameterSetStringValue(myInstance, info->identifier, "test input");
                                 break;
-                            case TPParameterTypeTexture:
+                            case TEParameterTypeTexture:
                             {
-                                TPD3DTexture *texture = myRenderer->createLeftSideImage(textureCount);
+                                TED3DTexture *texture = myRenderer->createLeftSideImage(textureCount);
 								if (texture)
 								{
-									result = TPInstanceParameterSetTextureValue(myInstance, info->identifier, texture);
-									TPRelease(&texture);
+									result = TEInstanceParameterSetTextureValue(myInstance, info->identifier, texture);
+									TERelease(&texture);
 								}
 
                                 textureCount++;
                                 break;
                             }
-                            case TPParameterTypeFloatStream:
+                            case TEParameterTypeFloatStream:
                             {
                                 std::array<float, InputSamplesPerFrame> channel;
                                 std::fill(channel.begin(), channel.end(), static_cast<float>(fmod(myLastFloatValue, 1.0)));
                                 std::array<const float *, InputChannelCount> channels;
                                 std::fill(channels.begin(), channels.end(), channel.data());
                                 int64_t filled = channel.size();
-                                result = TPInstanceParameterAppendStreamValues(myInstance, info->identifier, channels.data(), static_cast<int32_t>(channels.size()), &filled);
+                                result = TEInstanceParameterAppendStreamValues(myInstance, info->identifier, channels.data(), static_cast<int32_t>(channels.size()), &filled);
                                 break;
                             }
                             default:
                                 break;
                             }
-							TPRelease(&info);
+							TERelease(&info);
                         }
                         
                     }
-					TPRelease(&children);
+					TERelease(&children);
                 }
             }
         }
 
-        if (TPInstanceStartFrameAtTime(myInstance, 1000, 1000 * 1000) == TPResultSuccess)
+        if (TEInstanceStartFrameAtTime(myInstance, 1000, 1000 * 1000) == TEResultSuccess)
         {
             myInFrame = true;
             myLastFloatValue += 1.0/(60.0 * 8.0);
@@ -692,8 +692,8 @@ void DocumentWindow::cancelFrame()
 {
     if (myInFrame)
     {
-        TPResult result = TPInstanceCancelFrame(myInstance);
-        if (result != TPResultSuccess)
+        TEResult result = TEInstanceCancelFrame(myInstance);
+        if (result != TEResultSuccess)
         {
             // TODO: post it
         }

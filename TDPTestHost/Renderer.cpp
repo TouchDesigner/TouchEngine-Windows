@@ -40,20 +40,20 @@ void Renderer::addRightSideImage()
 	myRightSideImages.emplace_back();
 }
 
-void Renderer::setRightSideImage(size_t index, TPTexture * texture)
+void Renderer::setRightSideImage(size_t index, TETexture * texture)
 {
 	if (texture)
 	{
-		TPRetain(texture);
+		TERetain(texture);
 
-		myRightSideImages[index] = std::shared_ptr<TPTexture *>(new TPTexture *(texture), [](TPTexture **t) {
-			TPRelease(t);
+		myRightSideImages[index] = std::shared_ptr<TETexture *>(new TETexture *(texture), [](TETexture **t) {
+			TERelease(t);
 			delete t;
 		});
 	}
 	else
 	{
-		myRightSideImages[index] = std::shared_ptr<TPTexture *>();
+		myRightSideImages[index] = std::shared_ptr<TETexture *>();
 	}
 }
 
