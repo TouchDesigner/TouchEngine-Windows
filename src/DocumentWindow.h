@@ -18,7 +18,7 @@ public:
     static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
     DocumentWindow(std::wstring path, Mode mode);
     ~DocumentWindow();
-    const std::wstring geTEath() const;
+    const std::wstring getPath() const;
     void openWindow(HWND parent);
     HWND getWindow() const { return myWindow; };
     void didLoad() { myDidLoad = true; };
@@ -43,6 +43,6 @@ private:
     double myLastFloatValue;
     float myLastStreamValue;
     // TE param identifier to renderer index
-    std::map<std::string, size_t> myOuTEuTEarameterTextureMap;
+    std::map<std::string, size_t> myOutputParameterTextureMap;
 };
 

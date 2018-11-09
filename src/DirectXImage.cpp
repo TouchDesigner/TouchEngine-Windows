@@ -53,8 +53,8 @@ bool DirectXImage::setup(DirectXDevice & device)
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
-    myVertexShader = device.loadVertexShader(L"TDPTestVertexShader.cso", layoutDescription, ARRAYSIZE(layoutDescription));
-    myPixelShader = device.loadPixelShader(L"TDPTesTEixelShader.cso");
+    myVertexShader = device.loadVertexShader(L"TestVertexShader.cso", layoutDescription, ARRAYSIZE(layoutDescription));
+    myPixelShader = device.loadPixelShader(L"TestPixelShader.cso");
 
     BasicVertex rectangleVertices[] =
     {
@@ -106,7 +106,7 @@ void DirectXImage::draw(DirectXDevice &device)
         device.setTriangleListTopology();
         device.setVertexShader(myVertexShader);
         device.setConstantBuffer(myConstantBuffer);
-        device.seTEixelShader(myPixelShader);
+        device.setPixelShader(myPixelShader);
         device.setShaderResourceAndSampler(myTexture);
         device.drawIndexed(6);
     }
