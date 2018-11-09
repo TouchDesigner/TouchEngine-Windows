@@ -391,7 +391,7 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
 			result = TEInstanceParameterCopyTextureValue(doc->myInstance, identifier, TEParameterValueCurrent, &texture);
 			if (result == TEResultSuccess)
 			{
-				size_t imageIndex = doc->myOuTEuTEarameterTextureMap[identifier];
+				size_t imageIndex = doc->myOutputParameterTextureMap[identifier];
 
 				doc->myRenderer->setRightSideImage(imageIndex, texture);
 
@@ -525,7 +525,7 @@ void DocumentWindow::parameterLayoutDidChange()
 {
     myRenderer->clearLeftSideImages();
     myRenderer->clearRightSideImages();
-    myOuTEuTEarameterTextureMap.clear();
+    myOutputParameterTextureMap.clear();
 
     for (auto scope : { TEScopeInput, TEScopeOutput })
     {
@@ -584,7 +584,7 @@ void DocumentWindow::parameterLayoutDidChange()
 								else
 								{
 									myRenderer->addRightSideImage();
-									myOuTEuTEarameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
+									myOutputParameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
 								}
 							}
 							TERelease(&info);

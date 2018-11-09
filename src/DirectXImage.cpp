@@ -106,7 +106,7 @@ void DirectXImage::draw(DirectXDevice &device)
         device.setTriangleListTopology();
         device.setVertexShader(myVertexShader);
         device.setConstantBuffer(myConstantBuffer);
-        device.seTEixelShader(myPixelShader);
+        device.setPixelShader(myPixelShader);
         device.setShaderResourceAndSampler(myTexture);
         device.drawIndexed(6);
     }

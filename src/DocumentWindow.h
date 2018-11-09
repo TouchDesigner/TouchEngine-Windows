@@ -43,6 +43,6 @@ private:
     double myLastFloatValue;
     float myLastStreamValue;
     // TE param identifier to renderer index
-    std::map<std::string, size_t> myOuTEuTEarameterTextureMap;
+    std::map<std::string, size_t> myOutputParameterTextureMap;
 };
 
