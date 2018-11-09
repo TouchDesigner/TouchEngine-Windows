@@ -357,7 +357,7 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
     DocumentWindow *doc = static_cast<DocumentWindow *>(info);
 
 	TEParameterInfo *param = nullptr;
-	TEResult result = TEInstanceParameterCopyInfo(instance, identifier, &param);
+	TEResult result = TEInstanceParameterGetInfo(instance, identifier, &param);
     if (result == TEResultSuccess && param->scope == TEScopeOutput)
     {
 		switch (param->type)
@@ -377,7 +377,7 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
 		case TEParameterTypeString:
 		{
 			TEString *value;
-			result = TEInstanceParameterCopyStringValue(doc->myInstance, identifier, TEParameterValueCurrent, &value);
+			result = TEInstanceParameterGetStringValue(doc->myInstance, identifier, TEParameterValueCurrent, &value);
 			if (result == TEResultSuccess)
 			{
 				// Use value->string here
@@ -388,7 +388,7 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
 		case TEParameterTypeTexture:
 		{
 			TETexture *texture = nullptr;
-			result = TEInstanceParameterCopyTextureValue(doc->myInstance, identifier, TEParameterValueCurrent, &texture);
+			result = TEInstanceParameterGetTextureValue(doc->myInstance, identifier, TEParameterValueCurrent, &texture);
 			if (result == TEResultSuccess)
 			{
 				size_t imageIndex = doc->myOutputParameterTextureMap[identifier];
@@ -406,7 +406,7 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
 		{
 
 			TEStreamDescription *desc = nullptr;
-			result = TEInstanceParameterCopyStreamDescription(doc->myInstance, identifier, &desc);
+			result = TEInstanceParameterGetStreamDescription(doc->myInstance, identifier, &desc);
 
 			if (result == TEResultSuccess)
 			{
@@ -530,13 +530,13 @@ void DocumentWindow::parameterLayoutDidChange()
     for (auto scope : { TEScopeInput, TEScopeOutput })
     {
         TEStringArray *groups;
-		TEResult result = TEInstanceCopyParameterGroups(myInstance, scope, &groups);
+		TEResult result = TEInstanceGetParameterGroups(myInstance, scope, &groups);
         if (result == TEResultSuccess)
         {
             for (int32_t i = 0; i < groups->count; i++)
             {
 				TEParameterInfo *group;
-				result = TEInstanceParameterCopyInfo(myInstance, groups->strings[i], &group);
+				result = TEInstanceParameterGetInfo(myInstance, groups->strings[i], &group);
 				if (result == TEResultSuccess)
 				{
 					// Use group info here
@@ -545,14 +545,14 @@ void DocumentWindow::parameterLayoutDidChange()
 				TEStringArray *children = nullptr;
 				if (result == TEResultSuccess)
 				{
-					result = TEInstanceParameterCopyChildren(myInstance, groups->strings[i], &children);
+					result = TEInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
 				}
                 if (result == TEResultSuccess)
                 {
                     for (int32_t j = 0; j < children->count; j++)
                     {
 						TEParameterInfo *info;
-						result = TEInstanceParameterCopyInfo(myInstance, children->strings[j], &info);
+						result = TEInstanceParameterGetInfo(myInstance, children->strings[j], &info);
 						if (result == TEResultSuccess)
 						{
 							if (info->type == TEParameterTypeFloatStream && scope == TEScopeInput)
@@ -603,20 +603,20 @@ void DocumentWindow::render()
     if (myDidLoad && !myInFrame)
     {
 		TEStringArray *groups;
-		TEResult result = TEInstanceCopyParameterGroups(myInstance, TEScopeInput, &groups);
+		TEResult result = TEInstanceGetParameterGroups(myInstance, TEScopeInput, &groups);
         if (result == TEResultSuccess)
         {
             int textureCount = 0;
             for (int32_t i = 0; i < groups->count; i++)
             {
 				TEStringArray *children;
-				result = TEInstanceParameterCopyChildren(myInstance, groups->strings[i], &children);
+				result = TEInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
 				if (result == TEResultSuccess)
                 {
                     for (int32_t j = 0; j < children->count; j++)
                     {
 						TEParameterInfo *info;
-						result = TEInstanceParameterCopyInfo(myInstance, children->strings[j], &info);
+						result = TEInstanceParameterGetInfo(myInstance, children->strings[j], &info);
 						if (result == TEResultSuccess)
                         {
                             switch (info->type)
