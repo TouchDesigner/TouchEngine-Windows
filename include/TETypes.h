@@ -34,10 +34,19 @@ typedef TE_ENUM(TEResult, int32_t)
 	*/
 	TEResultDroppedSamples,
 
+	/*
+	Invalid arguments were given to a function, or a function was called at an improper time.
+	*/
 	TEResultBadUsage,
 
+	/*
+	The requested parameter does not belong to the instance.
+	*/
 	TEResultNoMatchingParameter,
 
+	/*
+	The operation was previously cancelled.
+	*/
 	TEResultCancelled,
 
 	/*
@@ -57,6 +66,9 @@ typedef TE_ENUM(TEResult, int32_t)
 	*/
 	TEResultKeyError,
 
+	/*
+	Error reading or accessing a file.
+	*/
 	TEResultFileError,
 
 	/*
@@ -73,11 +85,6 @@ typedef TE_ENUM(TEResult, int32_t)
 	Launching the TouchEngine executable failed.
 	*/
 	TEResultFailedToLaunchTouchEngine,
-
-	/* 
-    Invalid argument given to function.
-    */
-	TEResultInvalidArgument,
 
 };
 

@@ -41,7 +41,7 @@ typedef void (*TEInstanceParameterValueCallback)(TEInstance *instance, const cha
  On return, extensions is a list of file extensions supported by TEInstanceCreate
  The caller is responsible for releasing the returned TEStringArray using TERelease()
  */
-TE_EXPORT TEResult TEInstanceCopySupportedFileExtensions(struct TEStringArray * TE_NULLABLE * TE_NONNULL extensions);
+TE_EXPORT TEResult TEInstanceGetSupportedFileExtensions(struct TEStringArray * TE_NULLABLE * TE_NONNULL extensions);
 
 /*
  Creates an instance for a .tox file localted at 'path'.
@@ -109,13 +109,13 @@ TE_EXPORT TEResult TEInstanceCancelFrame(TEInstance *instance);
  identifier should denote a parameter of type TEParameterTypeGroup or TEParameterTypeComplex.
  The caller is responsible for releasing the returned TEStringArray using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterCopyChildren(TEInstance *instance, const char * TE_NULLABLE identifier, struct TEStringArray * TE_NULLABLE * TE_NONNULL children);
+TE_EXPORT TEResult TEInstanceParameterGetChildren(TEInstance *instance, const char * TE_NULLABLE identifier, struct TEStringArray * TE_NULLABLE * TE_NONNULL children);
 
 /*
  On return groups is a list of parameter identifiers for the top level parameters in the given scope.
  The caller is responsible for releasing the returned TEStringArray using TERelease().
  */
-TE_EXPORT TEResult TEInstanceCopyParameterGroups(TEInstance *instance, TEScope scope, struct TEStringArray * TE_NULLABLE * TE_NONNULL groups);
+TE_EXPORT TEResult TEInstanceGetParameterGroups(TEInstance *instance, TEScope scope, struct TEStringArray * TE_NULLABLE * TE_NONNULL groups);
 
 /*
  Parameter Basics
@@ -125,7 +125,7 @@ TE_EXPORT TEResult TEInstanceCopyParameterGroups(TEInstance *instance, TEScope s
  On return info describes the parameter denoted by identifier.
  The caller is responsible for releasing the returned TEParameterInfo using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterCopyInfo(TEInstance *instance, const char *identifier, TEParameterInfo * TE_NULLABLE * TE_NONNULL info);
+TE_EXPORT TEResult TEInstanceParameterGetInfo(TEInstance *instance, const char *identifier, TEParameterInfo * TE_NULLABLE * TE_NONNULL info);
 
 /*
  Stream Parameter Configuration
@@ -135,7 +135,7 @@ TE_EXPORT TEResult TEInstanceParameterCopyInfo(TEInstance *instance, const char 
  On return description describes the stream parameter denoted by identifier.
  The caller is responsible for releasing the returned TEStreamDescription using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterCopyStreamDescription(TEInstance *instance, const char *identifier, TEStreamDescription * TE_NULLABLE * TE_NONNULL description);
+TE_EXPORT TEResult TEInstanceParameterGetStreamDescription(TEInstance *instance, const char *identifier, TEStreamDescription * TE_NULLABLE * TE_NONNULL description);
 
 /*
  Configures the input stream denoted by identifier according to the content of description.
@@ -155,12 +155,12 @@ TE_EXPORT TEResult TEInstanceParameterGetIntValue(TEInstance *instance, const ch
 /*
  The caller is responsible for releasing the returned TEString using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterCopyStringValue(TEInstance *instance, const char *identifier, TEParameterValue which, TEString * TE_NULLABLE * TE_NONNULL string);
+TE_EXPORT TEResult TEInstanceParameterGetStringValue(TEInstance *instance, const char *identifier, TEParameterValue which, TEString * TE_NULLABLE * TE_NONNULL string);
 
 /*
  The caller is responsible for releasing the returned TETexture using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterCopyTextureValue(TEInstance *instance, const char *identifier, TEParameterValue which, TETexture * TE_NULLABLE * TE_NONNULL value);
+TE_EXPORT TEResult TEInstanceParameterGetTextureValue(TEInstance *instance, const char *identifier, TEParameterValue which, TETexture * TE_NULLABLE * TE_NONNULL value);
 
 
 /*
