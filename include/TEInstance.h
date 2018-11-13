@@ -129,6 +129,9 @@ TE_EXPORT TEResult TEInstanceParameterGetInfo(TEInstance *instance, const char *
 
 /*
  Stream Parameter Configuration
+ A stream is an array of float values that are buffered both on input and output
+ from the Engine. They are used to pass data such as motion or audio data
+ that needs continuity in it's data.
  */
 
 /*
