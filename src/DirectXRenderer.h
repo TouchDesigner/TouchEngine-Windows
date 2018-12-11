@@ -28,6 +28,5 @@ private:
     DirectXDevice myDevice;
     std::vector<DirectXImage> myLeftSideImages;
     std::vector<DirectXImage> myRightSideImages;
-    std::mutex myMutex;
 };
 

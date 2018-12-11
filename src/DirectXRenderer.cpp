@@ -29,7 +29,6 @@ bool DirectXRenderer::setup(HWND window)
 
 void DirectXRenderer::resize(int width, int height)
 {
-	std::lock_guard<std::mutex> guard(myMutex);
 	myDevice.resize();
 }
 
@@ -41,9 +40,7 @@ void DirectXRenderer::stop()
 }
 
 bool DirectXRenderer::render()
-{
-    std::lock_guard<std::mutex> guard(myMutex);
- 
+{ 
     myDevice.setRenderTarget();
     myDevice.clear(myBackgroundColor[0], myBackgroundColor[1], myBackgroundColor[2], 1.0f);
 
@@ -57,8 +54,6 @@ bool DirectXRenderer::render()
 
 void DirectXRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesPerRow, int width, int height)
 {
-	std::lock_guard<std::mutex> guard(myMutex);
-
 	DirectXTexture texture = myDevice.loadTexture(rgba, int32_t(bytesPerRow), width, height);
 
 	myLeftSideImages.emplace_back(texture);
@@ -73,15 +68,11 @@ TETexture * DirectXRenderer::createLeftSideImage(size_t index)
 
 void DirectXRenderer::clearLeftSideImages()
 {
-    std::lock_guard<std::mutex> guard(myMutex);
-
     myLeftSideImages.clear();
 }
 
 void DirectXRenderer::addRightSideImage()
 {
-    std::lock_guard<std::mutex> guard(myMutex);
-
     myRightSideImages.emplace_back();
     myRightSideImages.back().setup(myDevice);
 
@@ -90,8 +81,6 @@ void DirectXRenderer::addRightSideImage()
 
 void DirectXRenderer::setRightSideImage(size_t index, TETexture * texture)
 {
-	std::lock_guard<std::mutex> guard(myMutex);
-
 	TETexture *d3d = nullptr;
 	if (texture && TETextureGetType(texture) == TETextureTypeD3D)
 	{
@@ -129,8 +118,6 @@ void DirectXRenderer::setRightSideImage(size_t index, TETexture * texture)
 
 void DirectXRenderer::clearRightSideImages()
 {
-    std::lock_guard<std::mutex> guard(myMutex);
-
     myRightSideImages.clear();
 
 	Renderer::clearRightSideImages();
