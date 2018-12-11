@@ -6,7 +6,6 @@
 #include "DirectXRenderer.h"
 #include "OpenGLRenderer.h"
 #include <codecvt>
-#include <vector>
 #include <array>
 
 wchar_t *DocumentWindow::WindowClassName = L"DocumentWindow";
