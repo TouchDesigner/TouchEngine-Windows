@@ -387,19 +387,9 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
 		}
 		case TEParameterTypeTexture:
 		{
-			TETexture *texture = nullptr;
-			result = TEInstanceParameterGetTextureValue(doc->myInstance, identifier, TEParameterValueCurrent, &texture);
-			if (result == TEResultSuccess)
-			{
-				size_t imageIndex = doc->myOutputParameterTextureMap[identifier];
-
-				doc->myRenderer->setRightSideImage(imageIndex, texture);
-
-				if (texture)
-				{
-					TERelease(&texture);
-				}
-			}
+            // Stash the state, we don't do any actual renderer work from this thread
+            std::lock_guard<std::mutex> guard(doc->myMutex);
+            doc->myPendingOutputTextures.push_back(identifier);
 			break;
 		}
 		case TEParameterTypeFloatStream:
@@ -523,82 +513,20 @@ void DocumentWindow::openWindow(HWND parent)
 
 void DocumentWindow::parameterLayoutDidChange()
 {
-    myRenderer->clearLeftSideImages();
-    myRenderer->clearRightSideImages();
-    myOutputParameterTextureMap.clear();
-
-    for (auto scope : { TEScopeInput, TEScopeOutput })
-    {
-        TEStringArray *groups;
-		TEResult result = TEInstanceGetParameterGroups(myInstance, scope, &groups);
-        if (result == TEResultSuccess)
-        {
-            for (int32_t i = 0; i < groups->count; i++)
-            {
-				TEParameterInfo *group;
-				result = TEInstanceParameterGetInfo(myInstance, groups->strings[i], &group);
-				if (result == TEResultSuccess)
-				{
-					// Use group info here
-					TERelease(&group);
-				}
-				TEStringArray *children = nullptr;
-				if (result == TEResultSuccess)
-				{
-					result = TEInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
-				}
-                if (result == TEResultSuccess)
-                {
-                    for (int32_t j = 0; j < children->count; j++)
-                    {
-						TEParameterInfo *info;
-						result = TEInstanceParameterGetInfo(myInstance, children->strings[j], &info);
-						if (result == TEResultSuccess)
-						{
-							if (info->type == TEParameterTypeFloatStream && scope == TEScopeInput)
-							{
-								TEStreamDescription desc;
-								desc.rate = InputSampleRate;
-								desc.numChannels = InputChannelCount;
-								desc.maxSamples = InputSampleLimit;
-								result = TEInstanceParameterSetInputStreamDescription(myInstance, info->identifier, &desc);
-							}
-							else if (result == TEResultSuccess && info->type == TEParameterTypeTexture)
-							{
-								if (scope == TEScopeInput)
-								{
-									std::array<unsigned char, 256 * 256 * 4> tex;
-
-									for (int y = 0; y < 256; y++)
-									{
-										for (int x = 0; x < 256; x++)
-										{
-											tex[(y * 256 * 4) + (x * 4) + 0] = x;
-											tex[(y * 256 * 4) + (x * 4) + 1] = 40;
-											tex[(y * 256 * 4) + (x * 4) + 2] = y;
-											tex[(y * 256 * 4) + (x * 4) + 3] = 255;
-										}
-									}
-									myRenderer->addLeftSideImage(tex.data(), 256 * 4, 256, 256);
-								}
-								else
-								{
-									myRenderer->addRightSideImage();
-									myOutputParameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
-								}
-							}
-							TERelease(&info);
-						}
-                    }
-					TERelease(&children);
-                }
-            }
-        }
-    }    
+    myPendingLayoutChange = true;    
 }
 
 void DocumentWindow::render()
 {
+    // Make any pending renderer state updates
+    if (myPendingLayoutChange)
+    {
+        myPendingLayoutChange = false;
+        applyLayoutChange();
+    }
+
+    applyOutputTextureChange();
+
     float color[4] = { myDidLoad ? 0.6f : 0.6f, myDidLoad ? 0.6f : 0.6f, myDidLoad ? 1.0f : 0.6f, 1.0f};
     if (myDidLoad && !myInFrame)
     {
@@ -696,6 +624,109 @@ void DocumentWindow::cancelFrame()
         if (result != TEResultSuccess)
         {
             // TODO: post it
+        }
+    }
+}
+
+void DocumentWindow::applyLayoutChange()
+{
+    myRenderer->clearLeftSideImages();
+    myRenderer->clearRightSideImages();
+    myOutputParameterTextureMap.clear();
+
+    for (auto scope : { TEScopeInput, TEScopeOutput })
+    {
+        TEStringArray *groups;
+        TEResult result = TEInstanceGetParameterGroups(myInstance, scope, &groups);
+        if (result == TEResultSuccess)
+        {
+            for (int32_t i = 0; i < groups->count; i++)
+            {
+                TEParameterInfo *group;
+                result = TEInstanceParameterGetInfo(myInstance, groups->strings[i], &group);
+                if (result == TEResultSuccess)
+                {
+                    // Use group info here
+                    TERelease(&group);
+                }
+                TEStringArray *children = nullptr;
+                if (result == TEResultSuccess)
+                {
+                    result = TEInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
+                }
+                if (result == TEResultSuccess)
+                {
+                    for (int32_t j = 0; j < children->count; j++)
+                    {
+                        TEParameterInfo *info;
+                        result = TEInstanceParameterGetInfo(myInstance, children->strings[j], &info);
+                        if (result == TEResultSuccess)
+                        {
+                            if (info->type == TEParameterTypeFloatStream && scope == TEScopeInput)
+                            {
+                                TEStreamDescription desc;
+                                desc.rate = InputSampleRate;
+                                desc.numChannels = InputChannelCount;
+                                desc.maxSamples = InputSampleLimit;
+                                result = TEInstanceParameterSetInputStreamDescription(myInstance, info->identifier, &desc);
+                            }
+                            else if (result == TEResultSuccess && info->type == TEParameterTypeTexture)
+                            {
+                                if (scope == TEScopeInput)
+                                {
+                                    std::array<unsigned char, 256 * 256 * 4> tex;
+
+                                    for (int y = 0; y < 256; y++)
+                                    {
+                                        for (int x = 0; x < 256; x++)
+                                        {
+                                            tex[(y * 256 * 4) + (x * 4) + 0] = x;
+                                            tex[(y * 256 * 4) + (x * 4) + 1] = 40;
+                                            tex[(y * 256 * 4) + (x * 4) + 2] = y;
+                                            tex[(y * 256 * 4) + (x * 4) + 3] = 255;
+                                        }
+                                    }
+                                    myRenderer->addLeftSideImage(tex.data(), 256 * 4, 256, 256);
+                                }
+                                else
+                                {
+                                    myRenderer->addRightSideImage();
+                                    myOutputParameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
+                                }
+                            }
+                            TERelease(&info);
+                        }
+                    }
+                    TERelease(&children);
+                }
+            }
+        }
+    }
+}
+
+void DocumentWindow::applyOutputTextureChange()
+{
+    // Only hold the lock briefly
+    std::vector<std::string> changes;
+    {
+        std::lock_guard<std::mutex> guard(myMutex);
+        std::swap(myPendingOutputTextures, changes);
+    }
+
+    for (const auto & identifier : changes)
+    {
+        TETexture *texture = nullptr;
+        TEResult result = TEInstanceParameterGetTextureValue(myInstance, identifier.c_str(), TEParameterValueCurrent, &texture);
+        if (result == TEResultSuccess)
+        {
+            size_t imageIndex = myOutputParameterTextureMap[identifier];
+
+            myRenderer->setRightSideImage(imageIndex, texture);
+
+            if (texture)
+            {
+                TERelease(&texture);
+            }
         }
     }
 }
