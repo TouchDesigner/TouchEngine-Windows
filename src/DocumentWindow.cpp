@@ -5,7 +5,6 @@
 #include "DirectXRenderer.h"
 #include "OpenGLRenderer.h"
 #include <codecvt>
-#include <vector>
 #include <array>
 
 wchar_t *DocumentWindow::WindowClassName = L"DocumentWindow";
@@ -446,10 +445,6 @@ DocumentWindow::DocumentWindow(std::wstring path, Mode mode)
 
 DocumentWindow::~DocumentWindow()
 {
-	// TODO: we shouldn't have to do this but TETextures are holding on to the connection which gets invalidated
-	myRenderer->clearLeftSideImages();
-	myRenderer->clearRightSideImages();
-
 	if (myInstance)
 	{
 		TERelease(&myInstance);
