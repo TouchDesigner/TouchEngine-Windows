@@ -26,6 +26,8 @@ public:
 private:
     void drawImages(std::vector<DirectXImage> &images, float scale, float xOffset);
     DirectXDevice myDevice;
+    ID3D11PixelShader *myPixelShader;
+    VertexShader myVertexShader;
     std::vector<DirectXImage> myLeftSideImages;
     std::vector<DirectXImage> myRightSideImages;
 };

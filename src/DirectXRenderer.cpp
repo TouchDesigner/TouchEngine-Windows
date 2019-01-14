@@ -24,6 +24,28 @@ bool DirectXRenderer::setup(HWND window)
 		// Create window resources with no depth-stencil buffer
 		result = myDevice.createWindowResources(getWindow(), false);
 	}
+    if (SUCCEEDED(result))
+    {
+        myPixelShader = myDevice.loadPixelShader(L"TestPixelShader.cso");
+        if (!myPixelShader)
+        {
+            result = EIO;
+        }
+    }
+    if (SUCCEEDED(result))
+    {
+        const D3D11_INPUT_ELEMENT_DESC layoutDescription[] =
+        {
+            { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        };
+
+        myVertexShader = myDevice.loadVertexShader(L"TestVertexShader.cso", layoutDescription, ARRAYSIZE(layoutDescription));
+        if (!myVertexShader.isValid())
+        {
+            result = EIO;
+        }
+    }
     return SUCCEEDED(result);
 }
 
@@ -36,6 +58,13 @@ void DirectXRenderer::stop()
 {
     myLeftSideImages.clear();
     myRightSideImages.clear();
+    if (myPixelShader)
+    {
+        myPixelShader->Release();
+        myPixelShader = nullptr;
+    }
+    // Invalidate the vertex shader
+    myVertexShader = VertexShader();
 	myDevice.stop();
 }
 
@@ -43,6 +72,10 @@ bool DirectXRenderer::render()
 { 
     myDevice.setRenderTarget();
     myDevice.clear(myBackgroundColor[0], myBackgroundColor[1], myBackgroundColor[2], 1.0f);
+
+    myDevice.setPixelShader(myPixelShader);
+    myDevice.setInputLayout(myVertexShader);
+    myDevice.setVertexShader(myVertexShader);
 
     float scale = 1.0f / (max(myLeftSideImages.size(), myRightSideImages.size()) + 1.0f);
     drawImages(myLeftSideImages, scale, -0.5f);
