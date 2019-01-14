@@ -438,7 +438,7 @@ void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TEResult r
 DocumentWindow::DocumentWindow(std::wstring path, Mode mode)
     : myPath(path), myInstance(nullptr), myWindow(nullptr),
 	myRenderer(mode == Mode::DirectX ? static_cast<std::unique_ptr<Renderer>>(std::make_unique<DirectXRenderer>()) : static_cast<std::unique_ptr<Renderer>>(std::make_unique<OpenGLRenderer>())),
-	myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0)
+	myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0), myPendingLayoutChange(false)
 {
 }
 
