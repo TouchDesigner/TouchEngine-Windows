@@ -438,7 +438,7 @@ void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TEResult r
 }
 
 DocumentWindow::DocumentWindow(std::wstring path, Mode mode)
-    : myPath(path), myInstance(nullptr), myWindow(nullptr),
+    : myPath(path), myMode(mode), myInstance(nullptr), myWindow(nullptr),
 	myRenderer(mode == Mode::DirectX ? static_cast<std::unique_ptr<Renderer>>(std::make_unique<DirectXRenderer>()) : static_cast<std::unique_ptr<Renderer>>(std::make_unique<OpenGLRenderer>())),
 	myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0), myPendingLayoutChange(false)
 {
@@ -471,9 +471,17 @@ void DocumentWindow::openWindow(HWND parent)
     SetRect(&rc, 0, 0, 640, 480);
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
 
-    std::wstring path = getPath();
+    std::wstring title = getPath();
+    if (getMode() == Mode::DirectX)
+    {
+        title += L" (DirectX)";
+    }
+    else
+    {
+        title += L" (OpenGL)";
+    }
     myWindow = CreateWindowW(WindowClassName,
-        path.data(),
+        title.data(),
         WS_OVERLAPPEDWINDOW | myRenderer->getWindowStyleFlags(),
         CW_USEDEFAULT, CW_USEDEFAULT,
         (rc.right - rc.left), (rc.bottom - rc.top),
@@ -501,7 +509,7 @@ void DocumentWindow::openWindow(HWND parent)
 	if (SUCCEEDED(result))
 	{
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-		std::string utf8 = converter.to_bytes(path);
+		std::string utf8 = converter.to_bytes(getPath());
 		TEResult TEResult = TEInstanceCreate(utf8.c_str(), TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
 	}
 }
