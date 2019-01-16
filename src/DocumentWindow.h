@@ -21,6 +21,7 @@ public:
     DocumentWindow(std::wstring path, Mode mode);
     ~DocumentWindow();
     const std::wstring getPath() const;
+    Mode getMode() const { return myMode; }
     void openWindow(HWND parent);
     HWND getWindow() const { return myWindow; };
     void didLoad() { myDidLoad = true; };
@@ -39,6 +40,7 @@ private:
     void applyLayoutChange();
     void applyOutputTextureChange();
 	std::wstring myPath;
+    Mode myMode;
     TEInstance *myInstance;
     HWND myWindow;
     std::unique_ptr<Renderer> myRenderer;
