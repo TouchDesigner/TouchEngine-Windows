@@ -521,7 +521,15 @@ void DocumentWindow::openWindow(HWND parent)
 	{
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 		std::string utf8 = converter.to_bytes(getPath());
-		TEResult TEResult = TEInstanceCreate(utf8.c_str(), TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+        if (getMode() == Mode::DirectX)
+        {
+            TEResult TEResult = TEInstanceCreateD3D(utf8.c_str(), nullptr, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+        }
+        else
+        {
+            HGLRC rc = dynamic_cast<OpenGLRenderer *>(myRenderer.get())->getRC();
+            TEResult TEResult = TEInstanceCreateGL(utf8.c_str(), GetDC(myWindow), rc, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+        }
         SetTimer(myWindow, RenderTimerID, 16, nullptr);
 	}
 }

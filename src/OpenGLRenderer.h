@@ -13,6 +13,7 @@ public:
 	virtual ~OpenGLRenderer();
 	virtual DWORD getWindowStyleFlags() const { return WS_CLIPCHILDREN | WS_CLIPSIBLINGS; }
 	virtual bool setup(HWND window);
+    HGLRC getRC() const { return myRenderingContext; };
 	virtual void resize(int width, int height) override;
 	virtual void stop();
 	virtual bool render();
