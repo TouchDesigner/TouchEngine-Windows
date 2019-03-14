@@ -13,6 +13,7 @@ const int32_t DocumentWindow::InputChannelCount = 2;
 const double DocumentWindow::InputSampleRate = 44100.0;
 const int64_t DocumentWindow::InputSampleLimit = 44100 / 2;
 const int64_t DocumentWindow::InputSamplesPerFrame = 44100 / 60;
+const UINT_PTR DocumentWindow::RenderTimerID = 1;
 
 #define MAX_LOADSTRING 100
 
@@ -69,10 +70,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
-		}
-		else
-		{
-			DocumentManager::sharedManager().render();
 		}
 	}
 
@@ -285,6 +282,7 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
     break;
     case WM_CLOSE:
     {
+        KillTimer(hWnd, RenderTimerID);
         HMENU menu = GetMenu(hWnd);
         if (menu)
         {
@@ -321,6 +319,19 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
 		}
 		break;
 	}
+    case WM_TIMER:
+    {
+        if (wParam == RenderTimerID)
+        {
+            auto document = DocumentManager::sharedManager().lookup(hWnd);
+            if (document)
+            {
+                document->render();
+            }
+        }
+
+        break;
+    }
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -511,6 +522,7 @@ void DocumentWindow::openWindow(HWND parent)
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 		std::string utf8 = converter.to_bytes(getPath());
 		TEResult TEResult = TEInstanceCreate(utf8.c_str(), TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+        SetTimer(myWindow, RenderTimerID, 16, nullptr);
 	}
 }
 
