@@ -2,7 +2,8 @@
 #include "Renderer.h"
 #include <mutex>
 #include <vector>
-#include "OpenGLTexture.h"
+#include "OpenGLImage.h"
+#include "OpenGLProgram.h"
 #include "GL/glew.h"
 
 class OpenGLRenderer :
@@ -25,8 +26,17 @@ public:
 	virtual void setRightSideImage(size_t index, TETexture *texture);
 	virtual void clearRightSideImages();
 private:
-	std::mutex myMutex;
+    static const char *VertexShader;
+    static const char *FragmentShader;
+    static void textureReleaseCallback(GLuint texture, void *info);
+    void drawImages(std::vector<OpenGLImage>& images, float scale, float xOffset);
+    OpenGLProgram myProgram;
+    GLuint myVAO = 0;
+    GLuint myVBO = 0;
+    GLint myVAIndex = -1;
+    GLint myTAIndex = -1;
 	HGLRC myRenderingContext = nullptr;
-	std::vector<OpenGLTexture> myLeftSideImages;
+	std::vector<OpenGLImage> myLeftSideImages;
+    std::vector<OpenGLImage> myRightSideImages;
 };
 
