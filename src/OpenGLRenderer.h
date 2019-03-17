@@ -12,7 +12,7 @@ class OpenGLRenderer :
 public:
 	OpenGLRenderer();
 	virtual ~OpenGLRenderer();
-	virtual DWORD getWindowStyleFlags() const { return WS_CLIPCHILDREN | WS_CLIPSIBLINGS; }
+	virtual DWORD getWindowStyleFlags() const { return CS_OWNDC | WS_CLIPCHILDREN | WS_CLIPSIBLINGS; }
 	virtual bool setup(HWND window);
     HGLRC getRC() const { return myRenderingContext; };
 	virtual void resize(int width, int height) override;
@@ -36,6 +36,7 @@ private:
     GLint myVAIndex = -1;
     GLint myTAIndex = -1;
 	HGLRC myRenderingContext = nullptr;
+    HDC myDC = nullptr;
 	std::vector<OpenGLImage> myLeftSideImages;
     std::vector<OpenGLImage> myRightSideImages;
 };

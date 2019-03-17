@@ -48,7 +48,7 @@ bool OpenGLRenderer::setup(HWND window)
 	bool result = Renderer::setup(window);
 	if (result)
 	{
-		HDC dc = GetDC(window);
+		myDC = GetDC(window);
 		PIXELFORMATDESCRIPTOR format{ 0 };
 		format.nSize = sizeof(PIXELFORMATDESCRIPTOR);
 		format.nVersion = 1;
@@ -57,12 +57,12 @@ bool OpenGLRenderer::setup(HWND window)
 		format.cColorBits = 32;
 		format.cDepthBits = 32; // TODO: or not
 		format.iLayerType = PFD_MAIN_PLANE;
-		int selected = ChoosePixelFormat(dc, &format);
+		int selected = ChoosePixelFormat(myDC, &format);
 
-		result = SetPixelFormat(dc, selected, &format) ? true : false;
+		result = SetPixelFormat(myDC, selected, &format) ? true : false;
 		if (result)
 		{
-			myRenderingContext = wglCreateContext(dc);
+			myRenderingContext = wglCreateContext(myDC);
 		}
 		if (!myRenderingContext)
 		{
@@ -70,7 +70,7 @@ bool OpenGLRenderer::setup(HWND window)
 		}
 		if (result)
 		{
-			result = wglMakeCurrent(dc, myRenderingContext) ? true : false;
+			result = wglMakeCurrent(myDC, myRenderingContext) ? true : false;
 		}
 	}
 	if (result)
@@ -101,13 +101,15 @@ bool OpenGLRenderer::setup(HWND window)
 
         myVAIndex = glGetAttribLocation(myProgram.getName(), "vertCoord");
         myTAIndex = glGetAttribLocation(myProgram.getName(), "texCoord");
+
+        glUseProgram(0);
     }
 	return result;
 }
 
 void OpenGLRenderer::resize(int width, int height)
 {
-    wglMakeCurrent(GetDC(getWindow()), myRenderingContext);
+    wglMakeCurrent(myDC, myRenderingContext);
 
     glViewport(0, 0, width, height);
 
@@ -116,7 +118,7 @@ void OpenGLRenderer::resize(int width, int height)
 
 void OpenGLRenderer::stop()
 {
-    wglMakeCurrent(GetDC(getWindow()), myRenderingContext);
+    wglMakeCurrent(myDC, myRenderingContext);
 
 	Renderer::stop();
     
@@ -131,25 +133,24 @@ void OpenGLRenderer::stop()
 
 bool OpenGLRenderer::render()
 {
-	wglMakeCurrent(GetDC(getWindow()), myRenderingContext);
-
+	wglMakeCurrent(myDC, myRenderingContext);
+    
 	glClearColor(myBackgroundColor[0], myBackgroundColor[1], myBackgroundColor[2], 1.0);
-
+    
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    
     glUseProgram(myProgram.getName());
 
     float scale = 1.0f / (max(myLeftSideImages.size(), myRightSideImages.size()) + 1.0f);
-    //float scale = 1.0f / (myLeftSideImages.size() + 1.0f);
 
     drawImages(myLeftSideImages, scale, -0.5f);
     drawImages(myRightSideImages, scale, 0.5f);
 
     glUseProgram(0);
-
+    
 	glFlush();
 
-	SwapBuffers(GetDC(getWindow()));
+	SwapBuffers(myDC);
 
 	wglMakeCurrent(nullptr, nullptr);
 	return true;
@@ -162,7 +163,7 @@ size_t OpenGLRenderer::getLeftSideImageCount() const
 
 void OpenGLRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesPerRow, int width, int height)
 {
-    wglMakeCurrent(GetDC(getWindow()), myRenderingContext);
+    wglMakeCurrent(myDC, myRenderingContext);
 	
     myLeftSideImages.emplace_back();
     myLeftSideImages.back().setup(myVAIndex, myTAIndex);
@@ -187,7 +188,7 @@ void OpenGLRenderer::clearLeftSideImages()
 
 void OpenGLRenderer::addRightSideImage()
 {
-    wglMakeCurrent(GetDC(getWindow()), myRenderingContext);
+    wglMakeCurrent(myDC, myRenderingContext);
 
     myRightSideImages.emplace_back();
     myRightSideImages.back().setup(myVAIndex, myTAIndex);
