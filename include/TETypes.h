@@ -86,6 +86,12 @@ typedef TE_ENUM(TEResult, int32_t)
 	*/
 	TEResultFailedToLaunchTouchEngine,
 
+	/*
+	A required feature is not available on the selected system
+	(eg the selected graphics adapater does not offer a required command)
+	*/
+	TEResultFeatureNotSupportedBySystem
+
 };
 
 typedef TE_ENUM(TEEvent, int32_t) 
@@ -97,7 +103,14 @@ typedef TE_ENUM(TEEvent, int32_t)
 
 typedef TE_ENUM(TETimeMode, int32_t) 
 {
+	/*
+	Rendering time is determined by times provided by you.
+	*/
 	TETimeExternal,
+
+	/*
+	An internal clock is used to drive real-time rendering.
+	*/
 	TETimeInternal
 };
 

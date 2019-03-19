@@ -21,6 +21,8 @@
 #ifdef __APPLE__
 #include <OpenGL/gltypes.h>
 #else
+typedef unsigned int GLenum;
+typedef int GLint;
 typedef unsigned int GLuint;
 #endif
 #include <stdint.h>
@@ -35,21 +37,23 @@ typedef TETexture TEOpenGLTexture;
 
 typedef void (*TEOpenGLTextureReleaseCallback)(GLuint texture, void * TE_NULLABLE info);
 
-// TODO: target as requirement or argument
-
 /*
 Create a texture from an OpenGL texture
 callback will be called with the values passed to texture and info when the texture is released - the 
 texture should remain valid until that happens.
 The caller is responsible for releasing the returned TEOpenGLTexture using TERelease()
 */
-TE_EXPORT TEOpenGLTexture *TEOpenGLTextureCreate(GLuint texture, int32_t width, int32_t height, TEOpenGLTextureReleaseCallback TE_NULLABLE callback, void * TE_NULLABLE info);
+TE_EXPORT TEOpenGLTexture *TEOpenGLTextureCreate(GLuint texture, GLenum target, GLint internalFormat, int32_t width, int32_t height, TEOpenGLTextureReleaseCallback TE_NULLABLE callback, void * TE_NULLABLE info);
 
 /*
  Returns the underlying OpenGL texture.
  This texture is owned by the TEOpenGLTexture and should not be used beyond the lifetime of its owner.
  */
 TE_EXPORT GLuint TEOpenGLTextureGetName(TEOpenGLTexture *texture);
+
+TE_EXPORT GLenum TEOpenGLTextureGetTarget(TEOpenGLTexture *texture);
+
+TE_EXPORT GLint TEOpenGLTextureGetInternalFormat(TEOpenGLTexture *texture);
 
 TE_EXPORT int32_t TEOpenGLTextureGetWidth(TETexture *texture);
 

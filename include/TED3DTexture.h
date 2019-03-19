@@ -30,8 +30,6 @@ TE_ASSUME_NONNULL_BEGIN
 typedef TETexture TED3DTexture;
 typedef TETexture TEDXGITexture;
 
-// TODO: document only one mip level is allowed
-// TODO: right now we require DXGI_FORMAT_B8G8R8A8_UNORM
 /*
  The caller is responsible for releasing the returned TED3DTexture using TERelease()
  */
