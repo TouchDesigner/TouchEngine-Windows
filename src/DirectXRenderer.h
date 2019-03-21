@@ -23,6 +23,7 @@ public:
     virtual void addRightSideImage() override;
 	virtual void setRightSideImage(size_t index, TETexture *texture) override;
     virtual void clearRightSideImages() override;
+    ID3D11Device *getDevice() const { return myDevice.getDevice(); };
 private:
     void drawImages(std::vector<DirectXImage> &images, float scale, float xOffset);
     DirectXDevice myDevice;

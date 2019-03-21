@@ -114,39 +114,18 @@ void DirectXRenderer::addRightSideImage()
 
 void DirectXRenderer::setRightSideImage(size_t index, TETexture * texture)
 {
-	TETexture *d3d = nullptr;
 	if (texture && TETextureGetType(texture) == TETextureTypeD3D)
 	{
-		// Retain as we release d3d and texture
-		d3d = TERetain(texture);
-	}
-	else if (texture && TETextureGetType(texture) == TETextureTypeDXGI)
-	{
-		d3d = TED3DTextureCreateFromDXGI(myDevice.getDevice(), texture);
-	}
-	else if (texture && TETextureGetType(texture) == TETextureTypeOpenGL)
-	{
-		// TODO: or document ouTEut is always TETextureTypeDXGI
-	}
-	if (d3d)
-	{
-		DirectXTexture tex(TED3DTextureGetTexture(d3d));
+        DirectXTexture tex(TED3DTextureGetTexture(texture));
 
-		myRightSideImages.at(index).update(tex);
+        myRightSideImages.at(index).update(tex);
 	}
 	else
 	{
 		myRightSideImages.at(index).update(DirectXTexture());
 	}
-
-	// TODO: work out lifetime of which what what?
-	Renderer::setRightSideImage(index, d3d);
-	//Renderer::setRightSideImage(index, texture);
-	
-	if (d3d)
-	{
-		TERelease(&d3d);
-	}
+    // Renderer will TERetain the texture for us
+	Renderer::setRightSideImage(index, texture);
 }
 
 void DirectXRenderer::clearRightSideImages()
