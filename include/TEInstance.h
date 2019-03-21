@@ -34,7 +34,7 @@ TE_ASSUME_NONNULL_BEGIN
 typedef TEObject TEInstance;
 
 #ifdef _WIN32
-struct IDXGIAdapter;
+struct ID3D11Device;
 typedef struct HGLRC__ *HGLRC;
 typedef struct HDC__ *HDC;
 #endif
@@ -84,7 +84,8 @@ TE_EXPORT CGLContextObj TEInstanceGetGLContext(TEInstance *instance);
 	output parameters will emit a TEDXGITexture (which can be used to instantiate a TED3DTexture)
  
  'path' is a UTF-8 encoded string. The file is loaded asynchronously after this function returns.
- 'adapter' guides the choice of graphics adapter. If NULL, the system default adapter will be used.
+ 'device' is the Direct3D device to be used for texture creation.
+ 	If texture input and outputs will not be used, this value may be NULL.
  'mode' see TETimeMode in TETypes.h
  'event_callback' will be called to deliver TEEvents related to loading and rendering the instance.
  'callback_info' will be passed into the callbacks as the 'info' argument.
@@ -94,7 +95,7 @@ TE_EXPORT CGLContextObj TEInstanceGetGLContext(TEInstance *instance);
  */
 // TODO: TETimeMode is currently ignored
 TE_EXPORT TEResult TEInstanceCreateD3D(const char *path,
-									   IDXGIAdapter * TE_NULLABLE adapter,
+									   ID3D11Device * TE_NULLABLE device,
 									   TETimeMode mode,
 									   TEInstanceEventCallback event_callback,
 									   TEInstanceParameterValueCallback prop_value_callback,
@@ -129,9 +130,16 @@ TE_EXPORT TEResult TEInstanceCreateGL(const char *path,
 									  TEInstance * TE_NULLABLE * TE_NONNULL instance);
 
 /*
-Returns the IDXGIAdapter associated with a Direct3D instance, or NULL.
+Returns the ID3D11Device associated with a Direct3D instance, or NULL.
 */
-TE_EXPORT IDXGIAdapter *TEInstanceGetDXGIAdapter(TEInstance *instance);
+TE_EXPORT ID3D11Device *TEInstanceGetD3DDevice(TEInstance *instance);
+
+/*
+Change the device associated with a Direct3D instance.
+'device' must be a valid Direct3D device.
+Returns TEResultSuccess on success, or an error.
+*/
+TE_EXPORT TEResult TEInstanceSetD3DDevice(TEInstance *instance, ID3D11Device *device);
 
 /*
 Returns the device context associated with an OpenGL instance, or NULL.

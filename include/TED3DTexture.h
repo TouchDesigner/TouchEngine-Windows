@@ -36,12 +36,6 @@ typedef TETexture TEDXGITexture;
 TE_EXPORT TED3DTexture *TED3DTextureCreate(ID3D11Texture2D *texture);
 
 /*
- Creates a TED3DTexture from a TEDXGITexture
- The caller is responsible for releasing the returned TED3DTexture using TERelease()
- */
-TE_EXPORT TED3DTexture *TED3DTextureCreateFromDXGI(ID3D11Device *device, TEDXGITexture *texture);
-
-/*
  Returns the underlying ID3D11Texture2D.
  This texture should be considered to be owned by the TED3DTexture and should not be retained beyond
  the lifetime of its owner.
