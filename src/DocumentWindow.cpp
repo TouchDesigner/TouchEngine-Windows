@@ -523,7 +523,8 @@ void DocumentWindow::openWindow(HWND parent)
 		std::string utf8 = converter.to_bytes(getPath());
         if (getMode() == Mode::DirectX)
         {
-            TEResult TEResult = TEInstanceCreateD3D(utf8.c_str(), nullptr, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+            ID3D11Device *device = dynamic_cast<DirectXRenderer *>(myRenderer.get())->getDevice();
+            TEResult TEResult = TEInstanceCreateD3D(utf8.c_str(), device, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
         }
         else
         {
