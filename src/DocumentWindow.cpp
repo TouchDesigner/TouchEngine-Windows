@@ -528,8 +528,9 @@ void DocumentWindow::openWindow(HWND parent)
         }
         else
         {
+            HDC dc = dynamic_cast<OpenGLRenderer *>(myRenderer.get())->getDC();
             HGLRC rc = dynamic_cast<OpenGLRenderer *>(myRenderer.get())->getRC();
-            TEResult TEResult = TEInstanceCreateGL(utf8.c_str(), GetDC(myWindow), rc, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+            TEResult TEResult = TEInstanceCreateGL(utf8.c_str(), dc, rc, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
         }
         SetTimer(myWindow, RenderTimerID, 16, nullptr);
 	}
