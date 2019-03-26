@@ -230,9 +230,9 @@ void DirectXDevice::setIndexBuffer(ID3D11Buffer * buffer)
     myDeviceContext->IASetIndexBuffer(buffer, DXGI_FORMAT_R16_UINT, 0);
 }
 
-void DirectXDevice::setTriangleListTopology()
+void DirectXDevice::setTriangleStripTopology()
 {
-    myDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    myDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 }
 
 void DirectXDevice::setVertexShader(VertexShader & shader)

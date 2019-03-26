@@ -40,7 +40,7 @@ public:
         myDeviceContext->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
     }
     void setIndexBuffer(ID3D11Buffer *buffer);
-    void setTriangleListTopology();
+    void setTriangleStripTopology();
     void setVertexShader(VertexShader &shader);
     void setPixelShader(ID3D11PixelShader *shader);
     void setShaderResourceAndSampler(DirectXTexture &texture);
