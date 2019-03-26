@@ -521,13 +521,15 @@ void DocumentWindow::openWindow(HWND parent)
         if (getMode() == Mode::DirectX)
         {
             ID3D11Device *device = dynamic_cast<DirectXRenderer *>(myRenderer.get())->getDevice();
-            TEResult TEResult = TEInstanceCreateD3D(utf8.c_str(), device, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+            TEResult result = TEInstanceCreateD3D(utf8.c_str(), device, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+            assert(result == TEResultSuccess);
         }
         else
         {
             HDC dc = dynamic_cast<OpenGLRenderer *>(myRenderer.get())->getDC();
             HGLRC rc = dynamic_cast<OpenGLRenderer *>(myRenderer.get())->getRC();
-            TEResult TEResult = TEInstanceCreateGL(utf8.c_str(), dc, rc, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+            TEResult result = TEInstanceCreateGL(utf8.c_str(), dc, rc, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+            assert(result == TEResultSuccess);
         }
         SetTimer(myWindow, RenderTimerID, 16, nullptr);
 	}
