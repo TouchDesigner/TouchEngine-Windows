@@ -706,8 +706,8 @@ void DocumentWindow::applyLayoutChange()
                                         for (int x = 0; x < 256; x++)
                                         {
                                             tex[(y * 256 * 4) + (x * 4) + 0] = x;
-                                            tex[(y * 256 * 4) + (x * 4) + 1] = 40;
-                                            tex[(y * 256 * 4) + (x * 4) + 2] = y;
+                                            tex[(y * 256 * 4) + (x * 4) + 1] = 0;
+                                            tex[(y * 256 * 4) + (x * 4) + 2] = getMode() == Mode::OpenGL ? 255 - y : y;
                                             tex[(y * 256 * 4) + (x * 4) + 3] = 255;
                                         }
                                     }
