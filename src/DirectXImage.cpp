@@ -44,17 +44,17 @@ bool DirectXImage::setup(DirectXDevice & device)
 {
     BasicVertex rectangleVertices[] =
     {
-        { DirectX::XMFLOAT2(-1.0f, -1.0f),  DirectX::XMFLOAT2(0.0f, 0.0f) },
-        { DirectX::XMFLOAT2(-1.0f,  1.0f),  DirectX::XMFLOAT2(0.0f, 1.0f) },
-        { DirectX::XMFLOAT2(1.0f, -1.0f),  DirectX::XMFLOAT2(1.0f, 0.0f) },
-        { DirectX::XMFLOAT2(1.0f,  1.0f),  DirectX::XMFLOAT2(1.0f, 1.0f) }
+        { DirectX::XMFLOAT2(-1.0f, -1.0f),  DirectX::XMFLOAT2(0.0f, 1.0f) },
+        { DirectX::XMFLOAT2(-1.0f,  1.0f),  DirectX::XMFLOAT2(0.0f, 0.0f) },
+        { DirectX::XMFLOAT2(1.0f, -1.0f),  DirectX::XMFLOAT2(1.0f, 1.0f) },
+        { DirectX::XMFLOAT2(1.0f,  1.0f),  DirectX::XMFLOAT2(1.0f, 0.0f) }
     };
 
     myVertexBuffer = device.loadVertexBuffer(rectangleVertices, ARRAYSIZE(rectangleVertices));
 
     unsigned short rectangleIndices[] =
     {
-        0, 1, 2, 2, 1, 3
+        0, 1, 2, 3
     };
 
     myIndexBuffer = device.loadIndexBuffer(rectangleIndices, ARRAYSIZE(rectangleIndices));
@@ -88,10 +88,10 @@ void DirectXImage::draw(DirectXDevice &device)
 
         device.setVertexBuffer<BasicVertex>(myVertexBuffer);
         device.setIndexBuffer(myIndexBuffer);
-        device.setTriangleListTopology();
+        device.setTriangleStripTopology();
         device.setConstantBuffer(myConstantBuffer);
         device.setShaderResourceAndSampler(myTexture);
-        device.drawIndexed(6);
+        device.drawIndexed(4);
     }
     else
     {
