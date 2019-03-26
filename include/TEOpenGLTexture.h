@@ -39,11 +39,12 @@ typedef void (*TEOpenGLTextureReleaseCallback)(GLuint texture, void * TE_NULLABL
 
 /*
 Create a texture from an OpenGL texture
-callback will be called with the values passed to texture and info when the texture is released - the 
+'callback' will be called with the values passed to 'texture' and 'info' when the texture is released - the 
 texture should remain valid until that happens.
+'flipped' is true if the texture is vertically flipped, with its origin in the top-left corner.
 The caller is responsible for releasing the returned TEOpenGLTexture using TERelease()
 */
-TE_EXPORT TEOpenGLTexture *TEOpenGLTextureCreate(GLuint texture, GLenum target, GLint internalFormat, int32_t width, int32_t height, TEOpenGLTextureReleaseCallback TE_NULLABLE callback, void * TE_NULLABLE info);
+TE_EXPORT TEOpenGLTexture *TEOpenGLTextureCreate(GLuint texture, GLenum target, GLint internalFormat, int32_t width, int32_t height, bool flipped, TEOpenGLTextureReleaseCallback TE_NULLABLE callback, void * TE_NULLABLE info);
 
 /*
  Returns the underlying OpenGL texture.
@@ -58,6 +59,11 @@ TE_EXPORT GLint TEOpenGLTextureGetInternalFormat(TEOpenGLTexture *texture);
 TE_EXPORT int32_t TEOpenGLTextureGetWidth(TETexture *texture);
 
 TE_EXPORT int32_t TEOpenGLTextureGetHeight(TETexture *texture);
+
+/*
+ If this returns true, the texture is vertically flipped, with its origin in the top-left corner.
+*/
+TE_EXPORT bool TEOpenGLTextureGetFlipped(TETexture *texture);
 
 TE_ASSUME_NONNULL_END
 

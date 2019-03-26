@@ -171,10 +171,12 @@ TE_EXPORT TETimeMode TEInstanceGetTimeMode(TEInstance *instance);
 /*
  Initiates rendering of a frame. 
  'time_value', 'time_scale' are ignored for TETimeInternal
+ 'discontinuity' if true indicates the frame does not follow naturally from the previously requested frame
  The frame is rendered asynchronously after this function returns.
- TEInstanceEventCallback is called with TEEventFrameDidFinish when frame completes
+ TEInstanceParameterValueCallback is called for any outputs affected by the rendered frame.
+ TEInstanceEventCallback is called with TEEventFrameDidFinish when the frame completes.
  */
-TE_EXPORT TEResult TEInstanceStartFrameAtTime(TEInstance *instance, int64_t time_value, int32_t time_scale);
+TE_EXPORT TEResult TEInstanceStartFrameAtTime(TEInstance *instance, int64_t time_value, int32_t time_scale, bool discontinuity);
 
 /*
  Requests the cancellation of an in-progress frame.

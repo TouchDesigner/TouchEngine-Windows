@@ -622,7 +622,7 @@ void DocumentWindow::render()
             }
         }
 
-        if (TEInstanceStartFrameAtTime(myInstance, 1000, 1000 * 1000) == TEResultSuccess)
+        if (TEInstanceStartFrameAtTime(myInstance, 1000, 1000 * 1000, false) == TEResultSuccess)
         {
             myInFrame = true;
             myLastFloatValue += 1.0/(60.0 * 8.0);
