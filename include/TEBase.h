@@ -16,6 +16,10 @@
 #ifndef TEBase_h
 #define TEBase_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if defined(__APPLE__)
 	#define TE_ASSUME_NONNULL_BEGIN _Pragma("clang assume_nonnull begin")
 	#define TE_ASSUME_NONNULL_END	_Pragma("clang assume_nonnull end")
@@ -62,5 +66,9 @@ TE_EXPORT TEObject *TERetain_(TEObject *object);
 TE_EXPORT void TERelease_(TEObject * TE_NULLABLE * TE_NULLABLE object);
 
 TE_ASSUME_NONNULL_END
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TEBase_h */

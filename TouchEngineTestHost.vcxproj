@@ -104,6 +104,8 @@
     <ClInclude Include="src/stdafx.h" />
     <ClInclude Include="src/targetver.h" />
     <ClInclude Include="src/VertexShader.h" />
+    <ClInclude Include="src\OpenGLImage.h" />
+    <ClInclude Include="src\OpenGLProgram.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/DirectXDevice.cpp" />
@@ -127,6 +129,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src/VertexShader.cpp" />
+    <ClCompile Include="src\OpenGLImage.cpp" />
+    <ClCompile Include="src\OpenGLProgram.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src/TouchEngineTestHost.rc" />

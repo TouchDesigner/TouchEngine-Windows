@@ -36,6 +36,7 @@ private:
     static const int32_t InputChannelCount;
     static const int64_t InputSampleLimit;
     static const int64_t InputSamplesPerFrame;
+    static const UINT_PTR RenderTimerID;
     void endFrame(int64_t time_value, int32_t time_scale, TEResult result);
     void applyLayoutChange();
     void applyOutputTextureChange();
