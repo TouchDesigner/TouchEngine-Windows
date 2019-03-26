@@ -61,10 +61,10 @@ void OpenGLImage::draw()
         glBindBuffer(GL_ARRAY_BUFFER, myVBO);
 
         GLfloat vertices[] = {
-            (-1.0f * myScale) + myX,   (-1.0f * myScale) + myY,   0.0f,    0.0f,
-            (-1.0f * myScale) + myX,    (1.0f * myScale) + myY,   0.0f,    1.0f,
-            (1.0f * myScale) + myX,   (-1.0f * myScale) + myY,   1.0f,    0.0f,
-            (1.0f * myScale) + myX,    (1.0f * myScale) + myY,   1.0f,    1.0f
+            (-1.0f * myScale) + myX,   (-1.0f * myScale) + myY,   0.0f,    myTexture.getFlipped() ? 1.0f : 0.0f,
+            (-1.0f * myScale) + myX,    (1.0f * myScale) + myY,   0.0f,    myTexture.getFlipped() ? 0.0f : 1.0f,
+            (1.0f * myScale) + myX,   (-1.0f * myScale) + myY,   1.0f,    myTexture.getFlipped() ? 1.0f : 0.0f,
+            (1.0f * myScale) + myX,    (1.0f * myScale) + myY,   1.0f,    myTexture.getFlipped() ? 0.0f : 1.0f
         };
 
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -88,7 +88,7 @@ void OpenGLImage::draw()
 
 void OpenGLImage::update(const OpenGLTexture & texture)
 {
-    if (myTexture.getWidth() != texture.getWidth() || myTexture.getHeight() != texture.getHeight())
+    if (myTexture.getWidth() != texture.getWidth() || myTexture.getHeight() != texture.getHeight() || myTexture.getFlipped() != texture.getFlipped())
     {
         myDirty = true;
     }

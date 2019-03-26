@@ -6,7 +6,7 @@ OpenGLTexture::OpenGLTexture()
 }
 
 OpenGLTexture::OpenGLTexture(const unsigned char * rgba, size_t bytesPerRow, GLsizei width, GLsizei height)
-	: myWidth(width), myHeight(height)
+	: myWidth(width), myHeight(height), myFlipped(false)
 {
 	if (bytesPerRow != width * 4)
 	{
@@ -27,8 +27,8 @@ OpenGLTexture::OpenGLTexture(const unsigned char * rgba, size_t bytesPerRow, GLs
     });
 }
 
-OpenGLTexture::OpenGLTexture(GLuint name, GLsizei width, GLsizei height, std::function<void()> releaseCallback)
-    : myWidth(width), myHeight(height)
+OpenGLTexture::OpenGLTexture(GLuint name, GLsizei width, GLsizei height, bool flipped, std::function<void()> releaseCallback)
+    : myWidth(width), myHeight(height), myFlipped(flipped)
 {
     myName = std::shared_ptr<GLuint>(new GLuint(name), [releaseCallback](auto p) {
         releaseCallback();
@@ -54,6 +54,11 @@ GLsizei OpenGLTexture::getWidth() const
 GLsizei OpenGLTexture::getHeight() const
 {
 	return myHeight;
+}
+
+bool OpenGLTexture::getFlipped() const
+{
+    return myFlipped;
 }
 
 bool OpenGLTexture::isValid() const

@@ -177,7 +177,7 @@ TETexture * OpenGLRenderer::createLeftSideImage(size_t index)
     // Create a reference-counted reference to the same texture
 	OpenGLTexture *copied = new OpenGLTexture(myLeftSideImages[index].getTexture());
 
-    TEOpenGLTexture *out = TEOpenGLTextureCreate(copied->getName(), GL_TEXTURE_2D, GL_RGBA8, copied->getWidth(), copied->getHeight(), textureReleaseCallback, copied);
+    TEOpenGLTexture *out = TEOpenGLTextureCreate(copied->getName(), GL_TEXTURE_2D, GL_RGBA8, copied->getWidth(), copied->getHeight(), false, textureReleaseCallback, copied);
 	return out;
 }
 
@@ -204,7 +204,7 @@ void OpenGLRenderer::setRightSideImage(size_t index, TETexture * texture)
     {
         TERetain(texture);
         myRightSideImages.at(index).update(OpenGLTexture(TEOpenGLTextureGetName(texture),
-            TEOpenGLTextureGetWidth(texture), TEOpenGLTextureGetHeight(texture), [texture]() {
+            TEOpenGLTextureGetWidth(texture), TEOpenGLTextureGetHeight(texture), TEOpenGLTextureGetFlipped(texture), [texture]() {
             TERelease(&texture);
         }));
 
