@@ -96,7 +96,7 @@ void DirectXRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesP
 TETexture * DirectXRenderer::createLeftSideImage(size_t index)
 {
 	auto &texture = myLeftSideImages[index];
-	return TED3DTextureCreate(texture.getTexture());
+	return TED3DTextureCreate(texture.getTexture(), false);
 }
 
 void DirectXRenderer::clearLeftSideImages()
@@ -116,7 +116,7 @@ void DirectXRenderer::setRightSideImage(size_t index, TETexture * texture)
 {
 	if (texture && TETextureGetType(texture) == TETextureTypeD3D)
 	{
-        DirectXTexture tex(TED3DTextureGetTexture(texture));
+        DirectXTexture tex(TED3DTextureGetTexture(texture), TETextureIsVerticallyFlipped(texture));
 
         myRightSideImages.at(index).update(tex);
 	}

@@ -4,7 +4,7 @@ class DirectXTexture
 public:
     DirectXTexture();
     DirectXTexture(ID3D11Device *device, const unsigned char *src, int bytesPerRow, int width, int height);
-    DirectXTexture(ID3D11Texture2D *texture);
+    DirectXTexture(ID3D11Texture2D *texture, bool flipped);
     DirectXTexture(const DirectXTexture &o);
     DirectXTexture &operator=(const DirectXTexture &o);
     DirectXTexture(DirectXTexture &&o);
@@ -15,6 +15,7 @@ public:
     void setResourceAndSampler(ID3D11DeviceContext *context);
     int getWidth() const;
     int getHeight() const;
+    bool getFlipped() const;
 private:
     HRESULT createShaderResourceView(ID3D11Device *device, const D3D11_TEXTURE2D_DESC &description);
     HRESULT createSamplerState(ID3D11Device *device, const D3D11_TEXTURE2D_DESC &description);
@@ -22,5 +23,6 @@ private:
     ID3D11Texture2D *myTexture;
     ID3D11ShaderResourceView *myTextureView;
     ID3D11SamplerState *mySampler;
+    bool myVFlipped;
 };
 

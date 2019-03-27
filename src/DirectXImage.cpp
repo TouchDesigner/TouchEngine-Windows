@@ -80,6 +80,7 @@ void DirectXImage::draw(DirectXDevice &device)
             cbuffer.matrix *= DirectX::XMMatrixScaling(myScale, myScale, 1.0f);
             cbuffer.matrix *= DirectX::XMMatrixTranslation(x, y, 0);
             cbuffer.matrix = DirectX::XMMatrixTranspose(cbuffer.matrix);
+            cbuffer.flip.x = myTexture.getFlipped();
 
             device.updateSubresource(myConstantBuffer, &cbuffer);
             
@@ -101,15 +102,21 @@ void DirectXImage::draw(DirectXDevice &device)
 
 void DirectXImage::position(float newx, float newy)
 {
-    x = newx;
-    y = newy;
-    myMatrixDirty = true;
+    if (x != newx || y != newy)
+    {
+        x = newx;
+        y = newy;
+        myMatrixDirty = true;
+    }
 }
 
 void DirectXImage::scale(float scale)
 {
-    myScale = scale;
-    myMatrixDirty = true;
+    if (myScale != scale)
+    {
+        myScale = scale;
+        myMatrixDirty = true;
+    }
 }
 
 ID3D11Texture2D * DirectXImage::getTexture() const
@@ -119,6 +126,10 @@ ID3D11Texture2D * DirectXImage::getTexture() const
 
 void DirectXImage::update(DirectXTexture & texture)
 {
+    if (myTexture.getFlipped() != texture.getFlipped())
+    {
+        myMatrixDirty = true;
+    }
     myTexture = texture;
     width = (float)myTexture.getWidth();
     height = (float)myTexture.getHeight();
