@@ -102,15 +102,21 @@ void DirectXImage::draw(DirectXDevice &device)
 
 void DirectXImage::position(float newx, float newy)
 {
-    x = newx;
-    y = newy;
-    myMatrixDirty = true;
+    if (x != newx || y != newy)
+    {
+        x = newx;
+        y = newy;
+        myMatrixDirty = true;
+    }
 }
 
 void DirectXImage::scale(float scale)
 {
-    myScale = scale;
-    myMatrixDirty = true;
+    if (myScale != scale)
+    {
+        myScale = scale;
+        myMatrixDirty = true;
+    }
 }
 
 ID3D11Texture2D * DirectXImage::getTexture() const
