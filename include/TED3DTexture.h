@@ -28,12 +28,12 @@ extern "C" {
 TE_ASSUME_NONNULL_BEGIN
 
 typedef TETexture TED3DTexture;
-typedef TETexture TEDXGITexture;
 
 /*
+ 'flipped' is true if the texture is vertically flipped, with its origin in the bottom-left corner.
  The caller is responsible for releasing the returned TED3DTexture using TERelease()
  */
-TE_EXPORT TED3DTexture *TED3DTextureCreate(ID3D11Texture2D *texture);
+TE_EXPORT TED3DTexture *TED3DTextureCreate(ID3D11Texture2D *texture, bool flipped);
 
 /*
  Returns the underlying ID3D11Texture2D.

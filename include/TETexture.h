@@ -32,6 +32,11 @@ typedef TEObject TETexture;
  */
 TE_EXPORT TETextureType TETextureGetType(TETexture *texture);
 
+/*
+ Returns true if the texture is vertically flipped in its native coordindate space.
+*/
+TE_EXPORT bool TETextureIsVerticallyFlipped(TETexture *texture);
+
 TE_ASSUME_NONNULL_END
 
 #ifdef __cplusplus

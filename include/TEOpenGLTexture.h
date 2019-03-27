@@ -60,11 +60,6 @@ TE_EXPORT int32_t TEOpenGLTextureGetWidth(TETexture *texture);
 
 TE_EXPORT int32_t TEOpenGLTextureGetHeight(TETexture *texture);
 
-/*
- If this returns true, the texture is vertically flipped, with its origin in the top-left corner.
-*/
-TE_EXPORT bool TEOpenGLTextureGetFlipped(TETexture *texture);
-
 TE_ASSUME_NONNULL_END
 
 #ifdef __cplusplus

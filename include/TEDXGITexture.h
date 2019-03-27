@@ -34,11 +34,12 @@ typedef void (*TEDXGITextureReleaseCallback)(HANDLE handle, void * TE_NULLABLE i
 
 /*
 Create a texture from a shared handle
-This must come from IDXGIResource::GetSharedHandle(), and not IDXGIResource1::CreateSharedHandle()
-callback will be called with the values passed to handle and info when the texture is released
+'handle' must be the result of a call to IDXGIResource::GetSharedHandle(), and not IDXGIResource1::CreateSharedHandle()
+'flipped' is true if the texture is vertically flipped, with its origin in the bottom-left corner.
+'callback' will be called with the values passed to 'handle' and 'info' when the texture is released
 The caller is responsible for releasing the returned TEDXGITexture using TERelease()
 */
-TE_EXPORT TEDXGITexture *TEDXGITextureCreate(HANDLE handle, TEDXGITextureReleaseCallback TE_NULLABLE callback, void *info);
+TE_EXPORT TEDXGITexture *TEDXGITextureCreate(HANDLE handle, bool flipped, TEDXGITextureReleaseCallback TE_NULLABLE callback, void *info);
 
 /*
  Create a texture from a TED3D11Texture. Depending on the source texture, this may involve copying
