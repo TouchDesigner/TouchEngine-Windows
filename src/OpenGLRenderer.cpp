@@ -204,7 +204,7 @@ void OpenGLRenderer::setRightSideImage(size_t index, TETexture * texture)
     {
         TERetain(texture);
         myRightSideImages.at(index).update(OpenGLTexture(TEOpenGLTextureGetName(texture),
-            TEOpenGLTextureGetWidth(texture), TEOpenGLTextureGetHeight(texture), TEOpenGLTextureGetFlipped(texture), [texture]() {
+            TEOpenGLTextureGetWidth(texture), TEOpenGLTextureGetHeight(texture), TETextureIsVerticallyFlipped(texture), [texture]() {
             TERelease(&texture);
         }));
 

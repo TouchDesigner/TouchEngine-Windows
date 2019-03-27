@@ -13,6 +13,7 @@ struct PixelShaderInput
 cbuffer ConstantBuffer : register(b0)
 {
     matrix Matrix;
+    int4 Flip;
 }
 
 PixelShaderInput main(VertexShaderInput input)
@@ -21,5 +22,9 @@ PixelShaderInput main(VertexShaderInput input)
 
     vertexShaderOutput.pos = mul(float4(input.pos, 0.5f, 1.0f), Matrix);
     vertexShaderOutput.tex = input.tex;
+    if (Flip.x)
+    {
+        vertexShaderOutput.tex.y = 1.0f - vertexShaderOutput.tex.y;
+    }
     return vertexShaderOutput;
 }

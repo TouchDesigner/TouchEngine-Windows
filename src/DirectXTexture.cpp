@@ -3,13 +3,13 @@
 
 
 DirectXTexture::DirectXTexture()
-    : myTexture(nullptr), myTextureView(nullptr), mySampler(nullptr)
+    : myTexture(nullptr), myTextureView(nullptr), mySampler(nullptr), myVFlipped(false)
 {
 }
 
 
 DirectXTexture::DirectXTexture(DirectXTexture && o)
-    : myTexture(o.myTexture), myTextureView(o.myTextureView), mySampler(o.mySampler)
+    : myTexture(o.myTexture), myTextureView(o.myTextureView), mySampler(o.mySampler), myVFlipped(o.myVFlipped)
 {
     o.myTexture = nullptr;
     o.myTextureView = nullptr;
@@ -25,6 +25,7 @@ DirectXTexture & DirectXTexture::operator=(DirectXTexture && o)
     o.myTextureView = nullptr;
     mySampler = o.mySampler;
     o.mySampler = nullptr;
+    myVFlipped = o.myVFlipped;
     return *this;
 }
 
@@ -73,6 +74,11 @@ int DirectXTexture::getHeight() const
         return description.Height;
     }
     return 0;
+}
+
+bool DirectXTexture::getFlipped() const
+{
+    return myVFlipped;
 }
 
 HRESULT DirectXTexture::createShaderResourceView(ID3D11Device *device, const D3D11_TEXTURE2D_DESC & description)
@@ -129,7 +135,7 @@ void DirectXTexture::releaseResources()
 }
 
 DirectXTexture::DirectXTexture(ID3D11Device *device, const unsigned char * src, int bytesPerRow, int width, int height)
-    : myTexture(nullptr), myTextureView(nullptr), mySampler(nullptr)
+    : myTexture(nullptr), myTextureView(nullptr), mySampler(nullptr), myVFlipped(false)
 {
     D3D11_SUBRESOURCE_DATA subresource = { 0 };
     subresource.pSysMem = src;
@@ -167,8 +173,8 @@ DirectXTexture::DirectXTexture(ID3D11Device *device, const unsigned char * src, 
     }
 }
 
-DirectXTexture::DirectXTexture(ID3D11Texture2D * texture)
-    : myTexture(texture), myTextureView(nullptr), mySampler(nullptr)
+DirectXTexture::DirectXTexture(ID3D11Texture2D * texture, bool flipped)
+    : myTexture(texture), myTextureView(nullptr), mySampler(nullptr), myVFlipped(flipped)
 {
     texture->AddRef();
 
@@ -192,7 +198,7 @@ DirectXTexture::DirectXTexture(ID3D11Texture2D * texture)
 }
 
 DirectXTexture::DirectXTexture(const DirectXTexture & o)
-    : myTexture(o.myTexture), myTextureView(o.myTextureView), mySampler(o.mySampler)
+    : myTexture(o.myTexture), myTextureView(o.myTextureView), mySampler(o.mySampler), myVFlipped(o.myVFlipped)
 {
     if (myTexture)
     {
@@ -228,6 +234,7 @@ DirectXTexture & DirectXTexture::operator=(const DirectXTexture & o)
         {
             mySampler->AddRef();
         }
+        myVFlipped = o.myVFlipped;
     }
     return *this;
 }

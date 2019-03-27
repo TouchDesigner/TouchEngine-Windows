@@ -29,6 +29,7 @@ private:
     struct ConstantBuffer
     {
         DirectX::XMMATRIX matrix;
+        DirectX::XMINT4 flip; // XM type for easy alignment, only .x used
     };
     DirectXTexture myTexture;
     ID3D11Buffer *myVertexBuffer;
