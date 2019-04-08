@@ -31,6 +31,11 @@ TE_ASSUME_NONNULL_BEGIN
  */
 TE_EXPORT const char * TE_NULLABLE TEResultGetDescription(TEResult result);
 
+/*
+ Returns a TESeverity for a TEResult
+ */
+TE_EXPORT TESeverity TEResultGetSeverity(TEResult result);
+
 TE_ASSUME_NONNULL_END
 
 #ifdef __cplusplus

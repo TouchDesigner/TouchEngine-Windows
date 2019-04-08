@@ -94,6 +94,22 @@ typedef TE_ENUM(TEResult, int32_t)
 
 };
 
+typedef TE_ENUM(TESeverity, int32_t)
+{
+	/*
+	Success
+	*/
+	TESeverityNone,
+	/*
+	The requested action may have been performed partially
+	*/
+	TESeverityWarning,
+	/*
+	The requested action could not be performed
+	*/
+	TESeverityError
+};
+
 typedef TE_ENUM(TEEvent, int32_t) 
 {
 	TEEventInstanceDidLoad,

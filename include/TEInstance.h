@@ -247,6 +247,9 @@ TE_EXPORT TEResult TEInstanceParameterGetIntValue(TEInstance *instance, const ch
 TE_EXPORT TEResult TEInstanceParameterGetStringValue(TEInstance *instance, const char *identifier, TEParameterValue which, TEString * TE_NULLABLE * TE_NONNULL string);
 
 /*
+ On successful completion 'value' is set to a TETexture.
+ Work may be done in the graphics context associated with the instance by this call.
+ An OpenGL instance may change the current texture binding during this call.
  The caller is responsible for releasing the returned TETexture using TERelease().
  */
 TE_EXPORT TEResult TEInstanceParameterGetTextureValue(TEInstance *instance, const char *identifier, TEParameterValue which, TETexture * TE_NULLABLE * TE_NONNULL value);
