@@ -50,7 +50,7 @@ void DocumentManager::storeOpenWindows()
             std::wofstream stream(path, std::ofstream::out | std::ofstream::trunc);
             for each (const auto entry in myDocuments)
             {
-                stream << entry.second->getPath() << std::endl;
+                stream << std::to_wstring(static_cast<int>(entry.second->getMode())) << L":-:" << entry.second->getPath() << std::endl;
             }
         }
     }
@@ -60,7 +60,7 @@ bool DocumentManager::open(const std::wstring & path, HWND parent, bool update, 
 {
     for each (auto doc in myDocuments)
     {
-        if (doc.second->getPath() == path)
+        if (doc.second->getPath() == path && doc.second->getMode() == mode)
         {
             // already open
             SetActiveWindow(doc.second->getWindow());
@@ -85,7 +85,17 @@ void DocumentManager::restoreOpenWindows(HWND parent)
         std::wifstream stream(path);
         for (std::wstring line; std::getline(stream, line); )
         {
-            open(line, parent, false, DocumentWindow::Mode::DirectX); // TODO: store/get the mode
+            auto colon = line.find(L":-:");
+            if (colon == std::string::npos)
+            {
+                open(line, parent, false, DocumentWindow::Mode::DirectX);
+            }
+            else
+            {
+                std::wstring mode = line.substr(0, colon);
+                std::wstring path = line.substr(colon + 3);
+                open(path, parent, false, static_cast<DocumentWindow::Mode>(std::stoi(mode)));
+            }
         }
     }
 }

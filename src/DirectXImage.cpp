@@ -3,22 +3,21 @@
 #include "DirectXDevice.h"
 
 DirectXImage::DirectXImage()
-    : Drawable(), myPixelShader(nullptr), myVertexBuffer(nullptr), myIndexBuffer(nullptr), myConstantBuffer(nullptr), myMatrixDirty(true), myScale(1.0f)
+    : Drawable(), myVertexBuffer(nullptr), myIndexBuffer(nullptr), myConstantBuffer(nullptr), myMatrixDirty(true), myScale(1.0f)
 {
 }
 
 DirectXImage::DirectXImage(DirectXTexture & texture)
     : Drawable(0.0f, 0.0f, static_cast<float>(texture.getWidth()), static_cast<float>(texture.getHeight())),
-    myTexture(texture), myPixelShader(nullptr), myVertexBuffer(nullptr), myIndexBuffer(nullptr), myConstantBuffer(nullptr), myMatrixDirty(true), myScale(1.0)
+    myTexture(texture), myVertexBuffer(nullptr), myIndexBuffer(nullptr), myConstantBuffer(nullptr), myMatrixDirty(true), myScale(1.0)
 {
 }
 
 DirectXImage::DirectXImage(DirectXImage && other)
-    : myTexture(other.myTexture), myVertexShader(std::move(other.myVertexShader)),
-    myPixelShader(other.myPixelShader), myVertexBuffer(other.myVertexBuffer), myIndexBuffer(other.myIndexBuffer), myConstantBuffer(other.myConstantBuffer),
+    : myTexture(other.myTexture),
+    myVertexBuffer(other.myVertexBuffer), myIndexBuffer(other.myIndexBuffer), myConstantBuffer(other.myConstantBuffer),
     myMatrixDirty(true), myScale(1.0)
 {
-    other.myPixelShader = nullptr;
     other.myVertexBuffer = nullptr;
     other.myIndexBuffer = nullptr;
     other.myConstantBuffer = nullptr;
@@ -27,10 +26,6 @@ DirectXImage::DirectXImage(DirectXImage && other)
 
 DirectXImage::~DirectXImage()
 {
-    if (myPixelShader)
-    {
-        myPixelShader->Release();
-    }
     if (myVertexBuffer)
     {
         myVertexBuffer->Release();
@@ -47,35 +42,26 @@ DirectXImage::~DirectXImage()
 
 bool DirectXImage::setup(DirectXDevice & device)
 {
-    const D3D11_INPUT_ELEMENT_DESC layoutDescription[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-    };
-
-    myVertexShader = device.loadVertexShader(L"TestVertexShader.cso", layoutDescription, ARRAYSIZE(layoutDescription));
-    myPixelShader = device.loadPixelShader(L"TestPixelShader.cso");
-
     BasicVertex rectangleVertices[] =
     {
-        { DirectX::XMFLOAT2(-1.0f, -1.0f),  DirectX::XMFLOAT2(0.0f, 0.0f) },
-        { DirectX::XMFLOAT2(-1.0f,  1.0f),  DirectX::XMFLOAT2(0.0f, 1.0f) },
-        { DirectX::XMFLOAT2(1.0f, -1.0f),  DirectX::XMFLOAT2(1.0f, 0.0f) },
-        { DirectX::XMFLOAT2(1.0f,  1.0f),  DirectX::XMFLOAT2(1.0f, 1.0f) }
+        { DirectX::XMFLOAT2(-1.0f, -1.0f),  DirectX::XMFLOAT2(0.0f, 1.0f) },
+        { DirectX::XMFLOAT2(-1.0f,  1.0f),  DirectX::XMFLOAT2(0.0f, 0.0f) },
+        { DirectX::XMFLOAT2(1.0f, -1.0f),  DirectX::XMFLOAT2(1.0f, 1.0f) },
+        { DirectX::XMFLOAT2(1.0f,  1.0f),  DirectX::XMFLOAT2(1.0f, 0.0f) }
     };
 
     myVertexBuffer = device.loadVertexBuffer(rectangleVertices, ARRAYSIZE(rectangleVertices));
 
     unsigned short rectangleIndices[] =
     {
-        0, 1, 2, 2, 1, 3
+        0, 1, 2, 3
     };
 
     myIndexBuffer = device.loadIndexBuffer(rectangleIndices, ARRAYSIZE(rectangleIndices));
 
     myConstantBuffer = device.loadConstantBuffer<ConstantBuffer>();
 
-    if (myVertexShader.isValid() && myPixelShader && myVertexBuffer && myIndexBuffer && myConstantBuffer)
+    if (myVertexBuffer && myIndexBuffer && myConstantBuffer)
     {
         return true;
     }
@@ -94,21 +80,19 @@ void DirectXImage::draw(DirectXDevice &device)
             cbuffer.matrix *= DirectX::XMMatrixScaling(myScale, myScale, 1.0f);
             cbuffer.matrix *= DirectX::XMMatrixTranslation(x, y, 0);
             cbuffer.matrix = DirectX::XMMatrixTranspose(cbuffer.matrix);
+            cbuffer.flip.x = myTexture.getFlipped();
 
             device.updateSubresource(myConstantBuffer, &cbuffer);
             
             myMatrixDirty = false;
         }
 
-        device.setInputLayout(myVertexShader);
         device.setVertexBuffer<BasicVertex>(myVertexBuffer);
         device.setIndexBuffer(myIndexBuffer);
-        device.setTriangleListTopology();
-        device.setVertexShader(myVertexShader);
+        device.setTriangleStripTopology();
         device.setConstantBuffer(myConstantBuffer);
-        device.setPixelShader(myPixelShader);
         device.setShaderResourceAndSampler(myTexture);
-        device.drawIndexed(6);
+        device.drawIndexed(4);
     }
     else
     {
@@ -118,15 +102,21 @@ void DirectXImage::draw(DirectXDevice &device)
 
 void DirectXImage::position(float newx, float newy)
 {
-    x = newx;
-    y = newy;
-    myMatrixDirty = true;
+    if (x != newx || y != newy)
+    {
+        x = newx;
+        y = newy;
+        myMatrixDirty = true;
+    }
 }
 
 void DirectXImage::scale(float scale)
 {
-    myScale = scale;
-    myMatrixDirty = true;
+    if (myScale != scale)
+    {
+        myScale = scale;
+        myMatrixDirty = true;
+    }
 }
 
 ID3D11Texture2D * DirectXImage::getTexture() const
@@ -136,6 +126,10 @@ ID3D11Texture2D * DirectXImage::getTexture() const
 
 void DirectXImage::update(DirectXTexture & texture)
 {
+    if (myTexture.getFlipped() != texture.getFlipped())
+    {
+        myMatrixDirty = true;
+    }
     myTexture = texture;
     width = (float)myTexture.getWidth();
     height = (float)myTexture.getHeight();

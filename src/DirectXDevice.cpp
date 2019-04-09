@@ -15,13 +15,10 @@ DirectXDevice::~DirectXDevice()
 HRESULT DirectXDevice::createDeviceResources()
 {
     D3D_FEATURE_LEVEL levels[] = {
-        D3D_FEATURE_LEVEL_9_1,
-        D3D_FEATURE_LEVEL_9_2,
-        D3D_FEATURE_LEVEL_9_3,
-        D3D_FEATURE_LEVEL_10_0,
-        D3D_FEATURE_LEVEL_10_1,
+        D3D_FEATURE_LEVEL_11_1,
         D3D_FEATURE_LEVEL_11_0,
-        D3D_FEATURE_LEVEL_11_1
+        D3D_FEATURE_LEVEL_10_1,
+        D3D_FEATURE_LEVEL_10_0
     };
 
     UINT deviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
@@ -233,9 +230,9 @@ void DirectXDevice::setIndexBuffer(ID3D11Buffer * buffer)
     myDeviceContext->IASetIndexBuffer(buffer, DXGI_FORMAT_R16_UINT, 0);
 }
 
-void DirectXDevice::setTriangleListTopology()
+void DirectXDevice::setTriangleStripTopology()
 {
-    myDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    myDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 }
 
 void DirectXDevice::setVertexShader(VertexShader & shader)

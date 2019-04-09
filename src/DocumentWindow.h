@@ -4,6 +4,8 @@
 #include <atomic>
 #include <map>
 #include <memory>
+#include <vector>
+#include <mutex>
 #include <TouchEngine.h>
 #include "Renderer.h"
 
@@ -19,6 +21,7 @@ public:
     DocumentWindow(std::wstring path, Mode mode);
     ~DocumentWindow();
     const std::wstring getPath() const;
+    Mode getMode() const { return myMode; }
     void openWindow(HWND parent);
     HWND getWindow() const { return myWindow; };
     void didLoad() { myDidLoad = true; };
@@ -33,8 +36,12 @@ private:
     static const int32_t InputChannelCount;
     static const int64_t InputSampleLimit;
     static const int64_t InputSamplesPerFrame;
+    static const UINT_PTR RenderTimerID;
     void endFrame(int64_t time_value, int32_t time_scale, TEResult result);
+    void applyLayoutChange();
+    void applyOutputTextureChange();
 	std::wstring myPath;
+    Mode myMode;
     TEInstance *myInstance;
     HWND myWindow;
     std::unique_ptr<Renderer> myRenderer;
@@ -44,5 +51,8 @@ private:
     float myLastStreamValue;
     // TE param identifier to renderer index
     std::map<std::string, size_t> myOutputParameterTextureMap;
+    std::mutex myMutex;
+    std::vector<std::string> myPendingOutputTextures;
+    std::atomic<bool> myPendingLayoutChange;
 };
 

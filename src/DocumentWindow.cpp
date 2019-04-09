@@ -6,7 +6,6 @@
 #include "DirectXRenderer.h"
 #include "OpenGLRenderer.h"
 #include <codecvt>
-#include <vector>
 #include <array>
 
 wchar_t *DocumentWindow::WindowClassName = L"DocumentWindow";
@@ -14,6 +13,7 @@ const int32_t DocumentWindow::InputChannelCount = 2;
 const double DocumentWindow::InputSampleRate = 44100.0;
 const int64_t DocumentWindow::InputSampleLimit = 44100 / 2;
 const int64_t DocumentWindow::InputSamplesPerFrame = 44100 / 60;
+const UINT_PTR DocumentWindow::RenderTimerID = 1;
 
 #define MAX_LOADSTRING 100
 
@@ -70,10 +70,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
-		}
-		else
-		{
-			DocumentManager::sharedManager().render();
 		}
 	}
 
@@ -286,6 +282,7 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
     break;
     case WM_CLOSE:
     {
+        KillTimer(hWnd, RenderTimerID);
         HMENU menu = GetMenu(hWnd);
         if (menu)
         {
@@ -322,6 +319,19 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
 		}
 		break;
 	}
+    case WM_TIMER:
+    {
+        if (wParam == RenderTimerID)
+        {
+            auto document = DocumentManager::sharedManager().lookup(hWnd);
+            if (document)
+            {
+                document->render();
+            }
+        }
+
+        break;
+    }
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -387,19 +397,9 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
 		}
 		case TEParameterTypeTexture:
 		{
-			TETexture *texture = nullptr;
-			result = TEInstanceParameterGetTextureValue(doc->myInstance, identifier, TEParameterValueCurrent, &texture);
-			if (result == TEResultSuccess)
-			{
-				size_t imageIndex = doc->myOutputParameterTextureMap[identifier];
-
-				doc->myRenderer->setRightSideImage(imageIndex, texture);
-
-				if (texture)
-				{
-					TERelease(&texture);
-				}
-			}
+            // Stash the state, we don't do any actual renderer work from this thread
+            std::lock_guard<std::mutex> guard(doc->myMutex);
+            doc->myPendingOutputTextures.push_back(identifier);
 			break;
 		}
 		case TEParameterTypeFloatStream:
@@ -449,19 +449,15 @@ void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TEResult r
 }
 
 DocumentWindow::DocumentWindow(std::wstring path, Mode mode)
-    : myPath(path), myInstance(nullptr), myWindow(nullptr),
+    : myPath(path), myMode(mode), myInstance(nullptr), myWindow(nullptr),
 	myRenderer(mode == Mode::DirectX ? static_cast<std::unique_ptr<Renderer>>(std::make_unique<DirectXRenderer>()) : static_cast<std::unique_ptr<Renderer>>(std::make_unique<OpenGLRenderer>())),
-	myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0)
+	myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0), myPendingLayoutChange(false)
 {
 }
 
 
 DocumentWindow::~DocumentWindow()
 {
-	// TODO: we shouldn't have to do this but TETextures are holding on to the connection which gets invalidated
-	myRenderer->clearLeftSideImages();
-	myRenderer->clearRightSideImages();
-
 	if (myInstance)
 	{
 		TERelease(&myInstance);
@@ -486,9 +482,17 @@ void DocumentWindow::openWindow(HWND parent)
     SetRect(&rc, 0, 0, 640, 480);
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
 
-    std::wstring path = getPath();
+    std::wstring title = getPath();
+    if (getMode() == Mode::DirectX)
+    {
+        title += L" (DirectX)";
+    }
+    else
+    {
+        title += L" (OpenGL)";
+    }
     myWindow = CreateWindowW(WindowClassName,
-        path.data(),
+        title.data(),
         WS_OVERLAPPEDWINDOW | myRenderer->getWindowStyleFlags(),
         CW_USEDEFAULT, CW_USEDEFAULT,
         (rc.right - rc.left), (rc.bottom - rc.top),
@@ -516,89 +520,38 @@ void DocumentWindow::openWindow(HWND parent)
 	if (SUCCEEDED(result))
 	{
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-		std::string utf8 = converter.to_bytes(path);
-		TEResult TEResult = TEInstanceCreate(utf8.c_str(), TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+		std::string utf8 = converter.to_bytes(getPath());
+        if (getMode() == Mode::DirectX)
+        {
+            ID3D11Device *device = dynamic_cast<DirectXRenderer *>(myRenderer.get())->getDevice();
+            TEResult TEResult = TEInstanceCreateD3D(utf8.c_str(), device, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+        }
+        else
+        {
+            HDC dc = dynamic_cast<OpenGLRenderer *>(myRenderer.get())->getDC();
+            HGLRC rc = dynamic_cast<OpenGLRenderer *>(myRenderer.get())->getRC();
+            TEResult TEResult = TEInstanceCreateGL(utf8.c_str(), dc, rc, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+        }
+        SetTimer(myWindow, RenderTimerID, 16, nullptr);
 	}
 }
 
 void DocumentWindow::parameterLayoutDidChange()
 {
-    myRenderer->clearLeftSideImages();
-    myRenderer->clearRightSideImages();
-    myOutputParameterTextureMap.clear();
-
-    for (auto scope : { TEScopeInput, TEScopeOutput })
-    {
-        TEStringArray *groups;
-		TEResult result = TEInstanceGetParameterGroups(myInstance, scope, &groups);
-        if (result == TEResultSuccess)
-        {
-            for (int32_t i = 0; i < groups->count; i++)
-            {
-				TEParameterInfo *group;
-				result = TEInstanceParameterGetInfo(myInstance, groups->strings[i], &group);
-				if (result == TEResultSuccess)
-				{
-					// Use group info here
-					TERelease(&group);
-				}
-				TEStringArray *children = nullptr;
-				if (result == TEResultSuccess)
-				{
-					result = TEInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
-				}
-                if (result == TEResultSuccess)
-                {
-                    for (int32_t j = 0; j < children->count; j++)
-                    {
-						TEParameterInfo *info;
-						result = TEInstanceParameterGetInfo(myInstance, children->strings[j], &info);
-						if (result == TEResultSuccess)
-						{
-							if (info->type == TEParameterTypeFloatStream && scope == TEScopeInput)
-							{
-								TEStreamDescription desc;
-								desc.rate = InputSampleRate;
-								desc.numChannels = InputChannelCount;
-								desc.maxSamples = InputSampleLimit;
-								result = TEInstanceParameterSetInputStreamDescription(myInstance, info->identifier, &desc);
-							}
-							else if (result == TEResultSuccess && info->type == TEParameterTypeTexture)
-							{
-								if (scope == TEScopeInput)
-								{
-									std::array<unsigned char, 256 * 256 * 4> tex;
-
-									for (int y = 0; y < 256; y++)
-									{
-										for (int x = 0; x < 256; x++)
-										{
-											tex[(y * 256 * 4) + (x * 4) + 0] = x;
-											tex[(y * 256 * 4) + (x * 4) + 1] = 40;
-											tex[(y * 256 * 4) + (x * 4) + 2] = y;
-											tex[(y * 256 * 4) + (x * 4) + 3] = 255;
-										}
-									}
-									myRenderer->addLeftSideImage(tex.data(), 256 * 4, 256, 256);
-								}
-								else
-								{
-									myRenderer->addRightSideImage();
-									myOutputParameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
-								}
-							}
-							TERelease(&info);
-						}
-                    }
-					TERelease(&children);
-                }
-            }
-        }
-    }    
+    myPendingLayoutChange = true;    
 }
 
 void DocumentWindow::render()
 {
+    // Make any pending renderer state updates
+    if (myPendingLayoutChange)
+    {
+        myPendingLayoutChange = false;
+        applyLayoutChange();
+    }
+
+    applyOutputTextureChange();
+
     float color[4] = { myDidLoad ? 0.6f : 0.6f, myDidLoad ? 0.6f : 0.6f, myDidLoad ? 1.0f : 0.6f, 1.0f};
     if (myDidLoad && !myInFrame)
     {
@@ -670,7 +623,7 @@ void DocumentWindow::render()
             }
         }
 
-        if (TEInstanceStartFrameAtTime(myInstance, 1000, 1000 * 1000) == TEResultSuccess)
+        if (TEInstanceStartFrameAtTime(myInstance, 1000, 1000 * 1000, false) == TEResultSuccess)
         {
             myInFrame = true;
             myLastFloatValue += 1.0/(60.0 * 8.0);
@@ -696,6 +649,109 @@ void DocumentWindow::cancelFrame()
         if (result != TEResultSuccess)
         {
             // TODO: post it
+        }
+    }
+}
+
+void DocumentWindow::applyLayoutChange()
+{
+    myRenderer->clearLeftSideImages();
+    myRenderer->clearRightSideImages();
+    myOutputParameterTextureMap.clear();
+
+    for (auto scope : { TEScopeInput, TEScopeOutput })
+    {
+        TEStringArray *groups;
+        TEResult result = TEInstanceGetParameterGroups(myInstance, scope, &groups);
+        if (result == TEResultSuccess)
+        {
+            for (int32_t i = 0; i < groups->count; i++)
+            {
+                TEParameterInfo *group;
+                result = TEInstanceParameterGetInfo(myInstance, groups->strings[i], &group);
+                if (result == TEResultSuccess)
+                {
+                    // Use group info here
+                    TERelease(&group);
+                }
+                TEStringArray *children = nullptr;
+                if (result == TEResultSuccess)
+                {
+                    result = TEInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
+                }
+                if (result == TEResultSuccess)
+                {
+                    for (int32_t j = 0; j < children->count; j++)
+                    {
+                        TEParameterInfo *info;
+                        result = TEInstanceParameterGetInfo(myInstance, children->strings[j], &info);
+                        if (result == TEResultSuccess)
+                        {
+                            if (info->type == TEParameterTypeFloatStream && scope == TEScopeInput)
+                            {
+                                TEStreamDescription desc;
+                                desc.rate = InputSampleRate;
+                                desc.numChannels = InputChannelCount;
+                                desc.maxSamples = InputSampleLimit;
+                                result = TEInstanceParameterSetInputStreamDescription(myInstance, info->identifier, &desc);
+                            }
+                            else if (result == TEResultSuccess && info->type == TEParameterTypeTexture)
+                            {
+                                if (scope == TEScopeInput)
+                                {
+                                    std::array<unsigned char, 256 * 256 * 4> tex;
+
+                                    for (int y = 0; y < 256; y++)
+                                    {
+                                        for (int x = 0; x < 256; x++)
+                                        {
+                                            tex[(y * 256 * 4) + (x * 4) + 0] = x;
+                                            tex[(y * 256 * 4) + (x * 4) + 1] = 0;
+                                            tex[(y * 256 * 4) + (x * 4) + 2] = getMode() == Mode::OpenGL ? 255 - y : y;
+                                            tex[(y * 256 * 4) + (x * 4) + 3] = 255;
+                                        }
+                                    }
+                                    myRenderer->addLeftSideImage(tex.data(), 256 * 4, 256, 256);
+                                }
+                                else
+                                {
+                                    myRenderer->addRightSideImage();
+                                    myOutputParameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
+                                }
+                            }
+                            TERelease(&info);
+                        }
+                    }
+                    TERelease(&children);
+                }
+            }
+        }
+    }
+}
+
+void DocumentWindow::applyOutputTextureChange()
+{
+    // Only hold the lock briefly
+    std::vector<std::string> changes;
+    {
+        std::lock_guard<std::mutex> guard(myMutex);
+        std::swap(myPendingOutputTextures, changes);
+    }
+
+    for (const auto & identifier : changes)
+    {
+        TETexture *texture = nullptr;
+        TEResult result = TEInstanceParameterGetTextureValue(myInstance, identifier.c_str(), TEParameterValueCurrent, &texture);
+        if (result == TEResultSuccess)
+        {
+            size_t imageIndex = myOutputParameterTextureMap[identifier];
+
+            myRenderer->setRightSideImage(imageIndex, texture);
+
+            if (texture)
+            {
+                TERelease(&texture);
+            }
         }
     }
 }
