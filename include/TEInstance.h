@@ -39,7 +39,16 @@ typedef struct HGLRC__ *HGLRC;
 typedef struct HDC__ *HDC;
 #endif
 
+/*
+ This callback is used to signal events related to an instance.
+ Note callbacks may be invoked from any thread.
+*/
 typedef void (*TEInstanceEventCallback)(TEInstance *instance, TEEvent event, TEResult result, int64_t time_value, int32_t time_scale, void * TE_NULLABLE info);
+
+/*
+ This callback is used to signal changes to parameter values.
+ Note callbacks may be invoked from any thread.
+*/
 typedef void (*TEInstanceParameterValueCallback)(TEInstance *instance, const char *identifier, void *info);
 
 
@@ -81,7 +90,7 @@ TE_EXPORT CGLContextObj TEInstanceGetGLContext(TEInstance *instance);
  Creates an instance for a .tox file located at 'path'.
  Texture parameter values will be suitable for use with Direct3D:
  	A TED3DTexture or TEDXGITexture can be set on input parameters
-	output parameters will emit a TEDXGITexture (which can be used to instantiate a TED3DTexture)
+	output parameters will emit a TED3DTexture
  
  'path' is a UTF-8 encoded string. The file is loaded asynchronously after this function returns.
  'device' is the Direct3D device to be used for texture creation.
@@ -93,7 +102,6 @@ TE_EXPORT CGLContextObj TEInstanceGetGLContext(TEInstance *instance);
 	The caller is responsible for releasing the returned TEInstance using TERelease()
  Returns TEResultSucccess or an error
  */
-// TODO: TETimeMode is currently ignored
 TE_EXPORT TEResult TEInstanceCreateD3D(const char *path,
 									   ID3D11Device * TE_NULLABLE device,
 									   TETimeMode mode,
@@ -119,7 +127,6 @@ TE_EXPORT TEResult TEInstanceCreateD3D(const char *path,
 	The caller is responsible for releasing the returned TEInstance using TERelease()
  Returns TEResultSucccess or an error
  */
-// TODO: TETimeMode is currently ignored
 TE_EXPORT TEResult TEInstanceCreateGL(const char *path,
 									  HDC dc,
 									  HGLRC rc,
@@ -250,7 +257,9 @@ TE_EXPORT TEResult TEInstanceParameterGetStringValue(TEInstance *instance, const
  On successful completion 'value' is set to a TETexture.
  Work may be done in the graphics context associated with the instance by this call.
  An OpenGL instance may change the current texture binding during this call.
- The caller is responsible for releasing the returned TETexture using TERelease().
+ The caller is responsible for releasing the returned TETexture using TERelease() -
+ 	work may be done in the graphics context associated with the instance by the final
+	call to TERelease() for the returned texture.
  */
 TE_EXPORT TEResult TEInstanceParameterGetTextureValue(TEInstance *instance, const char *identifier, TEParameterValue which, TETexture * TE_NULLABLE * TE_NONNULL value);
 
