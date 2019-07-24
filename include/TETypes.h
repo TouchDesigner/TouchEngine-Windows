@@ -35,6 +35,11 @@ typedef TE_ENUM(TEResult, int32_t)
 	TEResultDroppedSamples,
 
 	/*
+	Insufficient samples were provided during rendering.
+	*/
+	TEResultMissedSamples,
+
+	/*
 	Invalid arguments were given to a function, or a function was called at an improper time.
 	*/
 	TEResultBadUsage,

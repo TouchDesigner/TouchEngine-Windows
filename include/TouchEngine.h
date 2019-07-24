@@ -24,3 +24,4 @@
 	#include <TED3DTexture.h>
 	#include <TEDXGITexture.h>
 #endif
+#include <TEGraphicsContext.h>
