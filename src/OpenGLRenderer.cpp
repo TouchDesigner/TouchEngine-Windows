@@ -45,8 +45,8 @@ OpenGLRenderer::~OpenGLRenderer()
 
 bool OpenGLRenderer::setup(HWND window)
 {
-	bool result = Renderer::setup(window);
-	if (result)
+	bool success = Renderer::setup(window);
+	if (success)
 	{
 		myDC = GetDC(window);
 		PIXELFORMATDESCRIPTOR format{ 0 };
@@ -59,41 +59,41 @@ bool OpenGLRenderer::setup(HWND window)
 		format.iLayerType = PFD_MAIN_PLANE;
 		int selected = ChoosePixelFormat(myDC, &format);
 
-		result = SetPixelFormat(myDC, selected, &format) ? true : false;
-		if (result)
+		success = SetPixelFormat(myDC, selected, &format) ? true : false;
+		if (success)
 		{
 			myRenderingContext = wglCreateContext(myDC);
 		}
 		if (!myRenderingContext)
 		{
-			result = false;
+			success = false;
 		}
-		if (result)
+		if (success)
 		{
-			result = wglMakeCurrent(myDC, myRenderingContext) ? true : false;
+			success = wglMakeCurrent(myDC, myRenderingContext) ? true : false;
 		}
 	}
-	if (result)
+	if (success)
 	{
 		if (glewInit() != GLEW_OK)
 		{
-			result = FALSE;
+			success = FALSE;
 		}
 	}
-    if (result)
+    if (success)
     {
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(MessageCallback, nullptr);
     }
-	if (result)
+	if (success)
 	{
 		RECT client;
 		GetClientRect(window, &client);
 		glViewport(0, 0, client.right, client.bottom);
 
-        result = myProgram.build(VertexShader, FragmentShader);
+        success = myProgram.build(VertexShader, FragmentShader);
 	}
-    if (result)
+    if (success)
     {
         glUseProgram(myProgram.getName());
         GLint tex = glGetUniformLocation(myProgram.getName(), "tex");
@@ -104,7 +104,14 @@ bool OpenGLRenderer::setup(HWND window)
 
         glUseProgram(0);
     }
-	return result;
+	if (success)
+	{
+		if (TEOpenGLContextCreate(myDC, myRenderingContext, &myContext) != TEResultSuccess)
+		{
+			success = false;
+		}
+	}
+	return success;
 }
 
 void OpenGLRenderer::resize(int width, int height)
@@ -200,7 +207,20 @@ void OpenGLRenderer::addRightSideImage()
 
 void OpenGLRenderer::setRightSideImage(size_t index, TETexture * texture)
 {
-    if (TETextureGetType(texture) == TETextureTypeOpenGL)
+	if (TETextureGetType(texture) != TETextureTypeOpenGL)
+	{
+		TEOpenGLTexture *created = nullptr;
+		TEResult result = TEOpenGLContextCreateTexture(myContext, texture, &created);
+		if (result == TEResultSuccess)
+		{
+			texture = created;
+		}
+		else
+		{
+			texture = nullptr;
+		}
+	}
+	if (texture)
     {
         TERetain(texture);
         myRightSideImages.at(index).update(OpenGLTexture(TEOpenGLTextureGetName(texture),

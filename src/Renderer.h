@@ -1,5 +1,6 @@
 #pragma once
 
+#include <TEGraphicsContext.h>
 #include <TETexture.h>
 #include <vector>
 #include <memory>
@@ -24,8 +25,10 @@ public:
 	virtual void addRightSideImage();
 	virtual void setRightSideImage(size_t index, TETexture *texture);
 	virtual void clearRightSideImages();
+	TEGraphicsContext *getTEContext() const { return myContext; }
 protected:
     float myBackgroundColor[3];
+	TEGraphicsContext *myContext{ nullptr };
 private:
 	HWND myWindow;
 	std::vector<std::shared_ptr<TETexture *>> myRightSideImages;

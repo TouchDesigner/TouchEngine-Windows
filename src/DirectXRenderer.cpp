@@ -46,6 +46,13 @@ bool DirectXRenderer::setup(HWND window)
             result = EIO;
         }
     }
+	if (SUCCEEDED(result))
+	{
+		if (TED3DContextCreate(myDevice.getDevice(), &myContext) != TEResultSuccess)
+		{
+			result = E_FAIL;
+		}
+	}
     return SUCCEEDED(result);
 }
 
@@ -114,6 +121,18 @@ void DirectXRenderer::addRightSideImage()
 
 void DirectXRenderer::setRightSideImage(size_t index, TETexture * texture)
 {
+	if (texture && TETextureGetType(texture) == TETextureTypeDXGI)
+	{
+		TED3DTexture *created = nullptr;
+		if (TED3DContextCreateTexture(myContext, texture, &created) == TEResultSuccess)
+		{
+			texture = created;
+		}
+		else
+		{
+			texture = nullptr;
+		}
+	}
 	if (texture && TETextureGetType(texture) == TETextureTypeD3D)
 	{
         DirectXTexture tex(TED3DTextureGetTexture(texture), TETextureIsVerticallyFlipped(texture));
