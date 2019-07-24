@@ -335,7 +335,14 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
     return LRESULT();
 }
 
-void DocumentWindow::eventCallback(TEInstance * instance, TEEvent event, TEResult result, int64_t time_value, int32_t time_scale, void * info)
+void DocumentWindow::eventCallback(TEInstance * instance,
+									TEEvent event,
+									TEResult result,
+									int64_t start_time_value,
+									int32_t start_time_scale,
+									int64_t end_time_value,
+									int32_t end_time_scale,
+									void * info)
 {
     DocumentWindow *window = static_cast<DocumentWindow *>(info);
 
@@ -352,7 +359,7 @@ void DocumentWindow::eventCallback(TEInstance * instance, TEEvent event, TEResul
         window->parameterLayoutDidChange();
         break;
     case TEEventFrameDidFinish:
-        window->endFrame(time_value, time_scale, result);
+        window->endFrame(start_time_value, start_time_scale, result);
         break;
     default:
         break;
@@ -418,8 +425,9 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
 					channels.emplace_back(vector.data());
 				}
 
+				int64_t start;
 				int64_t length = maxSamples;
-				result = TEInstanceParameterGetOutputStreamValues(doc->myInstance, identifier, channels.data(), int32_t(channels.size()), &length);
+				result = TEInstanceParameterGetOutputStreamValues(doc->myInstance, identifier, channels.data(), int32_t(channels.size()), &start, &length);
 				if (result == TEResultSuccess)
 				{
 					// Use the channel data here
@@ -518,19 +526,18 @@ void DocumentWindow::openWindow(HWND parent)
 	{
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 		std::string utf8 = converter.to_bytes(getPath());
-        if (getMode() == Mode::DirectX)
-        {
-            ID3D11Device *device = dynamic_cast<DirectXRenderer *>(myRenderer.get())->getDevice();
-            TEResult result = TEInstanceCreateD3D(utf8.c_str(), device, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
-            assert(result == TEResultSuccess);
-        }
-        else
-        {
-            HDC dc = dynamic_cast<OpenGLRenderer *>(myRenderer.get())->getDC();
-            HGLRC rc = dynamic_cast<OpenGLRenderer *>(myRenderer.get())->getRC();
-            TEResult result = TEInstanceCreateGL(utf8.c_str(), dc, rc, TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
-            assert(result == TEResultSuccess);
-        }
+
+		TEResult TEResult = TEInstanceCreate(utf8.c_str(), TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+		if (result == TEResultSuccess)
+		{
+			result = TEInstanceAssociateGraphicsContext(myInstance, myRenderer->getTEContext());
+		}
+		if (result == TEResultSuccess)
+		{
+			result = TEInstanceResume(myInstance);
+		}
+		assert(result == TEResultSuccess);
+
         SetTimer(myWindow, RenderTimerID, 16, nullptr);
 	}
 }
@@ -593,7 +600,7 @@ void DocumentWindow::render()
                                 TED3DTexture *texture = myRenderer->createLeftSideImage(textureCount);
 								if (texture)
 								{
-									result = TEInstanceParameterSetTextureValue(myInstance, info->identifier, texture);
+									result = TEInstanceParameterSetTextureValue(myInstance, info->identifier, texture, myRenderer->getTEContext());
 									TERelease(&texture);
 								}
 
@@ -607,7 +614,7 @@ void DocumentWindow::render()
                                 std::array<const float *, InputChannelCount> channels;
                                 std::fill(channels.begin(), channels.end(), channel.data());
                                 int64_t filled = channel.size();
-                                result = TEInstanceParameterAppendStreamValues(myInstance, info->identifier, channels.data(), static_cast<int32_t>(channels.size()), &filled);
+                                result = TEInstanceParameterAppendStreamValues(myInstance, info->identifier, channels.data(), static_cast<int32_t>(channels.size()), InputSampleRate * myTime / TimeRate, &filled);
                                 break;
                             }
                             default:
@@ -622,7 +629,7 @@ void DocumentWindow::render()
             }
         }
 
-        if (TEInstanceStartFrameAtTime(myInstance, 1000, 1000 * 1000, false) == TEResultSuccess)
+        if (TEInstanceStartFrameAtTime(myInstance, myTime, TimeRate, false) == TEResultSuccess)
         {
             myInFrame = true;
             myLastFloatValue += 1.0/(60.0 * 8.0);
@@ -638,6 +645,8 @@ void DocumentWindow::render()
     float intensity = (myLastStreamValue + 1.0f) / 2.0f;
     myRenderer->setBackgroundColor(color[0] * intensity, color[1] * intensity, color[2] * intensity);
     myRenderer->render();
+
+	myTime += 100;
 }
 
 void DocumentWindow::cancelFrame()
