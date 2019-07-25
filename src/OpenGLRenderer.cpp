@@ -207,29 +207,30 @@ void OpenGLRenderer::addRightSideImage()
 
 void OpenGLRenderer::setRightSideImage(size_t index, TETexture * texture)
 {
-	if (TETextureGetType(texture) != TETextureTypeOpenGL)
+	bool success = false;
+	if (TETextureGetType(texture) == TETextureTypeDXGI)
 	{
 		TEOpenGLTexture *created = nullptr;
-		TEResult result = TEOpenGLContextCreateTexture(myContext, texture, &created);
-		if (result == TEResultSuccess)
+		if (TEOpenGLContextCreateTexture(myContext, texture, &created) == TEResultSuccess)
 		{
-			texture = created;
-		}
-		else
-		{
-			texture = nullptr;
+			myRightSideImages.at(index).update(OpenGLTexture(TEOpenGLTextureGetName(created),
+				TEOpenGLTextureGetWidth(created),
+				TEOpenGLTextureGetHeight(created),
+				TETextureIsVerticallyFlipped(created),
+				[created]() {
+					TERelease(&created); // Release because we created it above
+			}));
+			// Retains it for us
+			Renderer::setRightSideImage(index, created);
+			success = true;
 		}
 	}
-	if (texture)
-    {
-        TERetain(texture);
-        myRightSideImages.at(index).update(OpenGLTexture(TEOpenGLTextureGetName(texture),
-            TEOpenGLTextureGetWidth(texture), TEOpenGLTextureGetHeight(texture), TETextureIsVerticallyFlipped(texture), [texture]() {
-            TERelease(&texture);
-        }));
 
-    }
-	Renderer::setRightSideImage(index, texture);
+	if (!success)
+	{
+		myRightSideImages.at(index).update(OpenGLTexture());
+		Renderer::setRightSideImage(index, nullptr);
+	}
 }
 
 void OpenGLRenderer::clearRightSideImages()

@@ -121,30 +121,30 @@ void DirectXRenderer::addRightSideImage()
 
 void DirectXRenderer::setRightSideImage(size_t index, TETexture * texture)
 {
+	bool success = false;
 	if (texture && TETextureGetType(texture) == TETextureTypeDXGI)
 	{
 		TED3DTexture *created = nullptr;
 		if (TED3DContextCreateTexture(myContext, texture, &created) == TEResultSuccess)
 		{
-			texture = created;
-		}
-		else
-		{
-			texture = nullptr;
-		}
-	}
-	if (texture && TETextureGetType(texture) == TETextureTypeD3D)
-	{
-        DirectXTexture tex(TED3DTextureGetTexture(texture), TETextureIsVerticallyFlipped(texture));
+			DirectXTexture tex(TED3DTextureGetTexture(created), TETextureIsVerticallyFlipped(created));
 
-        myRightSideImages.at(index).update(tex);
+			myRightSideImages.at(index).update(tex);
+
+			// Renderer will TERetain the texture for us
+			Renderer::setRightSideImage(index, created);
+
+			TERelease(&created);
+
+			success = true;
+		}
 	}
-	else
+
+	if (!success)
 	{
 		myRightSideImages.at(index).update(DirectXTexture());
+		Renderer::setRightSideImage(index, nullptr);
 	}
-    // Renderer will TERetain the texture for us
-	Renderer::setRightSideImage(index, texture);
 }
 
 void DirectXRenderer::clearRightSideImages()
