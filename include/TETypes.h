@@ -79,7 +79,7 @@ typedef TE_ENUM(TEResult, int32_t)
 	/*
 	The version/build of TouchEngine being used is older than the one used to create the file being opened.
 	*/
-	TEResultVersionError,
+	TEResultNewerFileVersion,
 
 	/*
 	Unable to find TouchEngine executable to launch.
@@ -95,8 +95,19 @@ typedef TE_ENUM(TEResult, int32_t)
 	A required feature is not available on the selected system
 	(eg the selected graphics adapater does not offer a required command)
 	*/
-	TEResultFeatureNotSupportedBySystem
+	TEResultFeatureNotSupportedBySystem,
 
+	/*
+	The version of TouchEngine being used is older than the TouchEngine library.
+
+	This result should be considered a warning and operation will continue, potentially with limited functionality.	
+	*/
+	TEResultOlderEngineVersion,
+
+	/*
+	The OS denied permission
+	*/
+	TEResultPermissionDenied
 };
 
 typedef TE_ENUM(TESeverity, int32_t)
@@ -117,6 +128,7 @@ typedef TE_ENUM(TESeverity, int32_t)
 
 typedef TE_ENUM(TEEvent, int32_t) 
 {
+	TEEventGeneral,
 	TEEventInstanceDidLoad,
 	TEEventParameterLayoutDidChange,
 	TEEventFrameDidFinish
@@ -154,6 +166,11 @@ typedef TE_ENUM(TEParameterType, int32_t)
 	TEParameterTypeComplex,
 
 	/*
+	 bool
+	*/
+	TEParameterTypeBoolean,
+
+	/*
 	 double
 	 */
 	TEParameterTypeDouble,
@@ -185,8 +202,28 @@ typedef TE_ENUM(TEParameterIntent, int32_t)
 	TEParameterIntentNotSpecified,
 	TEParameterIntentColorRGBA,
 	TEParameterIntentPositionXYZW,
+	
+	/*
+	 Applies to TEParameterTypeString
+	 */
 	TEParameterIntentFilePath,
-	TEParameterIntentDirectoryPath
+
+	/*
+	 Applies to TEParameterTypeString
+	 */
+	TEParameterIntentDirectoryPath,
+
+	/*
+	 Applies to TEParameterTypeString
+	 A string which may span multiple lines
+	 */
+	TEParameterIntentMultiLineString,
+
+	/*
+	 Applies to TEParameterTypeBoolean
+	 A true value is considered transient, as from a button press
+	 */
+	TEParameterIntentMomentary
 };
 
 typedef TE_ENUM(TEParameterValue, int32_t) 

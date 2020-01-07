@@ -361,6 +361,9 @@ void DocumentWindow::eventCallback(TEInstance * instance,
     case TEEventFrameDidFinish:
         window->endFrame(start_time_value, start_time_scale, result);
         break;
+	case TEEventGeneral:
+		// TODO: check result here
+		break;
     default:
         break;
     }

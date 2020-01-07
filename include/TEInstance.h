@@ -29,6 +29,7 @@ extern "C" {
 TE_ASSUME_NONNULL_BEGIN
 
 typedef TEObject TEInstance;
+typedef TEObject TEAdapter;
 typedef TEObject TEGraphicsContext;
 
 
@@ -82,14 +83,22 @@ TE_EXPORT const char *TEInstanceGetPath(TEInstance *instance);
 TE_EXPORT TETimeMode TEInstanceGetTimeMode(TEInstance *instance);
 
 /*
- Associates an instance with a graphics context. This optional association may guide the choice of adapter
- used by the instance and permit other optimizations.
+ Associates an instance with a graphics context. This optional association permits optimizations when
+ working with texture inputs and outputs.
  To most clearly communicate your intentions to the instance, call this prior to the initial call to
 	TEInstanceResume(), and subsequently if you require support for a different context.
  One context may be shared between several instances.
+ This function will call TEInstanceAssociateAdapter on your behalf.
  */
 TE_EXPORT TEResult TEInstanceAssociateGraphicsContext(TEInstance *instance, TEGraphicsContext *context);
 
+/*
+ Associates an instance with an adapter. This optional association may guide the choice of adapter
+ used by the instance.
+ To most clearly communicate your intentions to the instance, call this prior to the initial call to
+	TEInstanceResume(), and subsequently if you require support for a different adapter.
+ */
+TE_EXPORT TEResult TEInstanceAssociateAdapter(TEInstance *instance, TEAdapter * TE_NULLABLE adapter);
 
 /*
  Resumes an instance
@@ -149,7 +158,7 @@ TE_EXPORT TEResult TEInstanceGetParameterGroups(TEInstance *instance, TEScope sc
  On return 'info' describes the parameter denoted by 'identifier'.
  The caller is responsible for releasing the returned TEParameterInfo using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterGetInfo(TEInstance *instance, const char *identifier, TEParameterInfo * TE_NULLABLE * TE_NONNULL info);
+TE_EXPORT TEResult TEInstanceParameterGetInfo(TEInstance *instance, const char *identifier, struct TEParameterInfo * TE_NULLABLE * TE_NONNULL info);
 
 /*
  Stream Parameter Configuration
@@ -162,18 +171,20 @@ TE_EXPORT TEResult TEInstanceParameterGetInfo(TEInstance *instance, const char *
  On return 'description' describes the stream parameter denoted by 'identifier'.
  The caller is responsible for releasing the returned TEStreamDescription using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterGetStreamDescription(TEInstance *instance, const char *identifier, TEStreamDescription * TE_NULLABLE * TE_NONNULL description);
+TE_EXPORT TEResult TEInstanceParameterGetStreamDescription(TEInstance *instance, const char *identifier, struct TEStreamDescription * TE_NULLABLE * TE_NONNULL description);
 
 /*
  Configures the input stream denoted by 'identifier' according to the content of 'description'.
  Input streams must have their description set prior to use.
  Changing the description once rendering has begun may result in dropped samples.
  */
-TE_EXPORT TEResult TEInstanceParameterSetInputStreamDescription(TEInstance *instance, const char *identifier, const TEStreamDescription *description);
+TE_EXPORT TEResult TEInstanceParameterSetInputStreamDescription(TEInstance *instance, const char *identifier, const struct TEStreamDescription *description);
 
 /*
  Getting Parameter Values
  */
+
+TE_EXPORT TEResult TEInstanceParameterGetBooleanValue(TEInstance *instance, const char *identifier, TEParameterValue which, bool *value);
 
 TE_EXPORT TEResult TEInstanceParameterGetDoubleValue(TEInstance *instance, const char *identifier, TEParameterValue which, double *value, int32_t count);
 
@@ -182,7 +193,7 @@ TE_EXPORT TEResult TEInstanceParameterGetIntValue(TEInstance *instance, const ch
 /*
  The caller is responsible for releasing the returned TEString using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterGetStringValue(TEInstance *instance, const char *identifier, TEParameterValue which, TEString * TE_NULLABLE * TE_NONNULL string);
+TE_EXPORT TEResult TEInstanceParameterGetStringValue(TEInstance *instance, const char *identifier, TEParameterValue which, struct TEString * TE_NULLABLE * TE_NONNULL string);
 
 /*
  On successful completion 'value' is set to a TETexture or NULL if no value is set.
@@ -211,6 +222,8 @@ TE_EXPORT TEResult TEInstanceParameterGetOutputStreamValues(TEInstance *instance
 /*
  Setting Input Parameter Values
  */
+
+TE_EXPORT TEResult TEInstanceParameterSetBooleanValue(TEInstance *instance, const char *identifier, bool value);
 
 TE_EXPORT TEResult TEInstanceParameterSetDoubleValue(TEInstance *instance, const char *identifier, const double *value, int32_t count);
 

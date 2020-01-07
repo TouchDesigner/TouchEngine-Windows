@@ -25,3 +25,4 @@
 	#include <TEDXGITexture.h>
 #endif
 #include <TEGraphicsContext.h>
+#include <TEAdapter.h>

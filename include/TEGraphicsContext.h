@@ -18,8 +18,10 @@
 
 #include "TEBase.h"
 #include "TETypes.h"
+#ifdef _WIN32
 #include "TED3DTexture.h"
 #include "TEDXGITexture.h"
+#endif
 #include "TEOpenGLTexture.h"
 #ifdef __APPLE__
 	#include <OpenGL/OpenGL.h>
@@ -34,12 +36,19 @@ TE_ASSUME_NONNULL_BEGIN
 typedef TEObject TEGraphicsContext;
 typedef TEGraphicsContext TEOpenGLContext;
 typedef TEGraphicsContext TED3DContext;
+typedef TEObject TEAdapter;
 
 #ifdef _WIN32
 struct ID3D11Device;
 typedef struct HGLRC__ *HGLRC;
 typedef struct HDC__ *HDC;
 #endif
+
+/*
+ Returns the TEAdapter associated with a context.
+
+ */
+TE_EXPORT TEAdapter *TEGraphicsContextGetAdapter(TEGraphicsContext *context);
 
 #ifdef _WIN32
 
@@ -80,6 +89,36 @@ TE_EXPORT TEResult TED3DContextCreateTexture(TED3DContext *context, TEDXGITextur
 TE_EXPORT TEResult TEOpenGLContextCreate(HDC dc,
 									  		HGLRC rc,
 											TEOpenGLContext * TE_NULLABLE * TE_NONNULL context);
+
+/*
+ Creates a graphics context for use with OpenGL where the context is bound
+ to particular device(s) with the WGL_NV_gpu_affinity extension.
+ 
+ 'dc' is a valid device context to be used for OpenGL commands
+	This value can be changed later using TEOpenGLContextSetDC()
+ 'rc' is a valid OpenGL render context to be used for OpenGL commands
+ 'context' will be set to a TEOpenGLContext on return, or NULL if a context could not be created.
+	The caller is responsible for releasing the returned TEOpenGLContext using TERelease()
+ Returns TEResultSucccess or an error
+ */
+TE_EXPORT TEResult TEOpenGLNVAffinityContextCreate(HDC dc,
+													HGLRC rc,
+													TEOpenGLContext * TE_NULLABLE * TE_NONNULL context);
+
+/*
+ Creates a graphics context for use with OpenGL where the context is bound
+ to a particular device with the WGL_AMD_gpu_association extension.
+ 
+ The supplied HGLRC must have been created with a GPU association and must be active at the time
+ of this call.
+
+ 'rc' is a valid OpenGL render context to be used for OpenGL commands
+ 'context' will be set to a TEOpenGLContext on return, or NULL if a context could not be created.
+	The caller is responsible for releasing the returned TEOpenGLContext using TERelease()
+ Returns TEResultSucccess or an error
+ */
+TE_EXPORT TEResult TEOpenGLAMDAssociatedContextCreate(HGLRC rc,
+														TEOpenGLContext * TE_NULLABLE * TE_NONNULL context);
 
 /*
  Returns the device context associated with an OpenGL context, or NULL.
