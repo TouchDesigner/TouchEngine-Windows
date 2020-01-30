@@ -29,6 +29,11 @@ typedef TEObject TETexture;
 
 /*
  Returns the type (OpenGL, D3D, DXGI) of texture
+ Depending on the type, use functions in
+ TEOpenGLTexture.h
+ TEDXGITexture.h
+ TED3DTexture.h
+ To work with the texture object.
  */
 TE_EXPORT TETextureType TETextureGetType(TETexture *texture);
 

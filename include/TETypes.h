@@ -214,12 +214,6 @@ typedef TE_ENUM(TEParameterIntent, int32_t)
 	TEParameterIntentDirectoryPath,
 
 	/*
-	 Applies to TEParameterTypeString
-	 A string which may span multiple lines
-	 */
-	TEParameterIntentMultiLineString,
-
-	/*
 	 Applies to TEParameterTypeBoolean
 	 A true value is considered transient, as from a button press
 	 */
