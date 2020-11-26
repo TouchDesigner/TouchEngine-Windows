@@ -409,39 +409,25 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
             doc->myPendingOutputTextures.push_back(identifier);
 			break;
 		}
-		case TEParameterTypeFloatStream:
+		case TEParameterTypeFloatBuffer:
 		{
-
-			TEStreamDescription *desc = nullptr;
-			result = TEInstanceParameterGetStreamDescription(doc->myInstance, identifier, &desc);
+			TEFloatBuffer *buffer = nullptr;
+			result = TEInstanceParameterGetFloatBufferValue(doc->myInstance, identifier, TEParameterValueCurrent, &buffer);
 
 			if (result == TEResultSuccess)
 			{
-				int32_t channelCount = desc->numChannels;
-				std::vector <std::vector<float>> store(channelCount);
-				std::vector<float *> channels;
-
-				int64_t maxSamples = desc->maxSamples;
-				for (auto &vector : store)
+				if (buffer && TEFloatBufferGetChannelCount(buffer) > 0 && TEFloatBufferGetValueCount(buffer) > 0)
 				{
-					vector.resize(maxSamples);
-					channels.emplace_back(vector.data());
+					auto data = TEFloatBufferGetValues(buffer);
+					// we just grab the first sample in the first channel
+					doc->myLastStreamValue = data[0][0];
+					TERelease(&buffer);
 				}
-
-				int64_t start;
-				int64_t length = maxSamples;
-				result = TEInstanceParameterGetOutputStreamValues(doc->myInstance, identifier, channels.data(), int32_t(channels.size()), &start, &length);
-				if (result == TEResultSuccess)
+				else
 				{
-					// Use the channel data here
-					if (length > 0 && channels.size() > 0)
-					{
-						doc->myLastStreamValue = store.back()[length - 1];
-					}
+					doc->myLastStreamValue = 0.0;
 				}
-				TERelease(&desc);
-			}
-			
+			}			
 		}
 		break;
 		default:
@@ -600,24 +586,48 @@ void DocumentWindow::render()
                                 break;
                             case TEParameterTypeTexture:
                             {
-                                TED3DTexture *texture = myRenderer->createLeftSideImage(textureCount);
+                                TED3D11Texture *texture = myRenderer->createLeftSideImage(textureCount);
 								if (texture)
 								{
 									result = TEInstanceParameterSetTextureValue(myInstance, info->identifier, texture, myRenderer->getTEContext());
 									TERelease(&texture);
 								}
-
                                 textureCount++;
                                 break;
                             }
-                            case TEParameterTypeFloatStream:
+                            case TEParameterTypeFloatBuffer:
                             {
-                                std::array<float, InputSamplesPerFrame> channel;
-                                std::fill(channel.begin(), channel.end(), static_cast<float>(fmod(myLastFloatValue, 1.0)));
-                                std::array<const float *, InputChannelCount> channels;
-                                std::fill(channels.begin(), channels.end(), channel.data());
-                                int64_t filled = channel.size();
-                                result = TEInstanceParameterAppendStreamValues(myInstance, info->identifier, channels.data(), static_cast<int32_t>(channels.size()), InputSampleRate * myTime / TimeRate, &filled);
+								TEFloatBuffer *buffer = nullptr;
+								// Creating a copy of an existing buffer is more efficient than creating a new one every time
+								result = TEInstanceParameterGetFloatBufferValue(myInstance, info->identifier, TEParameterValueCurrent, &buffer);
+								if (result == TEResultSuccess)
+								{
+									// You might want to check more properties of the buffer than this
+									if (buffer && TEFloatBufferGetCapacity(buffer) < 1 || TEFloatBufferGetChannelCount(buffer) != 2)
+									{
+										TERelease(&buffer);
+									}
+									if (buffer)
+									{
+										auto copied = TEFloatBufferCreateCopy(buffer);
+										TERelease(&buffer);
+										buffer = copied;
+									}
+									else
+									{
+										// Two channels, capacity of one sample per channel, no channel names
+										// This buffer is not time-dependent, see TEFloatBuffer.h for handling time-dependent samples such
+										// as audio.
+										buffer = TEFloatBufferCreate(2, 1, nullptr);
+									}
+									float value = static_cast<float>(fmod(myLastFloatValue, 1.0));
+									std::array<const float *, 2> channels{ &value, &value };
+									TEFloatBufferSetValues(buffer, channels.data(), 1);
+
+									result = TEInstanceParameterSetFloatBufferValue(myInstance, info->identifier, buffer);
+
+									TERelease(&buffer);
+								}								
                                 break;
                             }
                             default:
@@ -698,15 +708,7 @@ void DocumentWindow::applyLayoutChange()
                         result = TEInstanceParameterGetInfo(myInstance, children->strings[j], &info);
                         if (result == TEResultSuccess)
                         {
-                            if (info->type == TEParameterTypeFloatStream && scope == TEScopeInput)
-                            {
-                                TEStreamDescription desc;
-                                desc.rate = InputSampleRate;
-                                desc.numChannels = InputChannelCount;
-                                desc.maxSamples = InputSampleLimit;
-                                result = TEInstanceParameterSetInputStreamDescription(myInstance, info->identifier, &desc);
-                            }
-                            else if (result == TEResultSuccess && info->type == TEParameterTypeTexture)
+                            if (result == TEResultSuccess && info->type == TEParameterTypeTexture)
                             {
                                 if (scope == TEScopeInput)
                                 {

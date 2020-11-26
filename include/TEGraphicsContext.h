@@ -7,7 +7,7 @@
  * Otherwise, no redistribution or sharing of this file, with or without
  * modification, is permitted.
  *
- * TouchPlugIn
+ * TouchEngine
  *
  * Copyright © 2018 Derivative. All rights reserved.
  *
@@ -16,13 +16,10 @@
 #ifndef TEGraphicsContext_h
 #define TEGraphicsContext_h
 
-#include "TEBase.h"
-#include "TETypes.h"
-#ifdef _WIN32
-#include "TED3DTexture.h"
-#include "TEDXGITexture.h"
-#endif
-#include "TEOpenGLTexture.h"
+#include "TEObject.h"
+#include "TEResult.h"
+#include "TETexture.h"
+
 #ifdef __APPLE__
 	#include <OpenGL/OpenGL.h>
 #endif
@@ -35,7 +32,7 @@ TE_ASSUME_NONNULL_BEGIN
 
 typedef TEObject TEGraphicsContext;
 typedef TEGraphicsContext TEOpenGLContext;
-typedef TEGraphicsContext TED3DContext;
+typedef TEGraphicsContext TED3D11Context;
 typedef TEObject TEAdapter;
 
 #ifdef _WIN32
@@ -56,17 +53,17 @@ TE_EXPORT TEAdapter *TEGraphicsContextGetAdapter(TEGraphicsContext *context);
  Creates a graphics context for use with Direct3D.
  
  'device' is the Direct3D device to be used for texture creation.
- 'context' will be set to a TED3DContext on return, or NULL if a context could not be created.
-	The caller is responsible for releasing the returned TED3DContext using TERelease()
+ 'context' will be set to a TED3D11Context on return, or NULL if a context could not be created.
+	The caller is responsible for releasing the returned TED3D11Context using TERelease()
  Returns TEResultSucccess or an error
  */
-TE_EXPORT TEResult TED3DContextCreate(ID3D11Device * TE_NULLABLE device,
-										TED3DContext * TE_NULLABLE * TE_NONNULL context);
+TE_EXPORT TEResult TED3D11ContextCreate(ID3D11Device * TE_NULLABLE device,
+										TED3D11Context * TE_NULLABLE * TE_NONNULL context);
 
 /*
 Returns the ID3D11Device associated with a Direct3D context, or NULL.
 */
-TE_EXPORT ID3D11Device *TED3DContextGetDevice(TED3DContext *context);
+TE_EXPORT ID3D11Device *TED3D11ContextGetDevice(TED3D11Context *context);
 
 /*
  Work may be done in the graphics context by this call.
@@ -74,7 +71,7 @@ TE_EXPORT ID3D11Device *TED3DContextGetDevice(TED3DContext *context);
 	work may be done in the graphics context by the final call to TERelease()
 	for the returned texture.
  */
-TE_EXPORT TEResult TED3DContextCreateTexture(TED3DContext *context, TEDXGITexture *source, TED3DTexture * TE_NULLABLE * TE_NONNULL texture);
+TE_EXPORT TEResult TED3D11ContextCreateTexture(TED3D11Context *context, TEDXGITexture *source, TED3D11Texture * TE_NULLABLE * TE_NONNULL texture);
 
 /*
  Creates a graphics context for use with OpenGL.
@@ -143,7 +140,7 @@ TE_EXPORT TEResult TEOpenGLContextSetDC(TEOpenGLContext *context, HDC dc);
 	work may be done in the graphics context associated with the instance by the final
 	call to TERelease() for the returned texture.
  */
-TE_EXPORT TEResult TEOpenGLContextCreateTexture(TED3DContext *context, TEDXGITexture *source, TEOpenGLTexture * TE_NULLABLE * TE_NONNULL texture);
+TE_EXPORT TEResult TEOpenGLContextCreateTexture(TEOpenGLContext *context, TEDXGITexture *source, TEOpenGLTexture * TE_NULLABLE * TE_NONNULL texture);
 
 #endif
 
@@ -153,7 +150,7 @@ TE_EXPORT TEResult TEOpenGLContextCreate(CGLContextObj cgl, TEOpenGLContext * TE
 
 TE_EXPORT CGLContextObj TEOpenGLContextGetCGLContext(TEOpenGLContext *context);
 
-// TODO: tex instantiation function
+TE_EXPORT TEResult TEOpenGLContextCreateTexture(TEOpenGLContext *context, TEIOSurfaceTexture *source, TEOpenGLTexture * TE_NULLABLE * TE_NONNULL texture);
 
 #endif
 

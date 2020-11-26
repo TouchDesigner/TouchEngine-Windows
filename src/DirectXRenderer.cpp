@@ -48,7 +48,7 @@ bool DirectXRenderer::setup(HWND window)
     }
 	if (SUCCEEDED(result))
 	{
-		if (TED3DContextCreate(myDevice.getDevice(), &myContext) != TEResultSuccess)
+		if (TED3D11ContextCreate(myDevice.getDevice(), &myContext) != TEResultSuccess)
 		{
 			result = E_FAIL;
 		}
@@ -103,7 +103,7 @@ void DirectXRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesP
 TETexture * DirectXRenderer::createLeftSideImage(size_t index)
 {
 	auto &texture = myLeftSideImages[index];
-	return TED3DTextureCreate(texture.getTexture(), false);
+	return TED3D11TextureCreate(texture.getTexture(), false);
 }
 
 void DirectXRenderer::clearLeftSideImages()
@@ -124,10 +124,10 @@ void DirectXRenderer::setRightSideImage(size_t index, TETexture * texture)
 	bool success = false;
 	if (texture && TETextureGetType(texture) == TETextureTypeDXGI)
 	{
-		TED3DTexture *created = nullptr;
-		if (TED3DContextCreateTexture(myContext, texture, &created) == TEResultSuccess)
+		TED3D11Texture *created = nullptr;
+		if (TED3D11ContextCreateTexture(myContext, texture, &created) == TEResultSuccess)
 		{
-			DirectXTexture tex(TED3DTextureGetTexture(created), TETextureIsVerticallyFlipped(created));
+			DirectXTexture tex(TED3D11TextureGetTexture(created), TETextureIsVerticallyFlipped(created));
 
 			myRightSideImages.at(index).update(tex);
 
