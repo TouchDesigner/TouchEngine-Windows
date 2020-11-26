@@ -1,9 +1,11 @@
 #pragma once
+class DirectXDevice;
+
 class DirectXTexture
 {
 public:
     DirectXTexture();
-    DirectXTexture(ID3D11Device *device, const unsigned char *src, int bytesPerRow, int width, int height);
+    DirectXTexture(DirectXDevice &device, const unsigned char *src, int bytesPerRow, int width, int height, bool genMips = false);
     DirectXTexture(ID3D11Texture2D *texture, bool flipped);
     DirectXTexture(const DirectXTexture &o);
     DirectXTexture &operator=(const DirectXTexture &o);
@@ -13,6 +15,7 @@ public:
     ID3D11Texture2D *getTexture() const;
     bool isValid() const;
     void setResourceAndSampler(ID3D11DeviceContext *context);
+	void fillAndGenerateMips(ID3D11DeviceContext *context, const unsigned char *src, int bytesPerRow, int width, int height);
     int getWidth() const;
     int getHeight() const;
     bool getFlipped() const;

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "DirectXTexture.h"
-
+#include "DirectXDevice.h"
 
 DirectXTexture::DirectXTexture()
     : myTexture(nullptr), myTextureView(nullptr), mySampler(nullptr), myVFlipped(false)
@@ -134,7 +134,7 @@ void DirectXTexture::releaseResources()
     }
 }
 
-DirectXTexture::DirectXTexture(ID3D11Device *device, const unsigned char * src, int bytesPerRow, int width, int height)
+DirectXTexture::DirectXTexture(DirectXDevice &device, const unsigned char * src, int bytesPerRow, int width, int height, bool automips)
     : myTexture(nullptr), myTextureView(nullptr), mySampler(nullptr), myVFlipped(false)
 {
     D3D11_SUBRESOURCE_DATA subresource = { 0 };
@@ -145,26 +145,39 @@ DirectXTexture::DirectXTexture(ID3D11Device *device, const unsigned char * src, 
     D3D11_TEXTURE2D_DESC description = { 0 };
     description.Width = width;
     description.Height = height;
-    description.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	description.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
     description.Usage = D3D11_USAGE_DEFAULT;
     description.CPUAccessFlags = 0;
     description.MiscFlags = 0;
-    description.MipLevels = 1;
+    description.MipLevels = automips ? 0 : 1;
     description.ArraySize = 1;
     description.SampleDesc.Count = 1;
     description.SampleDesc.Quality = 0;
     description.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
-    HRESULT result = device->CreateTexture2D(&description, &subresource, &myTexture);
+	if (automips)
+	{
+		description.BindFlags |= D3D11_BIND_RENDER_TARGET;
+		description.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+	}
+
+    HRESULT result = device.getDevice()->CreateTexture2D(&description, automips ? nullptr : &subresource, &myTexture);
+
+	if (SUCCEEDED(result))
+	{
+		myTexture->GetDesc(&description);
+		result = createShaderResourceView(device.getDevice(), description);
+	}
+
+	if (SUCCEEDED(result) && automips)
+	{
+		device.updateSubresource(myTexture, src, bytesPerRow, bytesPerRow * height);
+		device.generateMips(myTextureView);
+	}
 
     if (SUCCEEDED(result))
     {
-        result = createShaderResourceView(device, description);
-    }
-
-    if (SUCCEEDED(result))
-    {
-        result = createSamplerState(device, description);
+        result = createSamplerState(device.getDevice(), description);
     }
 
     if (!SUCCEEDED(result))

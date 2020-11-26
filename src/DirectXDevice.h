@@ -45,6 +45,8 @@ public:
     void setPixelShader(ID3D11PixelShader *shader);
     void setShaderResourceAndSampler(DirectXTexture &texture);
     void updateSubresource(ID3D11Resource *resource, const void *data);
+	void updateSubresource(ID3D11Resource *resource, const void *data, size_t bytesPerRow, size_t bytesPerImage);
+	void generateMips(ID3D11ShaderResourceView *view);
     void setConstantBuffer(ID3D11Buffer *buffer);
     void drawIndexed(int count);
     ID3D11Device *getDevice() const { return myDevice; }

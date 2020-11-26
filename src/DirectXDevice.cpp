@@ -201,7 +201,7 @@ ID3D11Buffer * DirectXDevice::loadIndexBuffer(unsigned short * indices, int coun
 
 DirectXTexture DirectXDevice::loadTexture(const unsigned char * src, int bytesPerRow, int width, int height)
 {
-    return DirectXTexture(myDevice, src, bytesPerRow, width, height);
+    return DirectXTexture(*this, src, bytesPerRow, width, height, true);
 }
 
 void DirectXDevice::setRenderTarget()
@@ -253,6 +253,16 @@ void DirectXDevice::setShaderResourceAndSampler(DirectXTexture & texture)
 void DirectXDevice::updateSubresource(ID3D11Resource * resource, const void * data)
 {
     myDeviceContext->UpdateSubresource(resource, 0, nullptr, data, 0, 0);
+}
+
+void DirectXDevice::updateSubresource(ID3D11Resource * resource, const void * data, size_t bytesPerRow, size_t bytesPerImage)
+{
+	myDeviceContext->UpdateSubresource(resource, 0, nullptr, data, static_cast<UINT>(bytesPerRow), bytesPerImage);
+}
+
+void DirectXDevice::generateMips(ID3D11ShaderResourceView *view)
+{
+	myDeviceContext->GenerateMips(view);
 }
 
 void DirectXDevice::setConstantBuffer(ID3D11Buffer * buffer)
