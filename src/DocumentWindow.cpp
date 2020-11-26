@@ -427,9 +427,27 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
 				{
 					doc->myLastStreamValue = 0.0;
 				}
-			}			
+			}
+			break;
 		}
-		break;
+		case TEParameterTypeStringData:
+		{
+			TEObject *value = nullptr;
+			result = TEInstanceParameterGetObjectValue(doc->myInstance, identifier, TEParameterValueCurrent, &value);
+			// String data can be a TETable or TEString, so check the type
+			if (value && TEGetType(value) == TEObjectTypeTable)
+			{
+				TETable *table = static_cast<TETable *>(value);
+				// do something with the table
+			}
+			else if (value && TEGetType(value) == TEObjectTypeString)
+			{
+				TEString *string = reinterpret_cast<TEString *>(value);
+				// do something with the string
+			}
+			TERelease(&value);
+			break;
+		}
 		default:
 			break;
 		}
@@ -630,6 +648,41 @@ void DocumentWindow::render()
 								}								
                                 break;
                             }
+							case TEParameterTypeStringData:
+							{
+								// String data can be either tabular, in which case set a TETable, or a single string - here we set a table
+								// (use TEInstanceParameterSetStringValue() to set a string value)
+
+								// It is more efficient to create a copy of an existing table than to create a new one
+								TEObject *value= nullptr;
+								result = TEInstanceParameterGetObjectValue(myInstance, info->identifier, TEParameterValueCurrent, &value);
+
+								if (result == TEResultSuccess)
+								{
+									TETable *table = nullptr;
+									if (value && TEGetType(value) == TEObjectTypeTable)
+									{
+										table = TETableCreateCopy(static_cast<TETable *>(value));
+									}
+									else
+									{
+										table = TETableCreate();
+									}
+									TETableResize(table, 3, 2);
+									for (int column = 0; column < 2; column++)
+									{
+										for (int row = 0; row < 3; row++)
+										{
+											TETableSetStringValue(table, row, column, "test");
+										}
+									}
+									result = TEInstanceParameterSetTableValue(myInstance, info->identifier, table);
+
+									TERelease(&table);
+								}
+								TERelease(&value);
+								break;
+							}
                             default:
                                 break;
                             }
