@@ -41,7 +41,8 @@ typedef TEObject TEFloatBuffer;
  
  'channels' is the number of channels
  'capacity' is the maximum number of float values per channel
- 'names' is an array of UTF-8 encoded strings denoting names for the channels, or NULL if the channels aren't named
+ 'names' is an array of UTF-8 encoded strings denoting names for the channels, or NULL if the channels aren't named.
+ 	The names are copied into the buffer, and needn't last beyond this function call
  Returns a new TEFloatBuffer instance, or NULL if an error prevented one being created.
 	The caller is responsible for releasing the returned TEFloatBuffer using TERelease()
  */
@@ -54,6 +55,7 @@ TE_EXPORT TEFloatBuffer *TEFloatBufferCreate(int32_t channels, uint32_t capacity
  'channels' is the number of channels
  'capacity' is the maximum number of float values per channel
  'names' is an array of UTF-8 encoded strings denoting names for the channels, or NULL if the channels aren't named
+ 	The names are copied into the buffer, and needn't last beyond this function call
  Returns a new TEFloatBuffer instance, or NULL if an error prevented one being created.
 	The caller is responsible for releasing the returned TEFloatBuffer using TERelease()
  */
