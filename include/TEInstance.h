@@ -205,12 +205,12 @@ struct TEStringArray
 	/*
 	 The number of strings in the array
 	 */
-	int32_t					count;
+	int32_t										count;
 
 	/*
 	 The array of strings, each entry being a null-terminated UTF-8 encoded string
 	 */
-	const char * const *	strings;
+	const char * TE_NONNULL const * TE_NULLABLE	strings;
 };
 
 /*

@@ -39,6 +39,7 @@ typedef TEObject TEFloatBuffer;
 /*
  Creates a TEFloatBuffer instance for values which are not time-dependent.
  
+ 'rate' is the number of values (or samples) per second, if this applies to the data
  'channels' is the number of channels
  'capacity' is the maximum number of float values per channel
  'names' is an array of UTF-8 encoded strings denoting names for the channels, or NULL if the channels aren't named.
@@ -46,7 +47,7 @@ typedef TEObject TEFloatBuffer;
  Returns a new TEFloatBuffer instance, or NULL if an error prevented one being created.
 	The caller is responsible for releasing the returned TEFloatBuffer using TERelease()
  */
-TE_EXPORT TEFloatBuffer *TEFloatBufferCreate(int32_t channels, uint32_t capacity, const char * TE_NULLABLE const * TE_NULLABLE names);
+TE_EXPORT TEFloatBuffer *TEFloatBufferCreate(double rate, int32_t channels, uint32_t capacity, const char * TE_NULLABLE const * TE_NULLABLE names);
 
 /*
  Creates a TEFloatBuffer instance for values which are time-dependent.
@@ -120,8 +121,7 @@ TE_EXPORT int64_t TEFloatBufferGetEndTime(const TEFloatBuffer *buffer);
 TE_EXPORT uint32_t TEFloatBufferGetCapacity(const TEFloatBuffer *buffer);
 
 /*
- Returns the sample rate of the TEFloatBuffer instance. This value only has meaning
- for time-dependent values.
+ Returns the sample rate of the TEFloatBuffer instance, where applicable.
  */
 TE_EXPORT double TEFloatBufferGetRate(const TEFloatBuffer *buffer);
 
