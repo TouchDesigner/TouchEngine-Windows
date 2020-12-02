@@ -636,7 +636,7 @@ void DocumentWindow::render()
 										// Two channels, capacity of one sample per channel, no channel names
 										// This buffer is not time-dependent, see TEFloatBuffer.h for handling time-dependent samples such
 										// as audio.
-										buffer = TEFloatBufferCreate(2, 1, nullptr);
+										buffer = TEFloatBufferCreate(-1, 2, 1, nullptr);
 									}
 									float value = static_cast<float>(fmod(myLastFloatValue, 1.0));
 									std::array<const float *, 2> channels{ &value, &value };
