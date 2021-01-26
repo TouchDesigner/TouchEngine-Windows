@@ -39,7 +39,8 @@ typedef TEObject TEFloatBuffer;
 /*
  Creates a TEFloatBuffer instance for values which are not time-dependent.
  
- 'rate' is the number of values (or samples) per second, if this applies to the data
+ 'rate' is the number of values (or samples) per second, if this applies to the data.
+ 	Pass -1.0 to indicate no rate applies to the data.
  'channels' is the number of channels
  'capacity' is the maximum number of float values per channel
  'names' is an array of UTF-8 encoded strings denoting names for the channels, or NULL if the channels aren't named.
@@ -82,7 +83,10 @@ TE_EXPORT TEResult TEFloatBufferSetValues(TEFloatBuffer *buffer, const float * T
 /*
  Sets the time associated with the values of a TEFloatBuffer.
 
- For time-dependent TEFloatBuffer, this is the time of the first value (or sample) present.
+ For time-dependent TEFloatBuffer, this is the time of the first value (or sample) present, expressed
+ in the buffer's sample rate.
+ When adding time-dependent TEFloatBuffers to a TEInstance as input, the start time is used to match
+ samples to frame start times.
  If this function is not called, the default value is 0
  */
 TE_EXPORT TEResult TEFloatBufferSetStartTime(TEFloatBuffer *buffer, int64_t start);

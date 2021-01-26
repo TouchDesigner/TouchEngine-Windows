@@ -534,10 +534,14 @@ void DocumentWindow::openWindow(HWND parent)
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 		std::string utf8 = converter.to_bytes(getPath());
 
-		TEResult TEResult = TEInstanceCreate(utf8.c_str(), TETimeInternal, eventCallback, parameterValueCallback, this, &myInstance);
+		TEResult TEResult = TEInstanceCreate(eventCallback, parameterValueCallback, this, &myInstance);
 		if (result == TEResultSuccess)
 		{
 			result = TEInstanceAssociateGraphicsContext(myInstance, myRenderer->getTEContext());
+		}
+		if (result == TEResultSuccess)
+		{
+			result = TEInstanceLoad(myInstance, utf8.c_str(), TETimeInternal);
 		}
 		if (result == TEResultSuccess)
 		{

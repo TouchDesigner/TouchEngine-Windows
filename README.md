@@ -49,10 +49,12 @@ An instance requires two callbacks: one for instance events, and one to receive 
         // handle the value change
     }
 
+A single instance can be re-used to load several components. Only one component can be loaded in an instance at a time (but any number of instances can co-exist). Maximise performance by re-using an existing instance rather than creating a new one where possible.
+
 Create an instance:
 
     TEInstance *instance;
-    TEResult result = TEInstanceCreate("sample.tox", TETimeExternal, eventCallback, valueCallback, NULL, &instance);
+    TEResult result = TEInstanceCreate(eventCallback, valueCallback, NULL, &instance);
     if (result == TEResultSuccess)
     {
         // Continue to use the instance
@@ -74,7 +76,16 @@ You may wish to set a frame-rate to match your intended render rate:
         result = TEInstanceSetFrameRate(instance, 30, 1);
     }
 
-An instance is created suspended. Once configured, resuming the instance will cause it to begin loading the component:
+Load a component:
+
+    if (result == TEResultSuccess)
+    {
+        result = TEInstanceLoad(instance, "sample.tox", TETimeExternal);
+    }
+
+Loading begins immediately.
+
+An instance is loaded suspended. Once configured, resuming the instance will permit rendering (and start playback in TETimeInternal mode):
 
     if (result == TEResultSuccess)
     {
