@@ -355,9 +355,6 @@ void DocumentWindow::eventCallback(TEInstance * instance,
     case TEEventInstanceDidLoad:
         window->didLoad();
         break;
-    case TEEventParameterLayoutDidChange:
-        window->parameterLayoutDidChange();
-        break;
     case TEEventFrameDidFinish:
         window->endFrame(start_time_value, start_time_scale, result);
         break;
@@ -369,32 +366,47 @@ void DocumentWindow::eventCallback(TEInstance * instance,
     }
 }
 
-void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *identifier, void * info)
+void DocumentWindow::parameterEventCallback(TEInstance * instance, TEParameterEvent event, const char *identifier, void * info)
 {
-    DocumentWindow *doc = static_cast<DocumentWindow *>(info);
+	DocumentWindow* doc = static_cast<DocumentWindow*>(info);
+	switch (event)
+	{
+	case TEParameterEventAdded:
+		doc->parameterLayoutDidChange();
+		break;
+	case TEParameterEventValueChange:
+        doc->parameterValueChange(identifier);
+		break;
+	default:
+		break;
+	}
+}
 
-	TEParameterInfo *param = nullptr;
-	TEResult result = TEInstanceParameterGetInfo(instance, identifier, &param);
-    if (result == TEResultSuccess && param->scope == TEScopeOutput)
-    {
+void DocumentWindow::parameterValueChange(const char* identifier)
+{
+	std::lock_guard<std::mutex> guard(myMutex);
+	TEParameterInfo* param = nullptr;
+	TEResult result = TEInstanceParameterGetInfo(myInstance, identifier, &param);
+	if (result == TEResultSuccess && param->scope == TEScopeOutput)
+	{
 		switch (param->type)
 		{
 		case TEParameterTypeDouble:
 		{
 			double value;
-			result = TEInstanceParameterGetDoubleValue(doc->myInstance, identifier, TEParameterValueCurrent, &value, 1);
+			result = TEInstanceParameterGetDoubleValue(myInstance, identifier, TEParameterValueCurrent, &value, 1);
 			break;
 		}
 		case TEParameterTypeInt:
 		{
 			int32_t value;
-			result = TEInstanceParameterGetIntValue(doc->myInstance, identifier, TEParameterValueCurrent, &value, 1);
+			result = TEInstanceParameterGetIntValue(myInstance, identifier, TEParameterValueCurrent, &value, 1);
 			break;
 		}
 		case TEParameterTypeString:
 		{
-			TEString *value;
-			result = TEInstanceParameterGetStringValue(doc->myInstance, identifier, TEParameterValueCurrent, &value);
+			TEString* value;
+			result = TEInstanceParameterGetStringValue(myInstance, identifier, TEParameterValueCurrent, &value);
 			if (result == TEResultSuccess)
 			{
 				// Use value->string here
@@ -404,15 +416,14 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
 		}
 		case TEParameterTypeTexture:
 		{
-            // Stash the state, we don't do any actual renderer work from this thread
-            std::lock_guard<std::mutex> guard(doc->myMutex);
-            doc->myPendingOutputTextures.push_back(identifier);
+			// Stash the state, we don't do any actual renderer work from this thread
+			myPendingOutputTextures.push_back(identifier);
 			break;
 		}
 		case TEParameterTypeFloatBuffer:
 		{
-			TEFloatBuffer *buffer = nullptr;
-			result = TEInstanceParameterGetFloatBufferValue(doc->myInstance, identifier, TEParameterValueCurrent, &buffer);
+			TEFloatBuffer* buffer = nullptr;
+			result = TEInstanceParameterGetFloatBufferValue(myInstance, identifier, TEParameterValueCurrent, &buffer);
 
 			if (result == TEResultSuccess)
 			{
@@ -420,29 +431,29 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
 				{
 					auto data = TEFloatBufferGetValues(buffer);
 					// we just grab the first sample in the first channel
-					doc->myLastStreamValue = data[0][0];
+					myLastStreamValue = data[0][0];
 					TERelease(&buffer);
 				}
 				else
 				{
-					doc->myLastStreamValue = 0.0;
+					myLastStreamValue = 0.0;
 				}
 			}
 			break;
 		}
 		case TEParameterTypeStringData:
 		{
-			TEObject *value = nullptr;
-			result = TEInstanceParameterGetObjectValue(doc->myInstance, identifier, TEParameterValueCurrent, &value);
+			TEObject* value = nullptr;
+			result = TEInstanceParameterGetObjectValue(myInstance, identifier, TEParameterValueCurrent, &value);
 			// String data can be a TETable or TEString, so check the type
 			if (value && TEGetType(value) == TEObjectTypeTable)
 			{
-				TETable *table = static_cast<TETable *>(value);
+				TETable* table = static_cast<TETable*>(value);
 				// do something with the table
 			}
 			else if (value && TEGetType(value) == TEObjectTypeString)
 			{
-				TEString *string = reinterpret_cast<TEString *>(value);
+				TEString* string = reinterpret_cast<TEString*>(value);
 				// do something with the string
 			}
 			TERelease(&value);
@@ -451,7 +462,7 @@ void DocumentWindow::parameterValueCallback(TEInstance * instance, const char *i
 		default:
 			break;
 		}
-    }
+	}
 	TERelease(&param);
 }
 
@@ -534,7 +545,7 @@ void DocumentWindow::openWindow(HWND parent)
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 		std::string utf8 = converter.to_bytes(getPath());
 
-		TEResult TEResult = TEInstanceCreate(eventCallback, parameterValueCallback, this, &myInstance);
+		TEResult TEResult = TEInstanceCreate(eventCallback, parameterEventCallback, this, &myInstance);
 		if (result == TEResultSuccess)
 		{
 			result = TEInstanceAssociateGraphicsContext(myInstance, myRenderer->getTEContext());
