@@ -37,16 +37,16 @@ Some functions accept or return several types of TEObject. Use `TEGetType()` to 
 Creating and Configuring Instances
 ----------------------------------
 
-An instance requires two callbacks: one for instance events, and one to receive parameter value changes:
+An instance requires two callbacks: one for instance events, and one to receive parameter events:
 
     void eventCallback(TEInstance * instance, TEEvent event, TEResult result, int64_t start_time_value, int32_t start_time_scale, int64_t end_time_value, int32_t end_time_scale, void * info)
     {
         // handle the event
     }
     
-    void valueCallback(TEInstance * instance, const char *identifier, void * info)
+    void parameterCallback(TEInstance * instance, TEParameterEvent event, const char *identifier, void * info)
     {
-        // handle the value change
+        // handle the parameter event
     }
 
 A single instance can be re-used to load several components. Only one component can be loaded in an instance at a time (but any number of instances can co-exist). Maximise performance by re-using an existing instance rather than creating a new one where possible.
@@ -54,7 +54,7 @@ A single instance can be re-used to load several components. Only one component 
 Create an instance:
 
     TEInstance *instance;
-    TEResult result = TEInstanceCreate(eventCallback, valueCallback, NULL, &instance);
+    TEResult result = TEInstanceCreate(eventCallback, parameterCallback, NULL, &instance);
     if (result == TEResultSuccess)
     {
         // Continue to use the instance
@@ -85,6 +85,8 @@ Load a component:
 
 Loading begins immediately.
 
+During loading you may receive parameter event callbacks with the event TEParameterEventAdded for any parameters on the instance.
+
 An instance is loaded suspended. Once configured, resuming the instance will permit rendering (and start playback in TETimeInternal mode):
 
     if (result == TEResultSuccess)
@@ -92,7 +94,6 @@ An instance is loaded suspended. Once configured, resuming the instance will per
         result = TEInstanceResume(instance);
     }
 
-During loading you may receive an event callback with the event TEEventParameterLayoutDidChange, at which point you can traverse the instance's parameter heirarchy to discover inputs and outputs.
 
 Once loading has completed you will receive an event callback with the event TEEventInstanceDidLoad, and a TEResult indicating success or any warning or error.
 
