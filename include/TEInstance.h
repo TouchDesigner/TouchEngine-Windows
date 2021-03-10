@@ -31,14 +31,60 @@ TE_ASSUME_NONNULL_BEGIN
 
 typedef TE_ENUM(TEEvent, int32_t) 
 {
+	/*
+	An error not associated with any other action has occurred.
+	*/
 	TEEventGeneral,
+
+	/*
+	Loading an instance has completed. When this is received, all parameters
+	will have been added to the instance. You can begin requesting frames from the
+	instance.
+	*/
 	TEEventInstanceDidLoad,
+
+	/*
+	A frequested frame has finished or been cancelled.
+	*/
 	TEEventFrameDidFinish
 };
 
 typedef TE_ENUM(TEParameterEvent, int32_t) 
 {
+	/*
+	A parameter was added to the instance.
+	*/
 	TEParameterEventAdded,
+
+	/*
+	A parameter was removed from the instance.
+	*/
+	TEParameterEventRemoved,
+
+	/*
+	An existing parameter was modified. The modification could affect:
+	- entries in the associated TEParameterInfo
+	- minimum, maximum or default values
+	- choice names or labels
+	*/
+	TEParameterEventModified,
+
+	/*
+	An existing parameter was moved. The move could be:
+	- a change of parent container
+	- a change of order in the parent container
+	*/
+	TEParameterEventMoved,
+
+	/*
+	An existing parameter changed state.
+	See TEInstanceParameterGetState().
+	*/
+	TEParameterEventStateChange,
+
+	/*
+	The parameter's current value changed.
+	*/
 	TEParameterEventValueChange,
 };
 
@@ -158,6 +204,29 @@ typedef TE_ENUM(TEParameterValue, int32_t)
 	TEParameterValueCurrent
 };
 
+typedef TE_ENUM(TEParameterDomain, int32_t)
+{
+	/*
+	 The TouchEngine parameter has no one-to-one relationship with a TouchDesigner entity.
+	*/
+	TEParameterDomainNone,
+
+	/*
+	 The TouchEngine parameter represents a TouchDesigner parameter.
+	 */
+	TEParameterDomainParameter,
+
+	/*
+	 The TouchEngine parameter represents a TouchDesigner parameter page.
+	 */
+	TEParameterDomainParameterPage,
+
+	/*
+	 The TouchEngine parameter represents a TouchDesigner operator.
+	 */
+	TEParameterDomainOperator,
+};
+
 typedef TEObject TEInstance;
 typedef TEObject TEAdapter;
 typedef TEObject TEGraphicsContext;
@@ -182,6 +251,12 @@ struct TEParameterInfo
 	TEParameterType		type;
 
 	/*
+	 The domain of the parameter. The domain describes the parameter's relationship
+	 to a type of entity within TouchDesigner.
+	 */
+	TEParameterDomain	domain;
+
+	/*
 	 For value parameters, the number of values associated with the parameter
 	 eg a colour may have four values for red, green, blue and alpha.
 
@@ -196,8 +271,9 @@ struct TEParameterInfo
 	const char *		label;
 
 	/*
-	 The human readable name for the parameter.
-	 This may not be unique.
+	 The human readable name for the parameter. When present, the name is a way
+	 for the user to uniquely reference a parameter within its domain: no two parameters
+	 in the same domain will have the same name.
 	 */
 	const char *		name;
 
@@ -207,6 +283,12 @@ struct TEParameterInfo
  	 in multiple instances of the same file.
  	 */
 	const char *		identifier;
+};
+
+struct TEParameterState
+{
+	bool enabled;
+	bool editable;
 };
 
 struct TEString
@@ -353,7 +435,6 @@ TE_EXPORT TEResult TEInstanceGetFrameRate(TEInstance *instance, int64_t *numerat
  Returns TEResultSuccess or an error.
  	If an error is returned, the frame will not be rendered and the TEInstanceEventCallback will not be invoked.
  */
-// TODO: document that there can't be a frame in flight when you call this (or change the behaviour)
 TE_EXPORT TEResult TEInstanceStartFrameAtTime(TEInstance *instance, int64_t time_value, int32_t time_scale, bool discontinuity);
 
 /*
@@ -397,6 +478,12 @@ TE_EXPORT TEResult TEInstanceGetParameterGroups(TEInstance *instance, TEScope sc
  The caller is responsible for releasing the returned TEParameterInfo using TERelease().
  */
 TE_EXPORT TEResult TEInstanceParameterGetInfo(TEInstance *instance, const char *identifier, struct TEParameterInfo * TE_NULLABLE * TE_NONNULL info);
+
+/*
+ On return 'state' describes the state of the parameter denoted by 'identifier'.
+ The caller is responsible for releasing the returned TEParameterState using TERelease().
+ */
+TE_EXPORT TEResult TEInstanceParameterGetState(TEInstance *instance, const char *identifier, struct TEParameterState * TE_NULLABLE * TE_NONNULL state);
 
 /*
  On return 'labels' is a list of labels suitable for presentation to the user as options for choosing a value for the parameter denoted by 'identifier'.
@@ -523,9 +610,9 @@ TE_EXPORT TEResult TEInstanceParameterSetObjectValue(TEInstance *instance, const
 
 static_assert(offsetof(struct TEParameterInfo, intent) == 4, kStructAlignmentError);
 static_assert(offsetof(struct TEParameterInfo, type) == 8, kStructAlignmentError);
-static_assert(offsetof(struct TEParameterInfo, count) == 12, kStructAlignmentError);
-static_assert(offsetof(struct TEParameterInfo, label) == 16, kStructAlignmentError);
-static_assert(offsetof(struct TEParameterInfo, identifier) == 32, kStructAlignmentError);
+static_assert(offsetof(struct TEParameterInfo, count) == 16, kStructAlignmentError);
+static_assert(offsetof(struct TEParameterInfo, label) == 24, kStructAlignmentError);
+static_assert(offsetof(struct TEParameterInfo, identifier) == 40, kStructAlignmentError);
 static_assert(offsetof(struct TEStringArray, strings) == 8, kStructAlignmentError);
 
 TE_ASSUME_NONNULL_END

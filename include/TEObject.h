@@ -33,6 +33,7 @@ typedef TE_ENUM(TEObjectType, int32_t)
 	TEObjectTypeAdapter,
 	TEObjectTypeGraphicsContext,
 	TEObjectTypeParameterInfo,
+	TEObjectTypeParameterState,
 	TEObjectTypeString,
 	TEObjectTypeStringArray,
 	TEObjectTypeTable,
