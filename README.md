@@ -174,3 +174,15 @@ Getting an output:
     }
     TERelease(&value);
 
+
+Allowing users to reference known TouchDesigner objects
+-------------------------------------------------------
+
+In some cases your users may want to refer to inputs and outputs by the name they have used for entities inside a loaded TouchDesigner component. Combined use of the `name` and `domain` members of the `TEParameterInfo` struct allow for a one-to-one reference to entities within a component. For example, a user may wish to refer to a TouchDesigner operator with the name "out1" to locate an output. To match that, locate a parameter with the domain `TEParameterDomainOperator` and name "out1". Note that `name` is only a reliable identifier within a single domain - the same name can occur in multiple domains.
+
+If you need to use domains in UI, the two domains which users might expect to be able to refer to, and textual names and abbreviations which will be familiar to them, are:
+
+|Domain                     |Name      |Abbreviation |
+|---------------------------|----------|-------------|
+|TEParameterDomainParameter |Parameter |par          |
+|TEParameterDomainOperator  |Operator  |op           |
