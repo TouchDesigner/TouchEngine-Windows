@@ -38,7 +38,7 @@ private:
 								int64_t end_time_value,
 								int32_t end_time_scale,
 								void * info);
-    static void parameterEventCallback(TEInstance *instance, TEParameterEvent event, const char *identifier, void *info);
+    static void parameterEventCallback(TEInstance *instance, TELinkEvent event, const char *identifier, void *info);
     static const double InputSampleRate;
     static const int32_t InputChannelCount;
     static const int64_t InputSampleLimit;

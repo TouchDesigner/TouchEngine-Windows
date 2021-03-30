@@ -56,9 +56,9 @@ typedef TE_ENUM(TEResult, int32_t)
 	TEResultBadUsage,
 
 	/*
-	The requested parameter does not belong to the instance.
+	The requested link does not belong to the instance.
 	*/
-	TEResultNoMatchingParameter,
+	TEResultNoMatchingLink,
 
 	/*
 	The operation was previously cancelled.

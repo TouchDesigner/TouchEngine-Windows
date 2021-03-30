@@ -37,7 +37,7 @@ typedef TE_ENUM(TEEvent, int32_t)
 	TEEventGeneral,
 
 	/*
-	Loading an instance has completed. When this is received, all parameters
+	Loading an instance has completed. When this is received, all links
 	will have been added to the instance. You can begin requesting frames from the
 	instance.
 	*/
@@ -49,43 +49,48 @@ typedef TE_ENUM(TEEvent, int32_t)
 	TEEventFrameDidFinish
 };
 
-typedef TE_ENUM(TEParameterEvent, int32_t) 
+typedef TE_ENUM(TELinkEvent, int32_t)
 {
 	/*
-	A parameter was added to the instance.
+	A link was added to the instance.
 	*/
-	TEParameterEventAdded,
+	TELinkEventAdded,
 
 	/*
-	A parameter was removed from the instance.
+	A link was removed from the instance.
 	*/
-	TEParameterEventRemoved,
+	TELinkEventRemoved,
 
 	/*
-	An existing parameter was modified. The modification could affect:
-	- entries in the associated TEParameterInfo
+	An existing link was modified. The modification could affect:
+	- entries in the associated TELinkInfo
 	- minimum, maximum or default values
 	- choice names or labels
 	*/
-	TEParameterEventModified,
+	TELinkEventModified,
 
 	/*
-	An existing parameter was moved. The move could be:
+	An existing link was moved. The move could be:
 	- a change of parent container
 	- a change of order in the parent container
 	*/
-	TEParameterEventMoved,
+	TELinkEventMoved,
 
 	/*
-	An existing parameter changed state.
-	See TEInstanceParameterGetState().
+	An existing link changed state.
+	See TEInstanceLinkGetState().
 	*/
-	TEParameterEventStateChange,
+	TELinkEventStateChange,
 
 	/*
-	The parameter's current value changed.
+	The number or order of a link's children changed.
 	*/
-	TEParameterEventValueChange,
+	TELinkEventChildChange,
+
+	/*
+	The link's current value changed.
+	*/
+	TELinkEventValueChange,
 };
 
 typedef TE_ENUM(TETimeMode, int32_t) 
@@ -107,49 +112,49 @@ typedef TE_ENUM(TEScope, int32_t)
 	TEScopeOutput
 };
 
-typedef TE_ENUM(TEParameterType, int32_t) 
+typedef TE_ENUM(TELinkType, int32_t) 
 {
 	/*
-	 Multiple parameters collected according to user preference
+	 Multiple linked collected according to user preference
 	 */
-	TEParameterTypeGroup,
+	TELinkTypeGroup,
 
 	/*
-	 Multiple parameters which collectively form a single complex parameter
+	 Multiple links which collectively form a single complex link
 	 */
-	TEParameterTypeComplex,
+	TELinkTypeComplex,
 
 	/*
 	 bool
 	*/
-	TEParameterTypeBoolean,
+	TELinkTypeBoolean,
 
 	/*
 	 double
 	 */
-	TEParameterTypeDouble,
+	TELinkTypeDouble,
 
 	/*
 	 int32_t
 	 */
-	TEParameterTypeInt,
+	TELinkTypeInt,
 
 	/*
 	 UTF-8 char * (input)
 	 TEString * (output)
 	 */
-	TEParameterTypeString,
+	TELinkTypeString,
 
 
 	/*
 	 TETexture *
 	 */
-	TEParameterTypeTexture,
+	TELinkTypeTexture,
 
 	/*
 	 planar float sample buffers
 	 */
-	TEParameterTypeFloatBuffer,
+	TELinkTypeFloatBuffer,
 
 	/*
 	 TETable *
@@ -157,74 +162,74 @@ typedef TE_ENUM(TEParameterType, int32_t)
 	 UTF-8 char * (input)
 	 TEString * (output)
 	 */
-	TEParameterTypeStringData,
+	TELinkTypeStringData,
 
 	/*
-	 A division between grouped parameters
+	 A division between grouped links
 	 */
-	TEParameterTypeSeparator
+	TELinkTypeSeparator
 };
 
-typedef TE_ENUM(TEParameterIntent, int32_t) 
+typedef TE_ENUM(TELinkIntent, int32_t) 
 {
-	TEParameterIntentNotSpecified,
-	TEParameterIntentColorRGBA,
-	TEParameterIntentPositionXYZW,
-	TEParameterIntentSizeWH,
-	TEParameterIntentUVW,
+	TELinkIntentNotSpecified,
+	TELinkIntentColorRGBA,
+	TELinkIntentPositionXYZW,
+	TELinkIntentSizeWH,
+	TELinkIntentUVW,
 	
 	/*
-	 Applies to TEParameterTypeString
+	 Applies to TELinkTypeString
 	 */
-	TEParameterIntentFilePath,
+	TELinkIntentFilePath,
 
 	/*
-	 Applies to TEParameterTypeString
+	 Applies to TELinkTypeString
 	 */
-	TEParameterIntentDirectoryPath,
+	TELinkIntentDirectoryPath,
 
 	/*
-	 Applies to TEParameterTypeBoolean
+	 Applies to TELinkTypeBoolean
 	 A true value is considered transient but may have duration, as from a button held down
 	 */
-	TEParameterIntentMomentary,
+	TELinkIntentMomentary,
 
 	/*
-	 Applies to TEParameterTypeBoolean
+	 Applies to TELinkTypeBoolean
 	 A true value is considered transient, as from a single button press
 	 */
-	TEParameterIntentPulse
+	TELinkIntentPulse
 };
 
-typedef TE_ENUM(TEParameterValue, int32_t) 
+typedef TE_ENUM(TELinkValue, int32_t) 
 {
-	TEParameterValueMinimum,
-	TEParameterValueMaximum,
-	TEParameterValueDefault,
-	TEParameterValueCurrent
+	TELinkValueMinimum,
+	TELinkValueMaximum,
+	TELinkValueDefault,
+	TELinkValueCurrent
 };
 
-typedef TE_ENUM(TEParameterDomain, int32_t)
+typedef TE_ENUM(TELinkDomain, int32_t)
 {
 	/*
-	 The TouchEngine parameter has no one-to-one relationship with a TouchDesigner entity.
+	 The TouchEngine link has no one-to-one relationship with a TouchDesigner entity.
 	*/
-	TEParameterDomainNone,
+	TELinkDomainNone,
 
 	/*
-	 The TouchEngine parameter represents a TouchDesigner parameter.
+	 The TouchEngine link represents a TouchDesigner parameter.
 	 */
-	TEParameterDomainParameter,
+	TELinkDomainParameter,
 
 	/*
-	 The TouchEngine parameter represents a TouchDesigner parameter page.
+	 The TouchEngine link represents a TouchDesigner parameter page.
 	 */
-	TEParameterDomainParameterPage,
+	TELinkDomainParameterPage,
 
 	/*
-	 The TouchEngine parameter represents a TouchDesigner operator.
+	 The TouchEngine link represents a TouchDesigner operator.
 	 */
-	TEParameterDomainOperator,
+	TELinkDomainOperator,
 };
 
 typedef TEObject TEInstance;
@@ -233,59 +238,59 @@ typedef TEObject TEGraphicsContext;
 typedef TEObject TETable;
 typedef TEObject TEFloatBuffer;
 
-struct TEParameterInfo
+struct TELinkInfo
 {
 	/*
-	 The scope (input or output) of the parameter.
+	 The scope (input or output) of the link.
 	 */
 	TEScope				scope;
 
 	/*
-	 How the parameter is intended to be used.
+	 How the link is intended to be used.
 	 */
-	TEParameterIntent	intent;
+	TELinkIntent	intent;
 
 	/*
-	  The type of parameter
+	  The type of link
 	 */
-	TEParameterType		type;
+	TELinkType		type;
 
 	/*
-	 The domain of the parameter. The domain describes the parameter's relationship
+	 The domain of the link. The domain describes the link's relationship
 	 to a type of entity within TouchDesigner.
 	 */
-	TEParameterDomain	domain;
+	TELinkDomain	domain;
 
 	/*
-	 For value parameters, the number of values associated with the parameter
+	 For value links, the number of values associated with the link
 	 eg a colour may have four values for red, green, blue and alpha.
 
-	 For group or complex parameters, the number of children.
+	 For group or complex links, the number of children.
 	 */
 	int32_t				count;
 
 	/*
-	 The human readable label for the parameter.
+	 The human readable label for the link.
 	 This may not be unique.
 	 */
 	const char *		label;
 
 	/*
-	 The human readable name for the parameter. When present, the name is a way
-	 for the user to uniquely reference a parameter within its domain: no two parameters
+	 The human readable name for the link. When present, the name is a way
+	 for the user to uniquely reference a link within its domain: no two links
 	 in the same domain will have the same name.
 	 */
 	const char *		name;
 
 	/*
- 	 A unique identifier for the parameter. If the underlying file is unchanged this
- 	 will persist through instantiations and will be the same for any given parameter
- 	 in multiple instances of the same file.
- 	 */
+	 A unique identifier for the link. If the underlying file is unchanged this
+	 will persist through instantiations and will be the same for any given link
+	 in multiple instances of the same file.
+	 */
 	const char *		identifier;
 };
 
-struct TEParameterState
+struct TELinkState
 {
 	bool enabled;
 	bool editable;
@@ -326,10 +331,10 @@ typedef void (*TEInstanceEventCallback)(TEInstance *instance,
 										void * TE_NULLABLE info);
 
 /*
- This callback is used to signal changes to parameters.
+ This callback is used to signal changes to links.
  Note callbacks may be invoked from any thread.
 */
-typedef void (*TEInstanceParameterCallback)(TEInstance *instance, TEParameterEvent event, const char *identifier, void *info);
+typedef void (*TEInstanceLinkCallback)(TEInstance *instance, TELinkEvent event, const char *identifier, void *info);
 
 /*
  On return, extensions is a list of file extensions supported by TEInstanceCreate
@@ -347,14 +352,18 @@ TE_EXPORT TEResult TEInstanceGetSupportedFileExtensions(struct TEStringArray * T
  Returns TEResultSucccess or an error.
  */
 TE_EXPORT TEResult TEInstanceCreate(TEInstanceEventCallback event_callback,
-									TEInstanceParameterCallback param_callback,
+									TEInstanceLinkCallback link_callback,
 									void * TE_NULLABLE callback_info,
 									TEInstance * TE_NULLABLE * TE_NONNULL instance);
 
 /*
  Loads a .tox file.
  Any currently loaded instance will be unloaded.
- The instance is loaded and put into a suspended state. Call TEInstanceResume() to allow rendering.
+ The instance is loaded and put into a suspended state. During loading, your TEInstanceLinkCallback
+ may receive events as links are added to the instance. Once loading is complete, your
+ TEInstanceEventCallback will receive TEEventInstanceDidLoad and a TEResult indicating success or
+ failure.
+ Once loading is complete, call TEInstanceResume() when you are ready to allow rendering.
 
  'path' is a UTF-8 encoded string. The file is loaded asynchronously after this function returns.
  'mode' see TETimeMode above.
@@ -364,6 +373,9 @@ TE_EXPORT TEResult TEInstanceLoad(TEInstance *instance, const char *path, TETime
 /*
  Any in-progress frame is cancelled.
  Any currently loaded instance is unloaded.
+ During unload your TEInstanceLinkCallback will receive events for any links as they are
+ removed from the instance.
+ Once this function returns you will receive no further callbacks until another file is loaded.
  */
 TE_EXPORT TEResult TEInstanceUnload(TEInstance *instance);
 
@@ -415,11 +427,22 @@ TE_EXPORT TEResult TEInstanceSuspend(TEInstance *instance);
 TE_EXPORT TEResult TEInstanceSetFrameRate(TEInstance *instance, int64_t numerator, int32_t denominator);
 
 /*
+ Sets a frame-rate for an instance, expressed as a floating-point number.
+ This is an indication of the rate the instance can expect to be rendered at, in frames per second.
+ */
+TE_EXPORT TEResult TEInstanceSetFloatFrameRate(TEInstance *instance, float rate);
+
+/*
  Gets the frame-rate for an instance
  'numerator' and 'denominator' are filled out when the function completes.
  */
 TE_EXPORT TEResult TEInstanceGetFrameRate(TEInstance *instance, int64_t *numerator, int32_t *denominator);
 
+/*
+ Gets the frame-rate for an instance, expressed as a floating-point number.
+ 'rate' is filled out when the function completes.
+ */
+TE_EXPORT TEResult TEInstanceGetFloatFrameRate(TEInstance* instance, float* rate);
 /*
  Rendering
  */
@@ -430,7 +453,7 @@ TE_EXPORT TEResult TEInstanceGetFrameRate(TEInstance *instance, int64_t *numerat
  	Excessive use of this method to set times on an instance in TETimeInternal mode will degrade performance.
  'discontinuity' if true indicates the frame does not follow naturally from the previously requested frame
  The frame is rendered asynchronously after this function returns.
- TEInstanceParameterValueCallback is called for any outputs affected by the rendered frame.
+ TEInstanceLinkCallback is called for any outputs affected by the rendered frame.
  TEInstanceEventCallback is called with TEEventFrameDidFinish when the frame completes.
  Returns TEResultSuccess or an error.
  	If an error is returned, the frame will not be rendered and the TEInstanceEventCallback will not be invoked.
@@ -445,126 +468,126 @@ TE_EXPORT TEResult TEInstanceStartFrameAtTime(TEInstance *instance, int64_t time
 TE_EXPORT TEResult TEInstanceCancelFrame(TEInstance *instance);
 
 /*
- Parameter Layout
+ Link Layout
  */
 
 /*
- On return 'children' is a list of parameter identifiers for the children of the parent parameter denoted by 'identifier'.
- If 'identifier' is NULL or an empty string, the top level parameters are returned.
- 'identifier' should denote a parameter of type TEParameterTypeGroup or TEParameterTypeComplex.
+ On return 'children' is a list of link identifiers for the children of the parent link denoted by 'identifier'.
+ If 'identifier' is NULL or an empty string, the top level links are returned.
+ 'identifier' should denote a link of type TELinkTypeGroup or TELinkTypeComplex.
  The caller is responsible for releasing the returned TEStringArray using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterGetChildren(TEInstance *instance, const char * TE_NULLABLE identifier, struct TEStringArray * TE_NULLABLE * TE_NONNULL children);
+TE_EXPORT TEResult TEInstanceLinkGetChildren(TEInstance *instance, const char * TE_NULLABLE identifier, struct TEStringArray * TE_NULLABLE * TE_NONNULL children);
 
 /*
- On return 'string' is the parameter identifier for the TEParameterTypeGroup or TEParameterTypeComplex which contains the
- 	parameter denoted by 'identifier', or an empty string if 'identifier' denotes a top level parameter.
+ On return 'string' is the link identifier for the TELinkTypeGroup or TELinkTypeComplex which contains the
+	link denoted by 'identifier', or an empty string if 'identifier' denotes a top level link.
  The caller is responsible for releasing the returned TEString using TERelease(). 
  */
-TE_EXPORT TEResult TEInstanceParameterGetParent(TEInstance *instance, const char * TE_NULLABLE identifier, struct TEString * TE_NULLABLE * TE_NONNULL string);
+TE_EXPORT TEResult TEInstanceLinkGetParent(TEInstance *instance, const char * TE_NULLABLE identifier, struct TEString * TE_NULLABLE * TE_NONNULL string);
 
 /*
- On return 'groups' is a list of parameter identifiers for the top level parameters in the given scope.
+ On return 'groups' is a list of link identifiers for the top level links in the given scope.
  The caller is responsible for releasing the returned TEStringArray using TERelease().
  */
-TE_EXPORT TEResult TEInstanceGetParameterGroups(TEInstance *instance, TEScope scope, struct TEStringArray * TE_NULLABLE * TE_NONNULL groups);
+TE_EXPORT TEResult TEInstanceGetLinkGroups(TEInstance *instance, TEScope scope, struct TEStringArray * TE_NULLABLE * TE_NONNULL groups);
 
 /*
- Parameter Basics
+ Link Basics
  */
 
 /*
- On return 'info' describes the parameter denoted by 'identifier'.
- The caller is responsible for releasing the returned TEParameterInfo using TERelease().
+ On return 'info' describes the link denoted by 'identifier'.
+ The caller is responsible for releasing the returned TELinkInfo using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterGetInfo(TEInstance *instance, const char *identifier, struct TEParameterInfo * TE_NULLABLE * TE_NONNULL info);
+TE_EXPORT TEResult TEInstanceLinkGetInfo(TEInstance *instance, const char *identifier, struct TELinkInfo * TE_NULLABLE * TE_NONNULL info);
 
 /*
- On return 'state' describes the state of the parameter denoted by 'identifier'.
- The caller is responsible for releasing the returned TEParameterState using TERelease().
+ On return 'state' describes the state of the link denoted by 'identifier'.
+ The caller is responsible for releasing the returned TELinkState using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterGetState(TEInstance *instance, const char *identifier, struct TEParameterState * TE_NULLABLE * TE_NONNULL state);
+TE_EXPORT TEResult TEInstanceLinkGetState(TEInstance *instance, const char *identifier, struct TELinkState * TE_NULLABLE * TE_NONNULL state);
 
 /*
- On return 'labels' is a list of labels suitable for presentation to the user as options for choosing a value for the parameter denoted by 'identifier'.
+ On return 'labels' is a list of labels suitable for presentation to the user as options for choosing a value for the link denoted by 'identifier'.
  If 'identifier' does not offer a list of options then 'labels' will be set to NULL.
- Only TEParameterTypeInt and TEParameterTypeString may have a list of choices. For TEParameterTypeInt, the corresponding value is the index of the label
- in the list. For TEParameterTypeString, the corresponding value is the entry at the same index in the list returned by TEInstanceParameterGetChoiceValues().
+ Only TELinkTypeInt and TELinkTypeString may have a list of choices. For TELinkTypeInt, the corresponding value is the index of the label
+ in the list. For TELinkTypeString, the corresponding value is the entry at the same index in the list returned by TEInstanceLinkGetChoiceValues().
  The caller is responsible for releasing the returned TEStringArray using TERelease().
 */
-TE_EXPORT TEResult TEInstanceParameterGetChoiceLabels(TEInstance *instance, const char *identifier, struct TEStringArray * TE_NULLABLE * TE_NONNULL labels);
+TE_EXPORT TEResult TEInstanceLinkGetChoiceLabels(TEInstance *instance, const char *identifier, struct TEStringArray * TE_NULLABLE * TE_NONNULL labels);
 
 /*
- On return 'values' is a list of values which may be set on the parameter denoted by 'identifier'. Each value will have a corresponding label for
- presentation in UI (see TEInstanceParameterGetChoiceLabels()).
+ On return 'values' is a list of values which may be set on the link denoted by 'identifier'. Each value will have a corresponding label for
+ presentation in UI (see TEInstanceLinkGetChoiceLabels()).
  If 'identifier' does not offer a list of value options then 'values' will be set to NULL.
- Only TEParameterTypeString may have a list of value options. This list should not be considered exhaustive and users should be allowed to enter their own
+ Only TELinkTypeString may have a list of value options. This list should not be considered exhaustive and users should be allowed to enter their own
  values as well as those in this list.
  The caller is responsible for releasing the returned TEStringArray using TERelease().
 */
-TE_EXPORT TEResult TEInstanceParameterGetChoiceValues(TEInstance *instance, const char *identifier, struct TEStringArray * TE_NULLABLE * TE_NONNULL values);
+TE_EXPORT TEResult TEInstanceLinkGetChoiceValues(TEInstance *instance, const char *identifier, struct TEStringArray * TE_NULLABLE * TE_NONNULL values);
 
 /*
- Getting Parameter Values
+ Getting Link Values
  */
 
-TE_EXPORT TEResult TEInstanceParameterGetBooleanValue(TEInstance *instance, const char *identifier, TEParameterValue which, bool *value);
+TE_EXPORT TEResult TEInstanceLinkGetBooleanValue(TEInstance *instance, const char *identifier, TELinkValue which, bool *value);
 
-TE_EXPORT TEResult TEInstanceParameterGetDoubleValue(TEInstance *instance, const char *identifier, TEParameterValue which, double *value, int32_t count);
+TE_EXPORT TEResult TEInstanceLinkGetDoubleValue(TEInstance *instance, const char *identifier, TELinkValue which, double *value, int32_t count);
 
-TE_EXPORT TEResult TEInstanceParameterGetIntValue(TEInstance *instance, const char *identifier, TEParameterValue which, int32_t *value, int32_t count);
+TE_EXPORT TEResult TEInstanceLinkGetIntValue(TEInstance *instance, const char *identifier, TELinkValue which, int32_t *value, int32_t count);
 
 /*
  The caller is responsible for releasing the returned TEString using TERelease().
  */
-TE_EXPORT TEResult TEInstanceParameterGetStringValue(TEInstance *instance, const char *identifier, TEParameterValue which, struct TEString * TE_NULLABLE * TE_NONNULL string);
+TE_EXPORT TEResult TEInstanceLinkGetStringValue(TEInstance *instance, const char *identifier, TELinkValue which, struct TEString * TE_NULLABLE * TE_NONNULL string);
 
 /*
  On successful completion 'value' is set to a TETexture or NULL if no value is set.
  A TEGraphicsContext can be used to convert the returned texture to any desired type.
  The caller is responsible for releasing the returned TETexture using TERelease()
  */
-TE_EXPORT TEResult TEInstanceParameterGetTextureValue(TEInstance *instance, const char *identifier, TEParameterValue which, TETexture * TE_NULLABLE * TE_NONNULL value);
+TE_EXPORT TEResult TEInstanceLinkGetTextureValue(TEInstance *instance, const char *identifier, TELinkValue which, TETexture * TE_NULLABLE * TE_NONNULL value);
 
 /*
  On successful completion 'value' is set to a TETable or NULL if no value is set.
  The caller is responsible for releasing the returned TETable using TERelease()
 */
-TE_EXPORT TEResult TEInstanceParameterGetTableValue(TEInstance *instance, const char *identifier, TEParameterValue which, TETable * TE_NULLABLE * TE_NONNULL value);
+TE_EXPORT TEResult TEInstanceLinkGetTableValue(TEInstance *instance, const char *identifier, TELinkValue which, TETable * TE_NULLABLE * TE_NONNULL value);
 
 /*
  On successful completion 'value' is set to a TEFloatBuffer or NULL if no value is set.
  The caller is responsible for releasing the returned TEFloatBuffer using TERelease()
 */
-TE_EXPORT TEResult TEInstanceParameterGetFloatBufferValue(TEInstance *instance, const char *identifier, TEParameterValue which, TEFloatBuffer * TE_NULLABLE * TE_NONNULL value);
+TE_EXPORT TEResult TEInstanceLinkGetFloatBufferValue(TEInstance *instance, const char *identifier, TELinkValue which, TEFloatBuffer * TE_NULLABLE * TE_NONNULL value);
 
 /*
  On successful completion 'value' is set to a TEObject or NULL if no value is set.
- An error will be returned if the parameter cannot be represented as a TEObject.
+ An error will be returned if the link cannot be represented as a TEObject.
  The type of the returned object can be determined using TEGetType().
  The caller is responsible for releasing the returned TEObject using TERelease()
 */
-TE_EXPORT TEResult TEInstanceParameterGetObjectValue(TEInstance *instance, const char *identifier, TEParameterValue which, TEObject * TE_NULLABLE * TE_NONNULL value);
+TE_EXPORT TEResult TEInstanceLinkGetObjectValue(TEInstance *instance, const char *identifier, TELinkValue which, TEObject * TE_NULLABLE * TE_NONNULL value);
 
 
 /*
- Setting Input Parameter Values
+ Setting Input Link Values
  */
 
-TE_EXPORT TEResult TEInstanceParameterSetBooleanValue(TEInstance *instance, const char *identifier, bool value);
+TE_EXPORT TEResult TEInstanceLinkSetBooleanValue(TEInstance *instance, const char *identifier, bool value);
 
-TE_EXPORT TEResult TEInstanceParameterSetDoubleValue(TEInstance *instance, const char *identifier, const double *value, int32_t count);
+TE_EXPORT TEResult TEInstanceLinkSetDoubleValue(TEInstance *instance, const char *identifier, const double *value, int32_t count);
 
-TE_EXPORT TEResult TEInstanceParameterSetIntValue(TEInstance *instance, const char *identifier, const int32_t *value, int32_t count);
+TE_EXPORT TEResult TEInstanceLinkSetIntValue(TEInstance *instance, const char *identifier, const int32_t *value, int32_t count);
 
 /*
- Sets the value of a string input parameter.
+ Sets the value of a string input link.
  'value' is a UTF-8 encoded string
  */
-TE_EXPORT TEResult TEInstanceParameterSetStringValue(TEInstance *instance, const char *identifier, const char * TE_NULLABLE value);
+TE_EXPORT TEResult TEInstanceLinkSetStringValue(TEInstance *instance, const char *identifier, const char * TE_NULLABLE value);
 
 /*
- Sets the value of a texture input parameter
+ Sets the value of a texture input link
  'texture' may be retained by the instance
  'context' is a valid TEGraphicsContext of a type suitable for working with the provided texture.
 	NULL may be passed ONLY if 'texture' is of type TETextureTypeDXGI or TETextureTypeIOSurface
@@ -572,47 +595,47 @@ TE_EXPORT TEResult TEInstanceParameterSetStringValue(TEInstance *instance, const
  	An OpenGL context may change the current framebuffer and GL_TEXTURE_2D bindings during this call.
 	This may be a different context than any previously passed to TEInstanceAssociateGraphicsContext().
  */
-TE_EXPORT TEResult TEInstanceParameterSetTextureValue(TEInstance *instance, const char *identifier, TETexture *TE_NULLABLE texture, TEGraphicsContext * TE_NULLABLE context);
+TE_EXPORT TEResult TEInstanceLinkSetTextureValue(TEInstance *instance, const char *identifier, TETexture *TE_NULLABLE texture, TEGraphicsContext * TE_NULLABLE context);
 
 /*
- Sets the value of a float buffer input parameter, replacing any previously set value.
- See also TEInstanceParameterAddFloatBuffer().
+ Sets the value of a float buffer input link, replacing any previously set value.
+ See also TEInstanceLinkAddFloatBuffer().
  This call is required even if a single buffer is used but modified between frames.
  'buffer' may be retained by the instance.
  */
-TE_EXPORT TEResult TEInstanceParameterSetFloatBufferValue(TEInstance *instance, const char *identifier, TEFloatBuffer * TE_NULLABLE buffer);
+TE_EXPORT TEResult TEInstanceLinkSetFloatBufferValue(TEInstance *instance, const char *identifier, TEFloatBuffer * TE_NULLABLE buffer);
 
 /*
- Appends a float buffer for an input parameter receiving time-dependent values.
+ Appends a float buffer for an input link receiving time-dependent values.
  The start time of the TEFloatBuffer is used to match samples to frames using the time passed to
  	TEInstanceStartFrameAtTime().
  'buffer' must be a time-dependent TEFloatBuffer, and may be retained by the instance.
  */
-TE_EXPORT TEResult TEInstanceParameterAddFloatBuffer(TEInstance *instance, const char *identifier, TEFloatBuffer * TE_NULLABLE buffer);
+TE_EXPORT TEResult TEInstanceLinkAddFloatBuffer(TEInstance *instance, const char *identifier, TEFloatBuffer * TE_NULLABLE buffer);
 
 /*
- Sets the value of a table input parameter.
+ Sets the value of a table input link.
 
  This call is required even if a single table is used but modified between frames.
  'table' may be retained by the instance.
  */
-TE_EXPORT TEResult TEInstanceParameterSetTableValue(TEInstance *instance, const char *identifier, TETable * TE_NULLABLE table);
+TE_EXPORT TEResult TEInstanceLinkSetTableValue(TEInstance *instance, const char *identifier, TETable * TE_NULLABLE table);
 
 /*
- Sets the value of an input parameter.
+ Sets the value of an input link.
 
- An error will be returned if the parameter cannot be set using the provided TEObject.
+ An error will be returned if the link cannot be set using the provided TEObject.
  'value' may be retained by the instance
  */
-TE_EXPORT TEResult TEInstanceParameterSetObjectValue(TEInstance *instance, const char *identifier, TEObject * TE_NULLABLE object);
+TE_EXPORT TEResult TEInstanceLinkSetObjectValue(TEInstance *instance, const char *identifier, TEObject * TE_NULLABLE object);
 
 #define kStructAlignmentError "struct misaligned for library"
 
-static_assert(offsetof(struct TEParameterInfo, intent) == 4, kStructAlignmentError);
-static_assert(offsetof(struct TEParameterInfo, type) == 8, kStructAlignmentError);
-static_assert(offsetof(struct TEParameterInfo, count) == 16, kStructAlignmentError);
-static_assert(offsetof(struct TEParameterInfo, label) == 24, kStructAlignmentError);
-static_assert(offsetof(struct TEParameterInfo, identifier) == 40, kStructAlignmentError);
+static_assert(offsetof(struct TELinkInfo, intent) == 4, kStructAlignmentError);
+static_assert(offsetof(struct TELinkInfo, type) == 8, kStructAlignmentError);
+static_assert(offsetof(struct TELinkInfo, count) == 16, kStructAlignmentError);
+static_assert(offsetof(struct TELinkInfo, label) == 24, kStructAlignmentError);
+static_assert(offsetof(struct TELinkInfo, identifier) == 40, kStructAlignmentError);
 static_assert(offsetof(struct TEStringArray, strings) == 8, kStructAlignmentError);
 
 TE_ASSUME_NONNULL_END

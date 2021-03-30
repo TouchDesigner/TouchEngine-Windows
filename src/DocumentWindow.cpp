@@ -366,15 +366,15 @@ void DocumentWindow::eventCallback(TEInstance * instance,
     }
 }
 
-void DocumentWindow::parameterEventCallback(TEInstance * instance, TEParameterEvent event, const char *identifier, void * info)
+void DocumentWindow::parameterEventCallback(TEInstance * instance, TELinkEvent event, const char *identifier, void * info)
 {
 	DocumentWindow* doc = static_cast<DocumentWindow*>(info);
 	switch (event)
 	{
-	case TEParameterEventAdded:
+	case TELinkEventAdded:
 		doc->parameterLayoutDidChange();
 		break;
-	case TEParameterEventValueChange:
+	case TELinkEventValueChange:
         doc->parameterValueChange(identifier);
 		break;
 	default:
@@ -385,28 +385,28 @@ void DocumentWindow::parameterEventCallback(TEInstance * instance, TEParameterEv
 void DocumentWindow::parameterValueChange(const char* identifier)
 {
 	std::lock_guard<std::mutex> guard(myMutex);
-	TEParameterInfo* param = nullptr;
-	TEResult result = TEInstanceParameterGetInfo(myInstance, identifier, &param);
+	TELinkInfo* param = nullptr;
+	TEResult result = TEInstanceLinkGetInfo(myInstance, identifier, &param);
 	if (result == TEResultSuccess && param->scope == TEScopeOutput)
 	{
 		switch (param->type)
 		{
-		case TEParameterTypeDouble:
+		case TELinkTypeDouble:
 		{
 			double value;
-			result = TEInstanceParameterGetDoubleValue(myInstance, identifier, TEParameterValueCurrent, &value, 1);
+			result = TEInstanceLinkGetDoubleValue(myInstance, identifier, TELinkValueCurrent, &value, 1);
 			break;
 		}
-		case TEParameterTypeInt:
+		case TELinkTypeInt:
 		{
 			int32_t value;
-			result = TEInstanceParameterGetIntValue(myInstance, identifier, TEParameterValueCurrent, &value, 1);
+			result = TEInstanceLinkGetIntValue(myInstance, identifier, TELinkValueCurrent, &value, 1);
 			break;
 		}
-		case TEParameterTypeString:
+		case TELinkTypeString:
 		{
 			TEString* value;
-			result = TEInstanceParameterGetStringValue(myInstance, identifier, TEParameterValueCurrent, &value);
+			result = TEInstanceLinkGetStringValue(myInstance, identifier, TELinkValueCurrent, &value);
 			if (result == TEResultSuccess)
 			{
 				// Use value->string here
@@ -414,16 +414,16 @@ void DocumentWindow::parameterValueChange(const char* identifier)
 			}
 			break;
 		}
-		case TEParameterTypeTexture:
+		case TELinkTypeTexture:
 		{
 			// Stash the state, we don't do any actual renderer work from this thread
 			myPendingOutputTextures.push_back(identifier);
 			break;
 		}
-		case TEParameterTypeFloatBuffer:
+		case TELinkTypeFloatBuffer:
 		{
 			TEFloatBuffer* buffer = nullptr;
-			result = TEInstanceParameterGetFloatBufferValue(myInstance, identifier, TEParameterValueCurrent, &buffer);
+			result = TEInstanceLinkGetFloatBufferValue(myInstance, identifier, TELinkValueCurrent, &buffer);
 
 			if (result == TEResultSuccess)
 			{
@@ -441,10 +441,10 @@ void DocumentWindow::parameterValueChange(const char* identifier)
 			}
 			break;
 		}
-		case TEParameterTypeStringData:
+		case TELinkTypeStringData:
 		{
 			TEObject* value = nullptr;
-			result = TEInstanceParameterGetObjectValue(myInstance, identifier, TEParameterValueCurrent, &value);
+			result = TEInstanceLinkGetObjectValue(myInstance, identifier, TELinkValueCurrent, &value);
 			// String data can be a TETable or TEString, so check the type
 			if (value && TEGetType(value) == TEObjectTypeTable)
 			{
@@ -584,55 +584,55 @@ void DocumentWindow::render()
     if (myDidLoad && !myInFrame)
     {
 		TEStringArray *groups;
-		TEResult result = TEInstanceGetParameterGroups(myInstance, TEScopeInput, &groups);
+		TEResult result = TEInstanceGetLinkGroups(myInstance, TEScopeInput, &groups);
         if (result == TEResultSuccess)
         {
             int textureCount = 0;
             for (int32_t i = 0; i < groups->count; i++)
             {
 				TEStringArray *children;
-				result = TEInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
+				result = TEInstanceLinkGetChildren(myInstance, groups->strings[i], &children);
 				if (result == TEResultSuccess)
                 {
                     for (int32_t j = 0; j < children->count; j++)
                     {
-						TEParameterInfo *info;
-						result = TEInstanceParameterGetInfo(myInstance, children->strings[j], &info);
+						TELinkInfo *info;
+						result = TEInstanceLinkGetInfo(myInstance, children->strings[j], &info);
 						if (result == TEResultSuccess)
                         {
                             switch (info->type)
                             {
-                            case TEParameterTypeDouble:
+                            case TELinkTypeDouble:
 							{
 								double d = fmod(myLastFloatValue, 1.0);
-								result = TEInstanceParameterSetDoubleValue(myInstance, info->identifier, &d, 1);
+								result = TEInstanceLinkSetDoubleValue(myInstance, info->identifier, &d, 1);
 								break;
 							}
-                            case TEParameterTypeInt:
+                            case TELinkTypeInt:
 							{
 								int v = static_cast<int>(myLastFloatValue * 00) % 100;
-								result = TEInstanceParameterSetIntValue(myInstance, info->identifier, &v, 1);
+								result = TEInstanceLinkSetIntValue(myInstance, info->identifier, &v, 1);
 								break;
 							}
-                            case TEParameterTypeString:
-                                result = TEInstanceParameterSetStringValue(myInstance, info->identifier, "test input");
+                            case TELinkTypeString:
+                                result = TEInstanceLinkSetStringValue(myInstance, info->identifier, "test input");
                                 break;
-                            case TEParameterTypeTexture:
+                            case TELinkTypeTexture:
                             {
                                 TED3D11Texture *texture = myRenderer->createLeftSideImage(textureCount);
 								if (texture)
 								{
-									result = TEInstanceParameterSetTextureValue(myInstance, info->identifier, texture, myRenderer->getTEContext());
+									result = TEInstanceLinkSetTextureValue(myInstance, info->identifier, texture, myRenderer->getTEContext());
 									TERelease(&texture);
 								}
                                 textureCount++;
                                 break;
                             }
-                            case TEParameterTypeFloatBuffer:
+                            case TELinkTypeFloatBuffer:
                             {
 								TEFloatBuffer *buffer = nullptr;
 								// Creating a copy of an existing buffer is more efficient than creating a new one every time
-								result = TEInstanceParameterGetFloatBufferValue(myInstance, info->identifier, TEParameterValueCurrent, &buffer);
+								result = TEInstanceLinkGetFloatBufferValue(myInstance, info->identifier, TELinkValueCurrent, &buffer);
 								if (result == TEResultSuccess)
 								{
 									// You might want to check more properties of the buffer than this
@@ -657,20 +657,20 @@ void DocumentWindow::render()
 									std::array<const float *, 2> channels{ &value, &value };
 									TEFloatBufferSetValues(buffer, channels.data(), 1);
 
-									result = TEInstanceParameterSetFloatBufferValue(myInstance, info->identifier, buffer);
+									result = TEInstanceLinkSetFloatBufferValue(myInstance, info->identifier, buffer);
 
 									TERelease(&buffer);
 								}								
                                 break;
                             }
-							case TEParameterTypeStringData:
+							case TELinkTypeStringData:
 							{
 								// String data can be either tabular, in which case set a TETable, or a single string - here we set a table
-								// (use TEInstanceParameterSetStringValue() to set a string value)
+								// (use TEInstanceLinkSetStringValue() to set a string value)
 
 								// It is more efficient to create a copy of an existing table than to create a new one
 								TEObject *value= nullptr;
-								result = TEInstanceParameterGetObjectValue(myInstance, info->identifier, TEParameterValueCurrent, &value);
+								result = TEInstanceLinkGetObjectValue(myInstance, info->identifier, TELinkValueCurrent, &value);
 
 								if (result == TEResultSuccess)
 								{
@@ -691,7 +691,7 @@ void DocumentWindow::render()
 											TETableSetStringValue(table, row, column, "test");
 										}
 									}
-									result = TEInstanceParameterSetTableValue(myInstance, info->identifier, table);
+									result = TEInstanceLinkSetTableValue(myInstance, info->identifier, table);
 
 									TERelease(&table);
 								}
@@ -751,13 +751,13 @@ void DocumentWindow::applyLayoutChange()
     for (auto scope : { TEScopeInput, TEScopeOutput })
     {
         TEStringArray *groups;
-        TEResult result = TEInstanceGetParameterGroups(myInstance, scope, &groups);
+        TEResult result = TEInstanceGetLinkGroups(myInstance, scope, &groups);
         if (result == TEResultSuccess)
         {
             for (int32_t i = 0; i < groups->count; i++)
             {
-                TEParameterInfo *group;
-                result = TEInstanceParameterGetInfo(myInstance, groups->strings[i], &group);
+                TELinkInfo *group;
+                result = TEInstanceLinkGetInfo(myInstance, groups->strings[i], &group);
                 if (result == TEResultSuccess)
                 {
                     // Use group info here
@@ -766,17 +766,17 @@ void DocumentWindow::applyLayoutChange()
                 TEStringArray *children = nullptr;
                 if (result == TEResultSuccess)
                 {
-                    result = TEInstanceParameterGetChildren(myInstance, groups->strings[i], &children);
+                    result = TEInstanceLinkGetChildren(myInstance, groups->strings[i], &children);
                 }
                 if (result == TEResultSuccess)
                 {
                     for (int32_t j = 0; j < children->count; j++)
                     {
-                        TEParameterInfo *info;
-                        result = TEInstanceParameterGetInfo(myInstance, children->strings[j], &info);
+                        TELinkInfo *info;
+                        result = TEInstanceLinkGetInfo(myInstance, children->strings[j], &info);
                         if (result == TEResultSuccess)
                         {
-                            if (result == TEResultSuccess && info->type == TEParameterTypeTexture)
+                            if (result == TEResultSuccess && info->type == TELinkTypeTexture)
                             {
                                 if (scope == TEScopeInput)
                                 {
@@ -822,7 +822,7 @@ void DocumentWindow::applyOutputTextureChange()
     for (const auto & identifier : changes)
     {
         TETexture *texture = nullptr;
-        TEResult result = TEInstanceParameterGetTextureValue(myInstance, identifier.c_str(), TEParameterValueCurrent, &texture);
+        TEResult result = TEInstanceLinkGetTextureValue(myInstance, identifier.c_str(), TELinkValueCurrent, &texture);
         if (result == TEResultSuccess)
         {
             size_t imageIndex = myOutputParameterTextureMap[identifier];
