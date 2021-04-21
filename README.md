@@ -7,7 +7,7 @@ TouchEngine provides an API to load and render TouchDesigner components.
 Instances And TouchDesigner Installations
 -----------------------------------------
 
-TouchEngine requires users have an installed version of TouchDesigner to work with loaded components. TouchEngine will locate an installed version suitable for use on the user's system.
+TouchEngine requires an installed version of TouchDesigner to load and work with components. TouchEngine will locate an installed version suitable for use on the user's system.
 
 Users can specify a particular version to use by including a folder named "TouchEngine" alongside the component .tox being loaded. This folder is a renamed TouchDesigner installation directory (on Windows) or application (on macOS), or a file-system link to an installation or application location (either a symbolic link or a Windows Explorer shortcut or macOS Finder alias).
 
@@ -15,7 +15,7 @@ Users can specify a particular version to use by including a folder named "Touch
 TEObjects
 ---------
 
-Objects created or returned from the TouchEngine API are reference-counted, and you take ownership of objects from the API. If you use an API function with "Create" or "Get" in its name which returns a TEObject (including via a function argument), you must use `TERelease()` when you are finished with the object.
+Objects created or returned from the TouchEngine API are reference-counted, and you take ownership of objects returned to you from the API. If you use an API function with "Create" or "Get" in its name which returns a TEObject (including via a function argument), you must use `TERelease()` when you are finished with the object.
 
     TELinkInfo *info;
     TEResult result = TEInstanceLinkGetInfo(instance, identifier, &info);
@@ -66,7 +66,7 @@ Create an instance:
         // Continue to use the instance
     }
 
-If working with textures, create and associate a TEGraphicsContext suitable for your needs. Alternatively create and associate a TEAdapter so the instance does its work on the intended device. If neither are associated, the instance will select a device as it sees fit.
+If working with textures, create and associate a TEGraphicsContext suitable for your needs. A graphics context provides functionality to work with textures using your chosen graphics API. Alternatively you can create and associate a TEAdapter to indicate a device without the full functionality of a graphics context. If neither are associated, the instance will select a device as it sees fit.
 
     // See TEGraphicsContext.h to create a suitable context
     if (result == TEResultSuccess)
@@ -91,7 +91,7 @@ Load a component:
 
 Loading begins immediately.
 
-During loading you may receive link callbacks with the event TELinkEventAdded for any links on the instance.
+During loading you will receive link callbacks with the event TELinkEventAdded for any links on the instance.
 
 An instance is loaded suspended. Once configured, resuming the instance will permit rendering (and start playback in TETimeInternal mode):
 
@@ -125,7 +125,7 @@ To allow the most efficient memory re-use inside TouchEngine, for each input lin
 
 Time-dependent buffers can be added to the instance with `TEInstanceLinkAddFloatBuffer()`, which adds the buffer to an internal queue.
 
-Calling `TEInstanceLinkSetFloatBufferValue()` replaces any current value as well as clearing any time-dependent values previously queued.
+For static values, calling `TEInstanceLinkSetFloatBufferValue()` replaces any current value as well as clearing any time-dependent values previously queued.
 
 To receive time-dependent buffers from the instance, call `TEInstanceLinkGetFloatBufferValue()` from your `TEInstanceLinkCallback`. No further buffers will be received during the callback, allowing you to safely dequeue them without risk of loss.
 
@@ -192,3 +192,12 @@ If you need to use domains in UI, the two domains which users might expect to be
 |----------------------|----------|-------------|
 |TELinkDomainParameter |Parameter |par          |
 |TELinkDomainOperator  |Operator  |op           |
+
+
+Known Issues
+------------
+
+The following will be addressed in future updates:
+
+- Some texture formats will not work as expected
+- Compressed texture formats are not supported at all
