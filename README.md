@@ -199,7 +199,7 @@ TELinkTypeInt and TELinkTypeString can have a list of choices associated with th
         // The link does not have a menu
     }
 
-For TELinkTypeInt, the associated value for a menu item is its indexs. For TELinkTypeString, `TEInstanceLinkGetChoiceValues()` returns a list of values, ordered to match the labels. Note that this list should not be considered exhaustive and users should be allowed to enter their own values as well as those in this list.
+For TELinkTypeInt, the associated value for a menu item is its index. For TELinkTypeString, `TEInstanceLinkGetChoiceValues()` returns a list of values, ordered to match the labels. Note that this list should not be considered exhaustive and users should be allowed to enter their own values as well as those in this list.
 
 
 Allowing users to reference known TouchDesigner objects
