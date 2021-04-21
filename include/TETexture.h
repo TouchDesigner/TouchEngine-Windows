@@ -126,7 +126,6 @@ TE_EXPORT TEDXGITexture *TEDXGITextureCreate(HANDLE handle, bool flipped, TEDXGI
  the texture to permit sharing.
  The caller is responsible for releasing the returned TEDXGITexture using TERelease()
  */
-// TODO: this function may be removed from the API
 TE_EXPORT TEDXGITexture *TEDXGITextureCreateFromD3D(TED3D11Texture *texture);
 
 TE_EXPORT HANDLE TEDXGITextureGetHandle(TEDXGITexture *texture);

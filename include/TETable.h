@@ -67,8 +67,6 @@ TE_EXPORT void TETableResize(TETable *table, int32_t rows, int32_t columns);
  */
 TE_EXPORT TEResult TETableSetStringValue(TETable *table, int32_t row, int32_t column, const char *value);
 
-// TODO: add/delete rows/columns
-
 TE_ASSUME_NONNULL_END
 
 #ifdef __cplusplus
