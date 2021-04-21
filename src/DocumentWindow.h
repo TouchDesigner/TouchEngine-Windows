@@ -57,7 +57,6 @@ private:
     std::atomic<bool> myDidLoad;
     std::atomic<bool> myInFrame;
     double myLastFloatValue;
-    float myLastStreamValue;
     // TE param identifier to renderer index
     std::map<std::string, size_t> myOutputParameterTextureMap;
     std::mutex myMutex;

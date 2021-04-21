@@ -40,8 +40,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// TODO: Place code here.
-
 	// Initialize global strings
 	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadStringW(hInstance, IDC_TETESTHOST, szWindowClass, MAX_LOADSTRING);
@@ -272,16 +270,6 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
 {
     switch (message)
     {
-    case WM_COMMAND:
-    {
-        int wmId = LOWORD(wParam);
-        switch (wmId)
-        {
-        default:
-            return DefWindowProc(hWnd, message, wParam, lParam);
-        }
-    }
-    break;
     case WM_CLOSE:
     {
         KillTimer(hWnd, RenderTimerID);
@@ -299,14 +287,6 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
 		{
 			theOpenDocument = nullptr;
 		}
-        break;
-    }
-    case WM_LBUTTONUP:
-    {
-		if (theOpenDocument && theOpenDocument->getWindow() == hWnd)
-        {
-            // document->cancelFrame();
-        }
         break;
     }
 	case WM_SIZE:
@@ -431,13 +411,9 @@ void DocumentWindow::parameterValueChange(const char* identifier)
 				{
 					auto data = TEFloatBufferGetValues(buffer);
 					// we just grab the first sample in the first channel
-					myLastStreamValue = data[0][0];
-					TERelease(&buffer);
+					float value = data[0][0];
 				}
-				else
-				{
-					myLastStreamValue = 0.0;
-				}
+				TERelease(&buffer);
 			}
 			break;
 		}
@@ -474,7 +450,7 @@ void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TEResult r
 DocumentWindow::DocumentWindow(std::wstring path, Mode mode)
     : myPath(path), myMode(mode), myInstance(nullptr), myWindow(nullptr),
 	myRenderer(mode == Mode::DirectX ? static_cast<std::unique_ptr<Renderer>>(std::make_unique<DirectXRenderer>()) : static_cast<std::unique_ptr<Renderer>>(std::make_unique<OpenGLRenderer>())),
-	myDidLoad(false), myInFrame(false), myLastStreamValue(1.0f), myLastFloatValue(0.0), myPendingLayoutChange(false)
+	myDidLoad(false), myInFrame(false), myLastFloatValue(0.0), myPendingLayoutChange(false)
 {
 }
 
@@ -610,7 +586,7 @@ void DocumentWindow::render()
 							}
                             case TELinkTypeInt:
 							{
-								int v = static_cast<int>(myLastFloatValue * 00) % 100;
+								int v = static_cast<int>(myLastFloatValue * 100) % 100;
 								result = TEInstanceLinkSetIntValue(myInstance, info->identifier, &v, 1);
 								break;
 							}
@@ -668,7 +644,8 @@ void DocumentWindow::render()
 								// String data can be either tabular, in which case set a TETable, or a single string - here we set a table
 								// (use TEInstanceLinkSetStringValue() to set a string value)
 
-								// It is more efficient to create a copy of an existing table than to create a new one
+								// It is more efficient to create a copy of an existing table than to create a new one, so check
+								// for an existing table to re-use first.
 								TEObject *value= nullptr;
 								result = TEInstanceLinkGetObjectValue(myInstance, info->identifier, TELinkValueCurrent, &value);
 
@@ -717,14 +694,12 @@ void DocumentWindow::render()
         }
         else
         {
-            myLastStreamValue = 1.0;
             color[0] = 1.0f;
             color[1] = color[2] = 0.2f;
         }
     }
 
-    float intensity = (myLastStreamValue + 1.0f) / 2.0f;
-    myRenderer->setBackgroundColor(color[0] * intensity, color[1] * intensity, color[2] * intensity);
+    myRenderer->setBackgroundColor(color[0], color[1], color[2]);
     myRenderer->render();
 
 	myTime += 100;
