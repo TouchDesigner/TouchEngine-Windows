@@ -17,7 +17,7 @@ public:
     bool setup(DirectXDevice &device);
     void draw(DirectXDevice &device);
     void position(float x, float y);
-    void scale(float scale);
+    void scale(float scaleX, float scaleY);
     ID3D11Texture2D *getTexture() const;
     void update(DirectXTexture &texture);
 private:
@@ -36,6 +36,7 @@ private:
     ID3D11Buffer *myIndexBuffer;
     ID3D11Buffer *myConstantBuffer;
     bool myMatrixDirty;
-    float myScale;
+    float myScaleX{ 1.0 };
+    float myScaleY{ 1.0 };
 };
 

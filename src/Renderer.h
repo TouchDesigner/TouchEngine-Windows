@@ -13,7 +13,7 @@ public:
 	HWND getWindow() const { return myWindow; }
 	virtual DWORD getWindowStyleFlags() const { return 0; }
     virtual bool setup(HWND window);
-	virtual void resize(int width, int height) = 0;
+	virtual void resize(int width, int height);
 	virtual void stop();
     virtual bool render() = 0;
     void setBackgroundColor(float r, float g, float b);
@@ -29,6 +29,8 @@ public:
 protected:
     float myBackgroundColor[3];
 	TEGraphicsContext *myContext{ nullptr };
+	int myWidth{ 0 };
+	int myHeight{ 0 };
 private:
 	HWND myWindow;
 	std::vector<std::shared_ptr<TETexture *>> myRightSideImages;

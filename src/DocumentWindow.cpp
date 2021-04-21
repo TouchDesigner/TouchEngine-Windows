@@ -223,7 +223,9 @@ Open(HWND hWnd, DocumentWindow::Mode mode)
 	ofns.lStructSize = sizeof(OPENFILENAME);
 	ofns.lpstrFile = buffer;
 	ofns.nMaxFile = MAX_PATH;
-	ofns.lpstrTitle = L"Select a file to open plz";
+	ofns.lpstrTitle = L"Select a file to open";
+	ofns.lpstrFilter = _T("All Files\0*.*\0TouchDesigner Components\0*.TOX\0");
+	ofns.nFilterIndex = 2;
 	BOOL result = GetOpenFileName(&ofns);
 	if (result)
 	{
@@ -293,7 +295,9 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
 	{
 		if (theOpenDocument && theOpenDocument->getWindow() == hWnd)
 		{
-			theOpenDocument->myRenderer->resize(0, 0);
+			UINT width = LOWORD(lParam);
+			UINT height = HIWORD(lParam);
+			theOpenDocument->myRenderer->resize(width, height);
 		}
 		break;
 	}
@@ -407,11 +411,17 @@ void DocumentWindow::parameterValueChange(const char* identifier)
 
 			if (result == TEResultSuccess)
 			{
-				if (buffer && TEFloatBufferGetChannelCount(buffer) > 0 && TEFloatBufferGetValueCount(buffer) > 0)
+				uint32_t valueCount = TEFloatBufferGetValueCount(buffer);
+				int32_t channelCount = TEFloatBufferGetChannelCount(buffer);
+				if (buffer && channelCount > 0 && valueCount > 0)
 				{
-					auto data = TEFloatBufferGetValues(buffer);
-					// we just grab the first sample in the first channel
-					float value = data[0][0];
+					const float * const *data = TEFloatBufferGetValues(buffer);
+
+					for (int channel = 0; channel < channelCount; channel++)
+					{
+						// Here we just grab the first sample in the channel
+						float value = data[channel][0];
+					}
 				}
 				TERelease(&buffer);
 			}
@@ -478,7 +488,7 @@ const std::wstring DocumentWindow::getPath() const
 void DocumentWindow::openWindow(HWND parent)
 {
     RECT rc;
-    SetRect(&rc, 0, 0, 640, 480);
+    SetRect(&rc, 0, 0, InitialWindowWidth, InitialWindowHeight);
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
 
     std::wstring title = getPath();
@@ -516,6 +526,10 @@ void DocumentWindow::openWindow(HWND parent)
     {
         result = myRenderer->setup(myWindow) ? S_OK : EIO;
     }
+	if (SUCCEEDED(result))
+	{
+		myRenderer->resize(InitialWindowWidth, InitialWindowHeight);
+	}
 	if (SUCCEEDED(result))
 	{
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;

@@ -3,20 +3,20 @@
 #include "DirectXDevice.h"
 
 DirectXImage::DirectXImage()
-    : Drawable(), myVertexBuffer(nullptr), myIndexBuffer(nullptr), myConstantBuffer(nullptr), myMatrixDirty(true), myScale(1.0f)
+    : Drawable(), myVertexBuffer(nullptr), myIndexBuffer(nullptr), myConstantBuffer(nullptr), myMatrixDirty(true)
 {
 }
 
 DirectXImage::DirectXImage(DirectXTexture & texture)
     : Drawable(0.0f, 0.0f, static_cast<float>(texture.getWidth()), static_cast<float>(texture.getHeight())),
-    myTexture(texture), myVertexBuffer(nullptr), myIndexBuffer(nullptr), myConstantBuffer(nullptr), myMatrixDirty(true), myScale(1.0)
+    myTexture(texture), myVertexBuffer(nullptr), myIndexBuffer(nullptr), myConstantBuffer(nullptr), myMatrixDirty(true)
 {
 }
 
 DirectXImage::DirectXImage(DirectXImage && other)
-    : myTexture(other.myTexture),
+    : Drawable(other), myTexture(other.myTexture),
     myVertexBuffer(other.myVertexBuffer), myIndexBuffer(other.myIndexBuffer), myConstantBuffer(other.myConstantBuffer),
-    myMatrixDirty(true), myScale(1.0)
+    myMatrixDirty(true), myScaleX(other.myScaleX), myScaleY(other.myScaleY)
 {
     other.myVertexBuffer = nullptr;
     other.myIndexBuffer = nullptr;
@@ -76,8 +76,9 @@ void DirectXImage::draw(DirectXDevice &device)
         {
             ConstantBuffer cbuffer;
 
+            float ratio = height / width;
             cbuffer.matrix = DirectX::XMMatrixIdentity();
-            cbuffer.matrix *= DirectX::XMMatrixScaling(myScale, myScale, 1.0f);
+            cbuffer.matrix *= DirectX::XMMatrixScaling(myScaleX, myScaleY * ratio, 1.0f);
             cbuffer.matrix *= DirectX::XMMatrixTranslation(x, y, 0);
             cbuffer.matrix = DirectX::XMMatrixTranspose(cbuffer.matrix);
             cbuffer.flip.x = myTexture.getFlipped();
@@ -110,11 +111,12 @@ void DirectXImage::position(float newx, float newy)
     }
 }
 
-void DirectXImage::scale(float scale)
+void DirectXImage::scale(float scaleX, float scaleY)
 {
-    if (myScale != scale)
+    if (myScaleX != scaleX || myScaleY != scaleY)
     {
-        myScale = scale;
+        myScaleX = scaleX;
+        myScaleY = scaleY;
         myMatrixDirty = true;
     }
 }

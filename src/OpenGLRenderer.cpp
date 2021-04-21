@@ -116,6 +116,8 @@ bool OpenGLRenderer::setup(HWND window)
 
 void OpenGLRenderer::resize(int width, int height)
 {
+	Renderer::resize(width, height);
+
     wglMakeCurrent(myDC, myRenderingContext);
 
     glViewport(0, 0, width, height);
@@ -251,9 +253,10 @@ void OpenGLRenderer::drawImages(std::vector<OpenGLImage>& images, float scale, f
     float numImages = (1.0f / scale) - 1.0f;
     float spacing = 1.0f / numImages;
     float yOffset = 1.0f - spacing;
+	float ratio = static_cast<float>(myHeight) / myWidth;
     for (auto &image : images)
     {
-        image.scale(scale);
+        image.scale(scale * ratio, scale);
         image.position(xOffset, yOffset);
         image.draw();
         yOffset -= spacing * 2;

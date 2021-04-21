@@ -35,21 +35,22 @@ bool OpenGLImage::setup(GLint vertexAttribLocation, GLint textureAttribLocation)
     return true;
 }
 
-void OpenGLImage::position(float x, float y)
+void OpenGLImage::position(float newx, float newy)
 {
-    if (x != myX || y != myY)
+    if (newx != x || newy != y)
     {
-        myX = x;
-        myY = y;
+        x = newx;
+        y = newy;
         myDirty = true;
     }
 }
 
-void OpenGLImage::scale(float s)
+void OpenGLImage::scale(float scaleX, float scaleY)
 {
-    if (s != myScale)
+    if (scaleX != myScaleX || scaleY != myScaleY)
     {
-        myScale = s;
+        myScaleX = scaleX;
+        myScaleY = scaleY;
         myDirty = true;
     }
 }
@@ -60,11 +61,13 @@ void OpenGLImage::draw()
     {
         glBindBuffer(GL_ARRAY_BUFFER, myVBO);
 
+        float ratio = width == 0.0 ? 1.0 : height / width;
+
         GLfloat vertices[] = {
-            (-1.0f * myScale) + myX,   (-1.0f * myScale) + myY,   0.0f,    myTexture.getFlipped() ? 1.0f : 0.0f,
-            (-1.0f * myScale) + myX,    (1.0f * myScale) + myY,   0.0f,    myTexture.getFlipped() ? 0.0f : 1.0f,
-            (1.0f * myScale) + myX,   (-1.0f * myScale) + myY,   1.0f,    myTexture.getFlipped() ? 1.0f : 0.0f,
-            (1.0f * myScale) + myX,    (1.0f * myScale) + myY,   1.0f,    myTexture.getFlipped() ? 0.0f : 1.0f
+            (-1.0f * myScaleX) + x,   (-1.0f * myScaleY * ratio) + y,   0.0f,    myTexture.getFlipped() ? 1.0f : 0.0f,
+            (-1.0f * myScaleX) + x,    (1.0f * myScaleY * ratio) + y,   0.0f,    myTexture.getFlipped() ? 0.0f : 1.0f,
+            (1.0f * myScaleX) + x,   (-1.0f * myScaleY * ratio) + y,   1.0f,    myTexture.getFlipped() ? 1.0f : 0.0f,
+            (1.0f * myScaleX) + x,    (1.0f * myScaleY * ratio) + y,   1.0f,    myTexture.getFlipped() ? 0.0f : 1.0f
         };
 
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -90,6 +93,8 @@ void OpenGLImage::update(const OpenGLTexture & texture)
 {
     if (myTexture.getWidth() != texture.getWidth() || myTexture.getHeight() != texture.getHeight() || myTexture.getFlipped() != texture.getFlipped())
     {
+        width = texture.getWidth();
+        height = texture.getHeight();
         myDirty = true;
     }
     myTexture = texture;

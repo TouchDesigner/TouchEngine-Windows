@@ -58,6 +58,7 @@ bool DirectXRenderer::setup(HWND window)
 
 void DirectXRenderer::resize(int width, int height)
 {
+    Renderer::resize(width, height);
 	myDevice.resize();
 }
 
@@ -159,9 +160,10 @@ void DirectXRenderer::drawImages(std::vector<DirectXImage>& images, float scale,
     float numImages = (1.0f / scale) - 1.0f;
     float spacing = 1.0f / numImages;
     float yOffset = 1.0f - spacing;
+    float ratio = static_cast<float>(myHeight) / myWidth;
     for (auto &image : images)
     {
-        image.scale(scale);
+        image.scale(scale * ratio, scale);
         image.position(xOffset, yOffset);
         image.draw(myDevice);
         yOffset -= spacing * 2;

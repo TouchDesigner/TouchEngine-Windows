@@ -18,6 +18,12 @@ bool Renderer::setup(HWND window)
 	return true;
 }
 
+void Renderer::resize(int width, int height)
+{
+	myWidth = width;
+	myHeight = height;
+}
+
 void Renderer::stop()
 {
 	myRightSideImages.clear();

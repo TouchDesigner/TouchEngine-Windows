@@ -45,6 +45,8 @@ private:
     static const int64_t InputSamplesPerFrame;
     static const UINT_PTR RenderTimerID;
 	static constexpr int32_t TimeRate{ 6000 };
+    static constexpr UINT InitialWindowWidth{ 640 };
+    static constexpr UINT InitialWindowHeight{ 480 };
     void parameterValueChange(const char* identifier);
     void endFrame(int64_t time_value, int32_t time_scale, TEResult result);
     void applyLayoutChange();
