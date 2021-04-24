@@ -257,7 +257,7 @@ void DirectXDevice::updateSubresource(ID3D11Resource * resource, const void * da
 
 void DirectXDevice::updateSubresource(ID3D11Resource * resource, const void * data, size_t bytesPerRow, size_t bytesPerImage)
 {
-	myDeviceContext->UpdateSubresource(resource, 0, nullptr, data, static_cast<UINT>(bytesPerRow), bytesPerImage);
+	myDeviceContext->UpdateSubresource(resource, 0, nullptr, data, static_cast<UINT>(bytesPerRow), static_cast<UINT>(bytesPerImage));
 }
 
 void DirectXDevice::generateMips(ID3D11ShaderResourceView *view)

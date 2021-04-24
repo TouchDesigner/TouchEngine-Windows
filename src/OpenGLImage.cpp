@@ -61,7 +61,7 @@ void OpenGLImage::draw()
     {
         glBindBuffer(GL_ARRAY_BUFFER, myVBO);
 
-        float ratio = width == 0.0 ? 1.0 : height / width;
+        float ratio = width == 0.0f ? 1.0f : height / width;
 
         GLfloat vertices[] = {
             (-1.0f * myScaleX) + x,   (-1.0f * myScaleY * ratio) + y,   0.0f,    myTexture.getFlipped() ? 1.0f : 0.0f,
@@ -93,8 +93,8 @@ void OpenGLImage::update(const OpenGLTexture & texture)
 {
     if (myTexture.getWidth() != texture.getWidth() || myTexture.getHeight() != texture.getHeight() || myTexture.getFlipped() != texture.getFlipped())
     {
-        width = texture.getWidth();
-        height = texture.getHeight();
+        width = float(texture.getWidth());
+        height = float(texture.getHeight());
         myDirty = true;
     }
     myTexture = texture;
