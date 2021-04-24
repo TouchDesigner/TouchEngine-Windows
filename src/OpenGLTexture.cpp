@@ -21,7 +21,7 @@ OpenGLTexture::OpenGLTexture(const unsigned char * rgba, size_t bytesPerRow, GLs
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glBindTexture(GL_TEXTURE_2D, 0);
-    myName = std::shared_ptr<GLuint>(new GLuint(name), [](auto p) {
+    myName = std::shared_ptr<GLuint>(new GLuint(name), [](GLuint* p) {
         glDeleteTextures(1, p);
         delete p;
     });
@@ -30,7 +30,7 @@ OpenGLTexture::OpenGLTexture(const unsigned char * rgba, size_t bytesPerRow, GLs
 OpenGLTexture::OpenGLTexture(GLuint name, GLsizei width, GLsizei height, bool flipped, std::function<void()> releaseCallback)
     : myWidth(width), myHeight(height), myFlipped(flipped)
 {
-    myName = std::shared_ptr<GLuint>(new GLuint(name), [releaseCallback](auto p) {
+    myName = std::shared_ptr<GLuint>(new GLuint(name), [releaseCallback](GLuint* p) {
         releaseCallback();
         delete p;
     });
