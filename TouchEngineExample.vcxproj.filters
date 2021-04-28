@@ -115,7 +115,7 @@
     <Image Include="src/small.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="src/TouchEngineTestHost.ico">
+    <Image Include="src/TouchEngineExample.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
@@ -134,7 +134,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="src/TouchEngineTestHost.rc">
+    <ResourceCompile Include="src/TouchEngineExample.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
