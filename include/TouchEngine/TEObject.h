@@ -16,7 +16,7 @@
 #ifndef TEObject_h
 #define TEObject_h
 
-#include "TEBase.h"
+#include <TouchEngine/TEBase.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -40,15 +40,14 @@ typedef TE_ENUM(TEObjectType, int32_t)
 	TEObjectTypeFloatBuffer
 };
 
-typedef struct TEObject_ TEObject;
+typedef void TEObject;
 
 /*
  Retains a TEObject, incrementing its reference count. If you retain an object,
  you are responsible for releasing it (using TERelease()).
  Returns the input value.
  */
-#define TERetain(x) TERetain_((TEObject *)(x))
-TE_EXPORT TEObject *TERetain_(TEObject *object);
+TE_EXPORT TEObject *TERetain(TEObject *object);
 
 /*
  Releases a TEObject, decrementing its reference count. When the last reference
@@ -61,8 +60,7 @@ TE_EXPORT void TERelease_(TEObject * TE_NULLABLE * TE_NULLABLE object);
 /*
  Returns the type of a TEObject.
  */
-#define TEGetType(x) TEGetType_((TEObject *)(x))
-TE_EXPORT TEObjectType TEGetType_(TEObject *object);
+TE_EXPORT TEObjectType TEGetType(const TEObject *object);
 
 TE_ASSUME_NONNULL_END
 

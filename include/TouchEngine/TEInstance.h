@@ -16,9 +16,9 @@
 #ifndef TEInstance_h
 #define TEInstance_h
 
-#include "TEObject.h"
-#include "TEResult.h"
-#include "TETexture.h"
+#include <TouchEngine/TEObject.h>
+#include <TouchEngine/TEResult.h>
+#include <TouchEngine/TETexture.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <assert.h>
@@ -232,11 +232,11 @@ typedef TE_ENUM(TELinkDomain, int32_t)
 	TELinkDomainOperator,
 };
 
-typedef TEObject TEInstance;
-typedef TEObject TEAdapter;
+typedef struct TEInstance_ TEInstance;
+typedef struct TEAdapter_ TEAdapter;
 typedef TEObject TEGraphicsContext;
-typedef TEObject TETable;
-typedef TEObject TEFloatBuffer;
+typedef struct TETable_ TETable;
+typedef struct TEFloatBuffer_ TEFloatBuffer;
 
 struct TELinkInfo
 {
@@ -420,9 +420,12 @@ TE_EXPORT TEResult TEInstanceSuspend(TEInstance *instance);
 /*
  Sets a frame-rate for an instance.
 
- This is an indication of the rate the instance can expect to be rendered at, in frames per second.
- 'numerator' is the numerator of the rate expressed as a rational number. For example for 60 FPS this value could be 60.
- 'denominator' is the denominator of the rate expressed as a rational number. For example for 60 FPS this value could be 1.
+ This is an indication of the rate the instance can expect to be rendered at, in frames per second,
+ expressed as a rational number.
+ Some possible values for numerator/denominator for 60 FPS are 60/1 or 60000/1000.
+ See also TEInstanceSetFloatFrameRate().
+ 'numerator' is the numerator of the rate expressed as a rational number.
+ 'denominator' is the denominator of the rate expressed as a rational number.
  */
 TE_EXPORT TEResult TEInstanceSetFrameRate(TEInstance *instance, int64_t numerator, int32_t denominator);
 
@@ -547,8 +550,11 @@ TE_EXPORT TEResult TEInstanceLinkGetStringValue(TEInstance *instance, const char
  A TEGraphicsContext can be used to convert the returned texture to any desired type.
  The caller is responsible for releasing the returned TETexture using TERelease()
  */
-TE_EXPORT TEResult TEInstanceLinkGetTextureValue(TEInstance *instance, const char *identifier, TELinkValue which, TETexture * TE_NULLABLE * TE_NONNULL value);
-
+#if defined(__APPLE__)
+TE_EXPORT TEResult TEInstanceLinkGetTextureValue(TEInstance *instance, const char *identifier, TELinkValue which, TEIOSurfaceTexture * TE_NULLABLE * TE_NONNULL value);
+#else
+TE_EXPORT TEResult TEInstanceLinkGetTextureValue(TEInstance *instance, const char *identifier, TELinkValue which, TEDXGITexture * TE_NULLABLE * TE_NONNULL value);
+#endif
 /*
  On successful completion 'value' is set to a TETable or NULL if no value is set.
  The caller is responsible for releasing the returned TETable using TERelease()
@@ -595,7 +601,7 @@ TE_EXPORT TEResult TEInstanceLinkSetStringValue(TEInstance *instance, const char
  	An OpenGL context may change the current framebuffer and GL_TEXTURE_2D bindings during this call.
 	This may be a different context than any previously passed to TEInstanceAssociateGraphicsContext().
  */
-TE_EXPORT TEResult TEInstanceLinkSetTextureValue(TEInstance *instance, const char *identifier, TETexture *TE_NULLABLE texture, TEGraphicsContext * TE_NULLABLE context);
+TE_EXPORT TEResult TEInstanceLinkSetTextureValue(TEInstance *instance, const char *identifier, const TETexture *TE_NULLABLE texture, TEGraphicsContext * TE_NULLABLE context);
 
 /*
  Sets the value of a float buffer input link, replacing any previously set value.
@@ -603,7 +609,7 @@ TE_EXPORT TEResult TEInstanceLinkSetTextureValue(TEInstance *instance, const cha
  This call is required even if a single buffer is used but modified between frames.
  'buffer' may be retained by the instance.
  */
-TE_EXPORT TEResult TEInstanceLinkSetFloatBufferValue(TEInstance *instance, const char *identifier, TEFloatBuffer * TE_NULLABLE buffer);
+TE_EXPORT TEResult TEInstanceLinkSetFloatBufferValue(TEInstance *instance, const char *identifier, const TEFloatBuffer * TE_NULLABLE buffer);
 
 /*
  Appends a float buffer for an input link receiving time-dependent values.
@@ -611,7 +617,7 @@ TE_EXPORT TEResult TEInstanceLinkSetFloatBufferValue(TEInstance *instance, const
  	TEInstanceStartFrameAtTime().
  'buffer' must be a time-dependent TEFloatBuffer, and may be retained by the instance.
  */
-TE_EXPORT TEResult TEInstanceLinkAddFloatBuffer(TEInstance *instance, const char *identifier, TEFloatBuffer * TE_NULLABLE buffer);
+TE_EXPORT TEResult TEInstanceLinkAddFloatBuffer(TEInstance *instance, const char *identifier, const TEFloatBuffer * TE_NULLABLE buffer);
 
 /*
  Sets the value of a table input link.
@@ -619,7 +625,7 @@ TE_EXPORT TEResult TEInstanceLinkAddFloatBuffer(TEInstance *instance, const char
  This call is required even if a single table is used but modified between frames.
  'table' may be retained by the instance.
  */
-TE_EXPORT TEResult TEInstanceLinkSetTableValue(TEInstance *instance, const char *identifier, TETable * TE_NULLABLE table);
+TE_EXPORT TEResult TEInstanceLinkSetTableValue(TEInstance *instance, const char *identifier, const TETable * TE_NULLABLE table);
 
 /*
  Sets the value of an input link.
@@ -627,7 +633,7 @@ TE_EXPORT TEResult TEInstanceLinkSetTableValue(TEInstance *instance, const char 
  An error will be returned if the link cannot be set using the provided TEObject.
  'value' may be retained by the instance
  */
-TE_EXPORT TEResult TEInstanceLinkSetObjectValue(TEInstance *instance, const char *identifier, TEObject * TE_NULLABLE object);
+TE_EXPORT TEResult TEInstanceLinkSetObjectValue(TEInstance *instance, const char *identifier, const TEObject * TE_NULLABLE object);
 
 #define kStructAlignmentError "struct misaligned for library"
 

@@ -12,6 +12,10 @@ class DirectXRenderer :
 public:
     DirectXRenderer();
     virtual ~DirectXRenderer();
+    virtual TEGraphicsContext* getTEContext() const override
+    {
+        return myContext;
+    }
     virtual bool setup(HWND window) override;
 	virtual void resize(int width, int height) override;
     virtual void stop() override;
@@ -27,6 +31,7 @@ public:
 private:
     void drawImages(std::vector<DirectXImage> &images, float scale, float xOffset);
     DirectXDevice myDevice;
+    TED3D11Context* myContext;
     ID3D11PixelShader *myPixelShader;
     VertexShader myVertexShader;
     std::vector<DirectXImage> myLeftSideImages;

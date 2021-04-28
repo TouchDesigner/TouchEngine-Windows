@@ -16,8 +16,8 @@
 #ifndef TEAdapter_h
 #define TEAdapter_h
 
-#include "TEObject.h"
-#include "TEResult.h"
+#include <TouchEngine/TEObject.h>
+#include <TouchEngine/TEResult.h>
 
 #ifdef __APPLE__
 #include <CoreGraphics/CGDirectDisplay.h>
@@ -29,7 +29,7 @@ extern "C" {
 
 TE_ASSUME_NONNULL_BEGIN
 
-typedef TEObject TEAdapter;
+typedef struct TEAdapter_ TEAdapter;
 
 #ifdef _WIN32
 struct IDXGIDevice;

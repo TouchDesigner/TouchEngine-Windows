@@ -16,9 +16,9 @@
 #ifndef TEGraphicsContext_h
 #define TEGraphicsContext_h
 
-#include "TEObject.h"
-#include "TEResult.h"
-#include "TETexture.h"
+#include <TouchEngine/TEObject.h>
+#include <TouchEngine/TEResult.h>
+#include <TouchEngine/TETexture.h>
 
 #ifdef __APPLE__
 	#include <OpenGL/OpenGL.h>
@@ -31,9 +31,9 @@ extern "C" {
 TE_ASSUME_NONNULL_BEGIN
 
 typedef TEObject TEGraphicsContext;
-typedef TEGraphicsContext TEOpenGLContext;
-typedef TEGraphicsContext TED3D11Context;
-typedef TEObject TEAdapter;
+typedef struct TEOpenGLContext_ TEOpenGLContext;
+typedef struct TED3D11Context_ TED3D11Context;
+typedef struct TEAdapter_ TEAdapter;
 
 #ifdef _WIN32
 struct ID3D11Device;

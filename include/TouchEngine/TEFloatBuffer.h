@@ -16,8 +16,8 @@
 #ifndef TEFloatBuffer_h
 #define TEFloatBuffer_h
 
-#include "TEObject.h"
-#include "TEResult.h"
+#include <TouchEngine/TEObject.h>
+#include <TouchEngine/TEResult.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +34,7 @@ typedef TE_ENUM(TEFloatBufferExtend, int32_t)
 	TEFloatBufferExtendConstant
 };
 
-typedef TEObject TEFloatBuffer;
+typedef struct TEFloatBuffer_ TEFloatBuffer;
 
 /*
  Creates a TEFloatBuffer instance for values which are not time-dependent.

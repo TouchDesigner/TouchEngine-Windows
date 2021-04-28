@@ -7,18 +7,18 @@
  * Otherwise, no redistribution or sharing of this file, with or without
  * modification, is permitted.
  *
- * TouchPlugIn
+ * TouchEngine
  *
  * Copyright © 2018 Derivative. All rights reserved.
  *
  */
 
-#include <TEBase.h>
-#include <TEResult.h>
-#include <TEObject.h>
-#include <TEInstance.h>
-#include <TETexture.h>
-#include <TEGraphicsContext.h>
-#include <TEAdapter.h>
-#include <TEFloatBuffer.h>
-#include <TETable.h>
+#include <TouchEngine/TEBase.h>
+#include <TouchEngine/TEResult.h>
+#include <TouchEngine/TEObject.h>
+#include <TouchEngine/TEInstance.h>
+#include <TouchEngine/TETexture.h>
+#include <TouchEngine/TEGraphicsContext.h>
+#include <TouchEngine/TEAdapter.h>
+#include <TouchEngine/TEFloatBuffer.h>
+#include <TouchEngine/TETable.h>

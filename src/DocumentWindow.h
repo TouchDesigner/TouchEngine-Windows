@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 #include <mutex>
-#include <TouchEngine.h>
+#include <TouchEngine/TouchEngine.h>
 #include "Renderer.h"
 
 class DocumentWindow

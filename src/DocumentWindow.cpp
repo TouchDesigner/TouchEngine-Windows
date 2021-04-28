@@ -609,7 +609,7 @@ void DocumentWindow::render()
                                 break;
                             case TELinkTypeTexture:
                             {
-                                TED3D11Texture *texture = myRenderer->createLeftSideImage(textureCount);
+                                TETexture *texture = myRenderer->createLeftSideImage(textureCount);
 								if (texture)
 								{
 									result = TEInstanceLinkSetTextureValue(myInstance, info->identifier, texture, myRenderer->getTEContext());
@@ -810,7 +810,7 @@ void DocumentWindow::applyOutputTextureChange()
 
     for (const auto & identifier : changes)
     {
-        TETexture *texture = nullptr;
+        TEDXGITexture *texture = nullptr;
         TEResult result = TEInstanceLinkGetTextureValue(myInstance, identifier.c_str(), TELinkValueCurrent, &texture);
         if (result == TEResultSuccess)
         {

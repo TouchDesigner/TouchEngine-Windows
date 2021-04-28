@@ -16,6 +16,10 @@ public:
 	virtual bool setup(HWND window);
     HDC getDC() const { return myDC; };
     HGLRC getRC() const { return myRenderingContext; };
+	virtual TEGraphicsContext* getTEContext() const override
+	{
+		return myContext;
+	}
 	virtual void resize(int width, int height) override;
 	virtual void stop();
 	virtual bool render();
@@ -38,6 +42,7 @@ private:
     GLint myTAIndex = -1;
 	HGLRC myRenderingContext = nullptr;
     HDC myDC = nullptr;
+	TEOpenGLContext* myContext = nullptr;
 	std::vector<OpenGLImage> myLeftSideImages;
     std::vector<OpenGLImage> myRightSideImages;
 };

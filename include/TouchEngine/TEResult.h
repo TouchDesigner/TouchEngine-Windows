@@ -16,7 +16,7 @@
 #ifndef TEResult_h
 #define TEResult_h
 
-#include "TEBase.h"
+#include <TouchEngine/TEBase.h>
 #include <stdint.h>
 
 #ifdef __cplusplus

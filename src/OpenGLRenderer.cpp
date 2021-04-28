@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "OpenGLRenderer.h"
-#include <TouchEngine.h>
+#include <TouchEngine/TouchEngine.h>
 
 const char *OpenGLRenderer::VertexShader = "#version 330\n\
 in vec2 vertCoord; \
@@ -213,7 +213,7 @@ void OpenGLRenderer::setRightSideImage(size_t index, TETexture * texture)
 	if (TETextureGetType(texture) == TETextureTypeDXGI)
 	{
 		TEOpenGLTexture *created = nullptr;
-		if (TEOpenGLContextCreateTexture(myContext, texture, &created) == TEResultSuccess)
+		if (TEOpenGLContextCreateTexture(myContext, static_cast<TEDXGITexture *>(texture), &created) == TEResultSuccess)
 		{
 			myRightSideImages.at(index).update(OpenGLTexture(TEOpenGLTextureGetName(created),
 				TEOpenGLTextureGetWidth(created),

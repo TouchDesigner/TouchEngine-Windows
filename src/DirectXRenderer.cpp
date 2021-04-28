@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "DirectXRenderer.h"
 #include "DirectXDevice.h"
-#include <TouchEngine.h>
+#include <TouchEngine/TouchEngine.h>
 #include <array>
 
 DirectXRenderer::DirectXRenderer()
@@ -126,7 +126,7 @@ void DirectXRenderer::setRightSideImage(size_t index, TETexture * texture)
 	if (texture && TETextureGetType(texture) == TETextureTypeDXGI)
 	{
 		TED3D11Texture *created = nullptr;
-		if (TED3D11ContextCreateTexture(myContext, texture, &created) == TEResultSuccess)
+		if (TED3D11ContextCreateTexture(myContext, static_cast<TEDXGITexture *>(texture), &created) == TEResultSuccess)
 		{
 			DirectXTexture tex(TED3D11TextureGetTexture(created), TETextureIsVerticallyFlipped(created));
 

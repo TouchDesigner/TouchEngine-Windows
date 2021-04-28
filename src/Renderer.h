@@ -1,7 +1,7 @@
 #pragma once
 
-#include <TEGraphicsContext.h>
-#include <TETexture.h>
+#include <TouchEngine/TEGraphicsContext.h>
+#include <TouchEngine/TETexture.h>
 #include <vector>
 #include <memory>
 
@@ -25,10 +25,9 @@ public:
 	virtual void addRightSideImage();
 	virtual void setRightSideImage(size_t index, TETexture *texture);
 	virtual void clearRightSideImages();
-	TEGraphicsContext *getTEContext() const { return myContext; }
+	virtual TEGraphicsContext* getTEContext() const = 0;
 protected:
     float myBackgroundColor[3];
-	TEGraphicsContext *myContext{ nullptr };
 	int myWidth{ 0 };
 	int myHeight{ 0 };
 private:

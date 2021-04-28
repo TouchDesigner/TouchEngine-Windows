@@ -163,11 +163,10 @@ Setting an input:
 
 Getting an output:
 
-    TETexture *value;
+    TEDXGITexture *value;
     TEResult result = TEInstanceLinkGetTextureValue(instance, identifier, TELinkValueCurrent, &value);
     if (result == TEResultSuccess &&
-        value != NULL &&
-        TETextureGetType(value) == TETextureTypeDXGI)
+        value != NULL)
     {
         TED3D11Texture *texture;
         result = TED3D11ContextCreateTexture(context, value, &texture);
