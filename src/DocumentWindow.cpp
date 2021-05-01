@@ -765,19 +765,21 @@ void DocumentWindow::applyLayoutChange()
                             {
                                 if (scope == TEScopeInput)
                                 {
-                                    std::array<unsigned char, 256 * 256 * 4> tex;
+                                    std::array<unsigned char, ImageWidth * ImageHeight * 4> tex;
 
-                                    for (int y = 0; y < 256; y++)
+                                    for (int y = 0; y < ImageHeight; y++)
                                     {
-                                        for (int x = 0; x < 256; x++)
+                                        for (int x = 0; x < ImageWidth; x++)
                                         {
-                                            tex[(y * 256 * 4) + (x * 4) + 0] = x;
-                                            tex[(y * 256 * 4) + (x * 4) + 1] = 0;
-                                            tex[(y * 256 * 4) + (x * 4) + 2] = getMode() == Mode::OpenGL ? 255 - y : y;
-                                            tex[(y * 256 * 4) + (x * 4) + 3] = 255;
+											unsigned char xColor = static_cast<double>(x) / (ImageWidth-1) * 255.;
+											unsigned char yColor = static_cast<double>(y) / (ImageHeight-1) * 255.;
+                                            tex[(y * ImageWidth * 4) + (x * 4) + 0] = xColor;
+                                            tex[(y * ImageWidth * 4) + (x * 4) + 1] = 0;
+                                            tex[(y * ImageWidth * 4) + (x * 4) + 2] = getMode() == Mode::OpenGL ? 255 - yColor : yColor;
+                                            tex[(y * ImageWidth * 4) + (x * 4) + 3] = 255;
                                         }
                                     }
-                                    myRenderer->addLeftSideImage(tex.data(), 256 * 4, 256, 256);
+                                    myRenderer->addLeftSideImage(tex.data(), ImageWidth * 4, ImageWidth, ImageHeight);
                                 }
                                 else
                                 {

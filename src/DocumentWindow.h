@@ -47,6 +47,8 @@ private:
 	static constexpr int32_t TimeRate{ 6000 };
     static constexpr UINT InitialWindowWidth{ 640 };
     static constexpr UINT InitialWindowHeight{ 480 };
+    static constexpr unsigned int ImageWidth{ 256 };
+    static constexpr unsigned int ImageHeight{ 256 };
     void parameterValueChange(const char* identifier);
     void endFrame(int64_t time_value, int32_t time_scale, TEResult result);
     void applyLayoutChange();
