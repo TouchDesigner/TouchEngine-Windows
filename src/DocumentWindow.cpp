@@ -330,10 +330,6 @@ void DocumentWindow::eventCallback(TEInstance * instance,
 {
     DocumentWindow *window = static_cast<DocumentWindow *>(info);
 
-    if (result != TEResultSuccess)
-    {
-        int i = 32;
-    }
     switch (event)
     {
     case TEEventInstanceDidLoad:
@@ -535,20 +531,20 @@ void DocumentWindow::openWindow(HWND parent)
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 		std::string utf8 = converter.to_bytes(getPath());
 
-		TEResult TEResult = TEInstanceCreate(eventCallback, parameterEventCallback, this, &myInstance);
-		if (result == TEResultSuccess)
+		TEResult teresult = TEInstanceCreate(eventCallback, parameterEventCallback, this, &myInstance);
+		if (teresult == TEResultSuccess)
 		{
-			result = TEInstanceAssociateGraphicsContext(myInstance, myRenderer->getTEContext());
+			teresult = TEInstanceAssociateGraphicsContext(myInstance, myRenderer->getTEContext());
 		}
-		if (result == TEResultSuccess)
+		if (teresult == TEResultSuccess)
 		{
-			result = TEInstanceLoad(myInstance, utf8.c_str(), TETimeInternal);
+			teresult = TEInstanceLoad(myInstance, utf8.c_str(), TETimeInternal);
 		}
-		if (result == TEResultSuccess)
+		if (teresult == TEResultSuccess)
 		{
-			result = TEInstanceResume(myInstance);
+			teresult = TEInstanceResume(myInstance);
 		}
-		assert(result == TEResultSuccess);
+		assert(teresult == TEResultSuccess);
 
         SetTimer(myWindow, RenderTimerID, 16, nullptr);
 	}

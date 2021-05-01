@@ -15,7 +15,6 @@ public:
     ID3D11Texture2D *getTexture() const;
     bool isValid() const;
     void setResourceAndSampler(ID3D11DeviceContext *context);
-	void fillAndGenerateMips(ID3D11DeviceContext *context, const unsigned char *src, int bytesPerRow, int width, int height);
     int getWidth() const;
     int getHeight() const;
     bool getFlipped() const;

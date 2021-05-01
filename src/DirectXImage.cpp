@@ -95,10 +95,6 @@ void DirectXImage::draw(DirectXDevice &device)
         device.setShaderResourceAndSampler(myTexture);
         device.drawIndexed(4);
     }
-    else
-    {
-        int i = 0;
-    }
 }
 
 void DirectXImage::position(float newx, float newy)
