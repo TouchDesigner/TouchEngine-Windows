@@ -31,7 +31,10 @@ OpenGLTexture::OpenGLTexture(GLuint name, GLsizei width, GLsizei height, bool fl
     : myWidth(width), myHeight(height), myFlipped(flipped)
 {
     myName = std::shared_ptr<GLuint>(new GLuint(name), [releaseCallback](GLuint* p) {
-        releaseCallback();
+        if (releaseCallback)
+        {
+            releaseCallback();
+        }
         delete p;
     });
 }

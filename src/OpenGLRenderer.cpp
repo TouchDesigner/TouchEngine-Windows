@@ -207,21 +207,23 @@ void OpenGLRenderer::addRightSideImage()
 	Renderer::addRightSideImage();
 }
 
-void OpenGLRenderer::setRightSideImage(size_t index, TETexture * texture)
+void OpenGLRenderer::setRightSideImage(size_t index, const TouchObject<TETexture>& texture)
 {
 	bool success = false;
 	if (TETextureGetType(texture) == TETextureTypeDXGI)
 	{
-		TEOpenGLTexture *created = nullptr;
-		if (TEOpenGLContextCreateTexture(myContext, static_cast<TEDXGITexture *>(texture), &created) == TEResultSuccess)
+		TouchObject<TEOpenGLTexture> created;
+		if (TEOpenGLContextCreateTexture(myContext, static_cast<TEDXGITexture *>(texture.get()), created.take()) == TEResultSuccess)
 		{
 			myRightSideImages.at(index).update(OpenGLTexture(TEOpenGLTextureGetName(created),
 				TEOpenGLTextureGetWidth(created),
 				TEOpenGLTextureGetHeight(created),
 				TETextureIsVerticallyFlipped(created),
-				[created]() {
-					TERelease(&created); // Release because we created it above
-			}));
+				[created]() mutable {
+					created.reset(); // release the TETexture when we are done with it
+					// in fact reset() needn't be called, we just want created to last
+				}));
+			
 			// Retains it for us
 			Renderer::setRightSideImage(index, created);
 			success = true;

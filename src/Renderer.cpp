@@ -46,21 +46,9 @@ void Renderer::addRightSideImage()
 	myRightSideImages.emplace_back();
 }
 
-void Renderer::setRightSideImage(size_t index, TETexture * texture)
+void Renderer::setRightSideImage(size_t index, const TouchObject<TETexture> &texture)
 {
-	if (texture)
-	{
-		TERetain(texture);
-
-		myRightSideImages[index] = std::shared_ptr<TETexture *>(new TETexture *(texture), [](TETexture **t) {
-			TERelease(t);
-			delete t;
-		});
-	}
-	else
-	{
-		myRightSideImages[index] = std::shared_ptr<TETexture *>();
-	}
+	myRightSideImages[index] = texture;
 }
 
 void Renderer::clearRightSideImages()

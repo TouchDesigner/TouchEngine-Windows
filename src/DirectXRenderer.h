@@ -25,7 +25,7 @@ public:
 	virtual TETexture *createLeftSideImage(size_t index) override;
     virtual void clearLeftSideImages() override;
     virtual void addRightSideImage() override;
-	virtual void setRightSideImage(size_t index, TETexture *texture) override;
+	virtual void setRightSideImage(size_t index, const TouchObject<TETexture> &texture) override;
     virtual void clearRightSideImages() override;
     ID3D11Device *getDevice() const { return myDevice.getDevice(); };
 private:

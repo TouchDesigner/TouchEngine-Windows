@@ -33,6 +33,8 @@ You can use `TERetain()` to increase the reference-count of an object.
 
 Some functions accept or return several types of TEObject. Use `TEGetType()` to check the type of a TEObject returned from such functions, then cast the value to the actual type.
 
+For C++ code, you may wish to use the `TouchObject` class in the example project, which wraps TEObjects and takes care of retain and release.
+
 
 Links
 -----

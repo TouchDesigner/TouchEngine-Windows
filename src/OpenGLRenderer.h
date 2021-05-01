@@ -28,7 +28,7 @@ public:
 	virtual TETexture *createLeftSideImage(size_t index);
 	virtual void clearLeftSideImages();
 	virtual void addRightSideImage();
-	virtual void setRightSideImage(size_t index, TETexture *texture);
+	virtual void setRightSideImage(size_t index, const TouchObject<TETexture> &texture) override;
 	virtual void clearRightSideImages();
 private:
     static const char *VertexShader;

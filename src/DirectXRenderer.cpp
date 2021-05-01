@@ -120,13 +120,13 @@ void DirectXRenderer::addRightSideImage()
 	Renderer::addRightSideImage();
 }
 
-void DirectXRenderer::setRightSideImage(size_t index, TETexture * texture)
+void DirectXRenderer::setRightSideImage(size_t index, const TouchObject<TETexture> &texture)
 {
 	bool success = false;
 	if (texture && TETextureGetType(texture) == TETextureTypeDXGI)
 	{
-		TED3D11Texture *created = nullptr;
-		if (TED3D11ContextCreateTexture(myContext, static_cast<TEDXGITexture *>(texture), &created) == TEResultSuccess)
+		TouchObject<TED3D11Texture> created;
+		if (TED3D11ContextCreateTexture(myContext, static_cast<TEDXGITexture *>(texture.get()), created.take()) == TEResultSuccess)
 		{
 			DirectXTexture tex(TED3D11TextureGetTexture(created), TETextureIsVerticallyFlipped(created));
 
@@ -134,8 +134,6 @@ void DirectXRenderer::setRightSideImage(size_t index, TETexture * texture)
 
 			// Renderer will TERetain the texture for us
 			Renderer::setRightSideImage(index, created);
-
-			TERelease(&created);
 
 			success = true;
 		}
