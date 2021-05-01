@@ -5,6 +5,23 @@ OpenGLImage::OpenGLImage()
 {
 }
 
+OpenGLImage::OpenGLImage(OpenGLImage&& o)
+    : myTexture(std::move(o.myTexture)), myVAO(o.myVAO), myVBO(o.myVBO), myScaleX(o.myScaleX), myScaleY(o.myScaleY), myDirty(o.myDirty)
+{
+    o.myVAO = 0;
+    o.myVBO = 0;
+}
+
+OpenGLImage& OpenGLImage::operator=(OpenGLImage&& o)
+{
+    myTexture = std::move(o.myTexture);
+    std::swap(myVAO, o.myVAO);
+    std::swap(myVBO, o.myVBO);
+    myScaleX = o.myScaleX;
+    myScaleY = o.myScaleY;
+    myDirty = o.myDirty;
+    return *this;
+}
 
 OpenGLImage::~OpenGLImage()
 {

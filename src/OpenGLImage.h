@@ -9,6 +9,10 @@ class OpenGLImage : public Drawable
 public:
     OpenGLImage();
     ~OpenGLImage();
+    OpenGLImage(const OpenGLImage& o) = delete;
+    OpenGLImage(OpenGLImage&& o);
+    OpenGLImage& operator=(const OpenGLImage& o) = delete;
+    OpenGLImage& operator=(OpenGLImage&& o);
     bool setup(GLint vertexAttribLocation, GLint textureAttribLocation);
     void position(float x, float y);
     void scale(float scaleX, float scaleY);
