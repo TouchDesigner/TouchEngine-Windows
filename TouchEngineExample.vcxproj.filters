@@ -110,7 +110,7 @@
     <ClInclude Include="src\OpenGLImage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\TouchObject.h">
+    <ClInclude Include="include\TouchEngine\TouchObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\TouchEngine\TEGraphicsContext.h">
