@@ -808,18 +808,13 @@ void DocumentWindow::applyOutputTextureChange()
 
     for (const auto & identifier : changes)
     {
-        TEDXGITexture *texture = nullptr;
-        TEResult result = TEInstanceLinkGetTextureValue(myInstance, identifier.c_str(), TELinkValueCurrent, &texture);
+        TouchObject<TEDXGITexture> texture;
+        TEResult result = TEInstanceLinkGetTextureValue(myInstance, identifier.c_str(), TELinkValueCurrent, texture.take());
         if (result == TEResultSuccess)
         {
             size_t imageIndex = myOutputParameterTextureMap[identifier];
 
             myRenderer->setRightSideImage(imageIndex, texture);
-
-            if (texture)
-            {
-                TERelease(&texture);
-            }
         }
     }
 }

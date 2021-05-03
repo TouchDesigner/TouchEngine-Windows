@@ -3,6 +3,38 @@
 #include <TouchEngine/TouchEngine.h>
 
 /*
+* TouchObject wraps TEObject types, managing reference counting through TERetain and TERelease
+* 
+* It has two methods for transferring an existing TEObject in:
+* "take" - takes over ownership of a TEObject (no call to TERetain on take, TERelease when the TouchObject is destroyed)
+* "set" - adds a reference, becoming an additional owner of the TEObject (calls TERetain on set, TERelease when the TouchObject is destroyed)
+* 
+* Construct a TouchObject from a TouchEngine function returning a TEObject, taking ownership of the object:
+* 
+*	TouchObject<TETable> table = TouchObject::make_take(TETableCreate());
+* 
+* Construct a TouchObject from a TouchEngine function returning a value through a parameter, taking ownership of the object:
+*
+*	TouchObject<TEDXGITexture> texture; // empty
+*	TEResult result = TEInstanceLinkGetTextureValue(myInstance, identifier.c_str(), TELinkValueCurrent, texture.take());
+*	if (result == TEResultSuccess)
+*	{
+*		// texture now contains a TETexture
+*	}
+*	// the TouchObject will release the TETexture when it goes out of scope
+* 
+* You can pass a TouchObject directly to TouchEngine functions:
+* 
+*	TouchObject<TETable> table = TouchObject::make_take(TETableCreate());
+*	TETableResize(table, 3, 2);
+* 
+* TouchObjects are copyable and assignable and you can use them in other objects, etc:
+* 
+*	std::vector<TouchObject<TETexture>> textures;
+* 
+*/
+
+/*
 * Utility for TouchObject
 */
 template <typename T, typename U, typename = void>
@@ -28,12 +60,16 @@ template <typename T>
 class TouchObject
 {
 public:
+	/*
+	* Empty TouchObject
+	*/
 	TouchObject()
-	{	};
-	
-	TouchObject(T* o)
-		: myObject(static_cast<T *>(TERetain(o)))
-	{	};
+	{	}
+	/*
+	* Empty TouchObject
+	*/
+	TouchObject(nullptr_t)
+	{	}
 
 	~TouchObject()
 	{
@@ -52,7 +88,7 @@ public:
 	
 	template <typename O, std::enable_if_t<TouchIsMemberOf<T, O>::value, int > = 0 >
 	TouchObject(const TouchObject<O>& o)
-		: TouchObject(o.get())
+		: myObject(static_cast<T *>(TERetain(o.get())))
 	{	};
 	
 	TouchObject& operator=(const TouchObject<T>& o)
@@ -96,6 +132,9 @@ public:
 		return myObject;
 	}
 	
+	/*
+	* Use set(T*) to become an additional owner of a TEObject.
+	*/
 	void set(T* o)
 	{
 		TERetain(o);
@@ -104,13 +143,33 @@ public:
 	}
 	
 	/*
-	* Use take() to pass to functions which return a TEObject through a parameter
+	* Use take() to take ownership from functions which return a TEObject through a parameter.
 	* This TouchObject takes ownership of the TEObject when it is returned.
 	*/
 	T** take()
 	{
 		TERelease(&myObject);
 		return &myObject;
+	}
+	/*
+	* Use take(T*) to transfer ownership of a TEObject to this TouchObject.
+	*/
+	void take(T* o)
+	{
+		TERelease(&myObject);
+		myObject = o;
+	}
+	static TouchObject<T> make_take(T* o)
+	{
+		TouchObject<T> obj;
+		obj.take(o);
+		return obj;
+	}
+	static TouchObject<T> make_set(T* o)
+	{
+		TouchObject<T> obj;
+		obj.set(o);
+		return obj;
 	}
 private:
 	T* myObject{ nullptr };
