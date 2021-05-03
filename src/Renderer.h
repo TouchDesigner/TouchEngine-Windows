@@ -15,12 +15,11 @@
 
 #pragma once
 
-#include <TouchEngine/TEGraphicsContext.h>
-#include <TouchEngine/TETexture.h>
+#include <TouchEngine/TouchEngine.h>
+#include <TouchEngine/TouchObject.h>
 #include <vector>
 #include <array>
 #include <memory>
-#include "TouchObject.h"
 
 class Renderer
 {

@@ -116,7 +116,7 @@
     <ClInclude Include="src/VertexShader.h" />
     <ClInclude Include="src\OpenGLImage.h" />
     <ClInclude Include="src\OpenGLProgram.h" />
-    <ClInclude Include="src\TouchObject.h" />
+    <ClInclude Include="include\TouchEngine\TouchObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/DirectXDevice.cpp" />

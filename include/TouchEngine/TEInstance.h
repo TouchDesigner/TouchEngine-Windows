@@ -251,7 +251,7 @@ struct TELinkInfo
 	TELinkIntent	intent;
 
 	/*
-	  The type of link
+	 The type of link
 	 */
 	TELinkType		type;
 
