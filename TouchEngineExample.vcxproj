@@ -88,6 +88,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\TouchEngine\TEAdapter.h" />
+    <ClInclude Include="include\TouchEngine\TEBase.h" />
+    <ClInclude Include="include\TouchEngine\TEFloatBuffer.h" />
+    <ClInclude Include="include\TouchEngine\TEGraphicsContext.h" />
+    <ClInclude Include="include\TouchEngine\TEInstance.h" />
+    <ClInclude Include="include\TouchEngine\TEObject.h" />
+    <ClInclude Include="include\TouchEngine\TEResult.h" />
+    <ClInclude Include="include\TouchEngine\TETable.h" />
+    <ClInclude Include="include\TouchEngine\TETexture.h" />
+    <ClInclude Include="include\TouchEngine\TouchEngine.h" />
     <ClInclude Include="src/DirectXDevice.h" />
     <ClInclude Include="src/DirectXImage.h" />
     <ClInclude Include="src/DirectXRenderer.h" />
