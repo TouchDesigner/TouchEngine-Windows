@@ -20,14 +20,14 @@
 #include <array>
 
 DirectXRenderer::DirectXRenderer()
-    : Renderer(), myDevice()
+	: Renderer(), myDevice()
 {
 }
 
 
 DirectXRenderer::~DirectXRenderer()
 {
-    
+	
 }
 
 bool DirectXRenderer::setup(HWND window)
@@ -39,28 +39,28 @@ bool DirectXRenderer::setup(HWND window)
 		// Create window resources with no depth-stencil buffer
 		result = myDevice.createWindowResources(getWindow(), false);
 	}
-    if (SUCCEEDED(result))
-    {
-        myPixelShader = myDevice.loadPixelShader(L"TestPixelShader.cso");
-        if (!myPixelShader)
-        {
-            result = EIO;
-        }
-    }
-    if (SUCCEEDED(result))
-    {
-        const D3D11_INPUT_ELEMENT_DESC layoutDescription[] =
-        {
-            { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-        };
+	if (SUCCEEDED(result))
+	{
+		myPixelShader = myDevice.loadPixelShader(L"TestPixelShader.cso");
+		if (!myPixelShader)
+		{
+			result = EIO;
+		}
+	}
+	if (SUCCEEDED(result))
+	{
+		const D3D11_INPUT_ELEMENT_DESC layoutDescription[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		};
 
-        myVertexShader = myDevice.loadVertexShader(L"TestVertexShader.cso", layoutDescription, ARRAYSIZE(layoutDescription));
-        if (!myVertexShader.isValid())
-        {
-            result = EIO;
-        }
-    }
+		myVertexShader = myDevice.loadVertexShader(L"TestVertexShader.cso", layoutDescription, ARRAYSIZE(layoutDescription));
+		if (!myVertexShader.isValid())
+		{
+			result = EIO;
+		}
+	}
 	if (SUCCEEDED(result))
 	{
 		if (TED3D11ContextCreate(myDevice.getDevice(), &myContext) != TEResultSuccess)
@@ -68,44 +68,44 @@ bool DirectXRenderer::setup(HWND window)
 			result = E_FAIL;
 		}
 	}
-    return SUCCEEDED(result);
+	return SUCCEEDED(result);
 }
 
 void DirectXRenderer::resize(int width, int height)
 {
-    Renderer::resize(width, height);
+	Renderer::resize(width, height);
 	myDevice.resize();
 }
 
 void DirectXRenderer::stop()
 {
-    myLeftSideImages.clear();
-    myRightSideImages.clear();
-    if (myPixelShader)
-    {
-        myPixelShader->Release();
-        myPixelShader = nullptr;
-    }
-    // Invalidate the vertex shader
-    myVertexShader = VertexShader();
+	myLeftSideImages.clear();
+	myRightSideImages.clear();
+	if (myPixelShader)
+	{
+		myPixelShader->Release();
+		myPixelShader = nullptr;
+	}
+	// Invalidate the vertex shader
+	myVertexShader = VertexShader();
 	myDevice.stop();
 }
 
 bool DirectXRenderer::render()
 { 
-    myDevice.setRenderTarget();
-    myDevice.clear(myBackgroundColor[0], myBackgroundColor[1], myBackgroundColor[2], 1.0f);
+	myDevice.setRenderTarget();
+	myDevice.clear(myBackgroundColor[0], myBackgroundColor[1], myBackgroundColor[2], 1.0f);
 
-    myDevice.setPixelShader(myPixelShader);
-    myDevice.setInputLayout(myVertexShader);
-    myDevice.setVertexShader(myVertexShader);
+	myDevice.setPixelShader(myPixelShader);
+	myDevice.setInputLayout(myVertexShader);
+	myDevice.setVertexShader(myVertexShader);
 
-    float scale = 1.0f / (max(myLeftSideImages.size(), myRightSideImages.size()) + 1.0f);
-    drawImages(myLeftSideImages, scale, -0.5f);
-    drawImages(myRightSideImages, scale, 0.5f);
+	float scale = 1.0f / (max(myLeftSideImages.size(), myRightSideImages.size()) + 1.0f);
+	drawImages(myLeftSideImages, scale, -0.5f);
+	drawImages(myRightSideImages, scale, 0.5f);
 
-    myDevice.present();
-    return true;
+	myDevice.present();
+	return true;
 }
 
 void DirectXRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesPerRow, int width, int height)
@@ -124,13 +124,13 @@ TETexture * DirectXRenderer::createLeftSideImage(size_t index)
 
 void DirectXRenderer::clearLeftSideImages()
 {
-    myLeftSideImages.clear();
+	myLeftSideImages.clear();
 }
 
 void DirectXRenderer::addRightSideImage()
 {
-    myRightSideImages.emplace_back();
-    myRightSideImages.back().setup(myDevice);
+	myRightSideImages.emplace_back();
+	myRightSideImages.back().setup(myDevice);
 
 	Renderer::addRightSideImage();
 }
@@ -163,22 +163,22 @@ void DirectXRenderer::setRightSideImage(size_t index, const TouchObject<TETextur
 
 void DirectXRenderer::clearRightSideImages()
 {
-    myRightSideImages.clear();
+	myRightSideImages.clear();
 
 	Renderer::clearRightSideImages();
 }
 
 void DirectXRenderer::drawImages(std::vector<DirectXImage>& images, float scale, float xOffset)
 {
-    float numImages = (1.0f / scale) - 1.0f;
-    float spacing = 1.0f / numImages;
-    float yOffset = 1.0f - spacing;
-    float ratio = static_cast<float>(myHeight) / myWidth;
-    for (auto &image : images)
-    {
-        image.scale(scale * ratio, scale);
-        image.position(xOffset, yOffset);
-        image.draw(myDevice);
-        yOffset -= spacing * 2;
-    }
+	float numImages = (1.0f / scale) - 1.0f;
+	float spacing = 1.0f / numImages;
+	float yOffset = 1.0f - spacing;
+	float ratio = static_cast<float>(myHeight) / myWidth;
+	for (auto &image : images)
+	{
+		image.scale(scale * ratio, scale);
+		image.position(xOffset, yOffset);
+		image.draw(myDevice);
+		yOffset -= spacing * 2;
+	}
 }

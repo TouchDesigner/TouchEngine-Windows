@@ -29,8 +29,8 @@ public:
 	virtual ~OpenGLRenderer();
 	virtual DWORD getWindowStyleFlags() const { return CS_OWNDC | WS_CLIPCHILDREN | WS_CLIPSIBLINGS; }
 	virtual bool setup(HWND window);
-    HDC getDC() const { return myDC; };
-    HGLRC getRC() const { return myRenderingContext; };
+	HDC getDC() const { return myDC; };
+	HGLRC getRC() const { return myRenderingContext; };
 	virtual TEGraphicsContext* getTEContext() const override
 	{
 		return myContext;
@@ -46,19 +46,19 @@ public:
 	virtual void setRightSideImage(size_t index, const TouchObject<TETexture> &texture) override;
 	virtual void clearRightSideImages();
 private:
-    static const char *VertexShader;
-    static const char *FragmentShader;
-    static void textureReleaseCallback(GLuint texture, void *info);
-    void drawImages(std::vector<OpenGLImage>& images, float scale, float xOffset);
-    OpenGLProgram myProgram;
-    GLuint myVAO = 0;
-    GLuint myVBO = 0;
-    GLint myVAIndex = -1;
-    GLint myTAIndex = -1;
+	static const char *VertexShader;
+	static const char *FragmentShader;
+	static void textureReleaseCallback(GLuint texture, void *info);
+	void drawImages(std::vector<OpenGLImage>& images, float scale, float xOffset);
+	OpenGLProgram myProgram;
+	GLuint myVAO = 0;
+	GLuint myVBO = 0;
+	GLint myVAIndex = -1;
+	GLint myTAIndex = -1;
 	HGLRC myRenderingContext = nullptr;
-    HDC myDC = nullptr;
+	HDC myDC = nullptr;
 	TEOpenGLContext* myContext = nullptr;
 	std::vector<OpenGLImage> myLeftSideImages;
-    std::vector<OpenGLImage> myRightSideImages;
+	std::vector<OpenGLImage> myRightSideImages;
 };
 

@@ -255,57 +255,57 @@ Open(HWND hWnd, DocumentWindow::Mode mode)
 
 HRESULT DocumentWindow::registerClass(HINSTANCE hInstance)
 {
-    WNDCLASSEXW wndClass;
-    wndClass.cbSize = sizeof(WNDCLASSEX);
-    wndClass.style = CS_DBLCLKS;
-    wndClass.lpfnWndProc = DocumentWindow::WndProc;
-    wndClass.cbClsExtra = 0;
-    wndClass.cbWndExtra = 0;
-    wndClass.hInstance = hInstance;
-    wndClass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_TETESTHOST));
-    wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-    wndClass.lpszMenuName = nullptr;
-    wndClass.lpszClassName = WindowClassName;
-    wndClass.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL));
+	WNDCLASSEXW wndClass;
+	wndClass.cbSize = sizeof(WNDCLASSEX);
+	wndClass.style = CS_DBLCLKS;
+	wndClass.lpfnWndProc = DocumentWindow::WndProc;
+	wndClass.cbClsExtra = 0;
+	wndClass.cbWndExtra = 0;
+	wndClass.hInstance = hInstance;
+	wndClass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_TETESTHOST));
+	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wndClass.lpszMenuName = nullptr;
+	wndClass.lpszClassName = WindowClassName;
+	wndClass.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
-    if (!RegisterClassExW(&wndClass))
-    {
-        DWORD dwError = GetLastError();
-        if (dwError != ERROR_CLASS_ALREADY_EXISTS)
-        {
-            return HRESULT_FROM_WIN32(dwError);
-        }
-    }
+	if (!RegisterClassExW(&wndClass))
+	{
+		DWORD dwError = GetLastError();
+		if (dwError != ERROR_CLASS_ALREADY_EXISTS)
+		{
+			return HRESULT_FROM_WIN32(dwError);
+		}
+	}
 
-    theInstance = hInstance;
+	theInstance = hInstance;
 
-    return S_OK;
+	return S_OK;
 }
 
 LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    switch (message)
-    {
-    case WM_CLOSE:
-    {
-        KillTimer(hWnd, RenderTimerID);
-        HMENU menu = GetMenu(hWnd);
-        if (menu)
-        {
-            DestroyMenu(menu);
-        }
-        DestroyWindow(hWnd);
-        break;
-    }
-    case WM_DESTROY:
-    {
+	switch (message)
+	{
+	case WM_CLOSE:
+	{
+		KillTimer(hWnd, RenderTimerID);
+		HMENU menu = GetMenu(hWnd);
+		if (menu)
+		{
+			DestroyMenu(menu);
+		}
+		DestroyWindow(hWnd);
+		break;
+	}
+	case WM_DESTROY:
+	{
 		if (theOpenDocument && theOpenDocument->getWindow() == hWnd)
 		{
 			theOpenDocument = nullptr;
 		}
-        break;
-    }
+		break;
+	}
 	case WM_SIZE:
 	{
 		if (theOpenDocument && theOpenDocument->getWindow() == hWnd)
@@ -316,22 +316,22 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
 		}
 		break;
 	}
-    case WM_TIMER:
-    {
-        if (wParam == RenderTimerID)
-        {
-            if (theOpenDocument)
-            {
-                theOpenDocument->render();
-            }
-        }
+	case WM_TIMER:
+	{
+		if (wParam == RenderTimerID)
+		{
+			if (theOpenDocument)
+			{
+				theOpenDocument->render();
+			}
+		}
 
-        break;
-    }
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return LRESULT();
+		break;
+	}
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+	return LRESULT();
 }
 
 void DocumentWindow::eventCallback(TEInstance * instance,
@@ -343,22 +343,22 @@ void DocumentWindow::eventCallback(TEInstance * instance,
 									int32_t end_time_scale,
 									void * info)
 {
-    DocumentWindow *window = static_cast<DocumentWindow *>(info);
+	DocumentWindow *window = static_cast<DocumentWindow *>(info);
 
-    switch (event)
-    {
-    case TEEventInstanceDidLoad:
-        window->didLoad();
-        break;
-    case TEEventFrameDidFinish:
-        window->endFrame(start_time_value, start_time_scale, result);
-        break;
+	switch (event)
+	{
+	case TEEventInstanceDidLoad:
+		window->didLoad();
+		break;
+	case TEEventFrameDidFinish:
+		window->endFrame(start_time_value, start_time_scale, result);
+		break;
 	case TEEventGeneral:
 		// TODO: check result here
 		break;
-    default:
-        break;
-    }
+	default:
+		break;
+	}
 }
 
 void DocumentWindow::parameterEventCallback(TEInstance * instance, TELinkEvent event, const char *identifier, void * info)
@@ -370,7 +370,7 @@ void DocumentWindow::parameterEventCallback(TEInstance * instance, TELinkEvent e
 		doc->parameterLayoutDidChange();
 		break;
 	case TELinkEventValueChange:
-        doc->parameterValueChange(identifier);
+		doc->parameterValueChange(identifier);
 		break;
 	default:
 		break;
@@ -465,11 +465,11 @@ void DocumentWindow::parameterValueChange(const char* identifier)
 
 void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TEResult result)
 {
-    myInFrame = false;
+	myInFrame = false;
 }
 
 DocumentWindow::DocumentWindow(std::wstring path, Mode mode)
-    : myPath(path), myMode(mode), myInstance(nullptr), myWindow(nullptr),
+	: myPath(path), myMode(mode), myInstance(nullptr), myWindow(nullptr),
 	myRenderer(mode == Mode::DirectX ? static_cast<std::unique_ptr<Renderer>>(std::make_unique<DirectXRenderer>()) : static_cast<std::unique_ptr<Renderer>>(std::make_unique<OpenGLRenderer>())),
 	myDidLoad(false), myInFrame(false), myLastFloatValue(0.0), myPendingLayoutChange(false)
 {
@@ -483,12 +483,12 @@ DocumentWindow::~DocumentWindow()
 		TERelease(&myInstance);
 	}
 
-    myRenderer->stop();
+	myRenderer->stop();
 
-    if (myWindow)
-    {
-        PostMessageW(myWindow, WM_CLOSE, 0, 0);
-    }
+	if (myWindow)
+	{
+		PostMessageW(myWindow, WM_CLOSE, 0, 0);
+	}
 }
 
 const std::wstring DocumentWindow::getPath() const
@@ -498,45 +498,45 @@ const std::wstring DocumentWindow::getPath() const
 
 void DocumentWindow::openWindow(HWND parent)
 {
-    RECT rc;
-    SetRect(&rc, 0, 0, InitialWindowWidth, InitialWindowHeight);
-    AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
+	RECT rc;
+	SetRect(&rc, 0, 0, InitialWindowWidth, InitialWindowHeight);
+	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
 
-    std::wstring title = getPath();
-    if (getMode() == Mode::DirectX)
-    {
-        title += L" (DirectX)";
-    }
-    else
-    {
-        title += L" (OpenGL)";
-    }
-    myWindow = CreateWindowW(WindowClassName,
-        title.data(),
-        WS_OVERLAPPEDWINDOW | myRenderer->getWindowStyleFlags(),
-        CW_USEDEFAULT, CW_USEDEFAULT,
-        (rc.right - rc.left), (rc.bottom - rc.top),
-        parent,
-        nullptr,
-        theInstance,
-        0);
+	std::wstring title = getPath();
+	if (getMode() == Mode::DirectX)
+	{
+		title += L" (DirectX)";
+	}
+	else
+	{
+		title += L" (OpenGL)";
+	}
+	myWindow = CreateWindowW(WindowClassName,
+		title.data(),
+		WS_OVERLAPPEDWINDOW | myRenderer->getWindowStyleFlags(),
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		(rc.right - rc.left), (rc.bottom - rc.top),
+		parent,
+		nullptr,
+		theInstance,
+		0);
 
-    HRESULT result;
-    if (myWindow)
-    {
-        ShowWindow(myWindow, SW_SHOW);
-        UpdateWindow(myWindow);
-        result = S_OK;
-    }
-    else
-    {
-        DWORD error = GetLastError();
-        result = HRESULT_FROM_WIN32(error);
-    }
-    if (SUCCEEDED(result))
-    {
-        result = myRenderer->setup(myWindow) ? S_OK : EIO;
-    }
+	HRESULT result;
+	if (myWindow)
+	{
+		ShowWindow(myWindow, SW_SHOW);
+		UpdateWindow(myWindow);
+		result = S_OK;
+	}
+	else
+	{
+		DWORD error = GetLastError();
+		result = HRESULT_FROM_WIN32(error);
+	}
+	if (SUCCEEDED(result))
+	{
+		result = myRenderer->setup(myWindow) ? S_OK : EIO;
+	}
 	if (SUCCEEDED(result))
 	{
 		myRenderer->resize(InitialWindowWidth, InitialWindowHeight);
@@ -561,76 +561,76 @@ void DocumentWindow::openWindow(HWND parent)
 		}
 		assert(teresult == TEResultSuccess);
 
-        SetTimer(myWindow, RenderTimerID, 16, nullptr);
+		SetTimer(myWindow, RenderTimerID, 16, nullptr);
 	}
 }
 
 void DocumentWindow::parameterLayoutDidChange()
 {
-    myPendingLayoutChange = true;    
+	myPendingLayoutChange = true;    
 }
 
 void DocumentWindow::render()
 {
-    // Make any pending renderer state updates
-    if (myPendingLayoutChange)
-    {
-        myPendingLayoutChange = false;
-        applyLayoutChange();
-    }
+	// Make any pending renderer state updates
+	if (myPendingLayoutChange)
+	{
+		myPendingLayoutChange = false;
+		applyLayoutChange();
+	}
 
-    applyOutputTextureChange();
+	applyOutputTextureChange();
 
-    float color[4] = { myDidLoad ? 0.6f : 0.6f, myDidLoad ? 0.6f : 0.6f, myDidLoad ? 1.0f : 0.6f, 1.0f};
-    if (myDidLoad && !myInFrame)
-    {
+	float color[4] = { myDidLoad ? 0.6f : 0.6f, myDidLoad ? 0.6f : 0.6f, myDidLoad ? 1.0f : 0.6f, 1.0f};
+	if (myDidLoad && !myInFrame)
+	{
 		TEStringArray *groups;
 		TEResult result = TEInstanceGetLinkGroups(myInstance, TEScopeInput, &groups);
-        if (result == TEResultSuccess)
-        {
-            int textureCount = 0;
-            for (int32_t i = 0; i < groups->count; i++)
-            {
+		if (result == TEResultSuccess)
+		{
+			int textureCount = 0;
+			for (int32_t i = 0; i < groups->count; i++)
+			{
 				TEStringArray *children;
 				result = TEInstanceLinkGetChildren(myInstance, groups->strings[i], &children);
 				if (result == TEResultSuccess)
-                {
-                    for (int32_t j = 0; j < children->count; j++)
-                    {
+				{
+					for (int32_t j = 0; j < children->count; j++)
+					{
 						TELinkInfo *info;
 						result = TEInstanceLinkGetInfo(myInstance, children->strings[j], &info);
 						if (result == TEResultSuccess)
-                        {
-                            switch (info->type)
-                            {
-                            case TELinkTypeDouble:
+						{
+							switch (info->type)
+							{
+							case TELinkTypeDouble:
 							{
 								double d = fmod(myLastFloatValue, 1.0);
 								result = TEInstanceLinkSetDoubleValue(myInstance, info->identifier, &d, 1);
 								break;
 							}
-                            case TELinkTypeInt:
+							case TELinkTypeInt:
 							{
 								int v = static_cast<int>(myLastFloatValue * 100) % 100;
 								result = TEInstanceLinkSetIntValue(myInstance, info->identifier, &v, 1);
 								break;
 							}
-                            case TELinkTypeString:
-                                result = TEInstanceLinkSetStringValue(myInstance, info->identifier, "test input");
-                                break;
-                            case TELinkTypeTexture:
-                            {
-                                TETexture *texture = myRenderer->createLeftSideImage(textureCount);
+							case TELinkTypeString:
+								result = TEInstanceLinkSetStringValue(myInstance, info->identifier, "test input");
+								break;
+							case TELinkTypeTexture:
+							{
+								TETexture *texture = myRenderer->createLeftSideImage(textureCount);
 								if (texture)
 								{
 									result = TEInstanceLinkSetTextureValue(myInstance, info->identifier, texture, myRenderer->getTEContext());
 									TERelease(&texture);
 								}
-                                textureCount++;
-                                break;
-                            }
-                            case TELinkTypeFloatBuffer:
-                            {
+								textureCount++;
+								break;
+							}
+							case TELinkTypeFloatBuffer:
+							{
 								TEFloatBuffer *buffer = nullptr;
 								// Creating a copy of an existing buffer is more efficient than creating a new one every time
 								result = TEInstanceLinkGetFloatBufferValue(myInstance, info->identifier, TELinkValueCurrent, &buffer);
@@ -662,8 +662,8 @@ void DocumentWindow::render()
 
 									TERelease(&buffer);
 								}								
-                                break;
-                            }
+								break;
+							}
 							case TELinkTypeStringData:
 							{
 								// String data can be either tabular, in which case set a TETable, or a single string - here we set a table
@@ -700,136 +700,136 @@ void DocumentWindow::render()
 								TERelease(&value);
 								break;
 							}
-                            default:
-                                break;
-                            }
+							default:
+								break;
+							}
 							TERelease(&info);
-                        }
-                        
-                    }
+						}
+						
+					}
 					TERelease(&children);
-                }
-            }
-        }
+				}
+			}
+		}
 
-        if (TEInstanceStartFrameAtTime(myInstance, myTime, TimeRate, false) == TEResultSuccess)
-        {
-            myInFrame = true;
-            myLastFloatValue += 1.0/(60.0 * 8.0);
-        }
-        else
-        {
-            color[0] = 1.0f;
-            color[1] = color[2] = 0.2f;
-        }
-    }
+		if (TEInstanceStartFrameAtTime(myInstance, myTime, TimeRate, false) == TEResultSuccess)
+		{
+			myInFrame = true;
+			myLastFloatValue += 1.0/(60.0 * 8.0);
+		}
+		else
+		{
+			color[0] = 1.0f;
+			color[1] = color[2] = 0.2f;
+		}
+	}
 
-    myRenderer->setBackgroundColor(color[0], color[1], color[2]);
-    myRenderer->render();
+	myRenderer->setBackgroundColor(color[0], color[1], color[2]);
+	myRenderer->render();
 
 	myTime += 100;
 }
 
 void DocumentWindow::cancelFrame()
 {
-    if (myInFrame)
-    {
-        TEResult result = TEInstanceCancelFrame(myInstance);
-        if (result != TEResultSuccess)
-        {
-            // TODO: post it
-        }
-    }
+	if (myInFrame)
+	{
+		TEResult result = TEInstanceCancelFrame(myInstance);
+		if (result != TEResultSuccess)
+		{
+			// TODO: post it
+		}
+	}
 }
 
 void DocumentWindow::applyLayoutChange()
 {
-    myRenderer->clearLeftSideImages();
-    myRenderer->clearRightSideImages();
-    myOutputParameterTextureMap.clear();
+	myRenderer->clearLeftSideImages();
+	myRenderer->clearRightSideImages();
+	myOutputParameterTextureMap.clear();
 
-    for (auto scope : { TEScopeInput, TEScopeOutput })
-    {
-        TEStringArray *groups;
-        TEResult result = TEInstanceGetLinkGroups(myInstance, scope, &groups);
-        if (result == TEResultSuccess)
-        {
-            for (int32_t i = 0; i < groups->count; i++)
-            {
-                TELinkInfo *group;
-                result = TEInstanceLinkGetInfo(myInstance, groups->strings[i], &group);
-                if (result == TEResultSuccess)
-                {
-                    // Use group info here
-                    TERelease(&group);
-                }
-                TEStringArray *children = nullptr;
-                if (result == TEResultSuccess)
-                {
-                    result = TEInstanceLinkGetChildren(myInstance, groups->strings[i], &children);
-                }
-                if (result == TEResultSuccess)
-                {
-                    for (int32_t j = 0; j < children->count; j++)
-                    {
-                        TELinkInfo *info;
-                        result = TEInstanceLinkGetInfo(myInstance, children->strings[j], &info);
-                        if (result == TEResultSuccess)
-                        {
-                            if (result == TEResultSuccess && info->type == TELinkTypeTexture)
-                            {
-                                if (scope == TEScopeInput)
-                                {
-                                    std::array<unsigned char, ImageWidth * ImageHeight * 4> tex;
+	for (auto scope : { TEScopeInput, TEScopeOutput })
+	{
+		TEStringArray *groups;
+		TEResult result = TEInstanceGetLinkGroups(myInstance, scope, &groups);
+		if (result == TEResultSuccess)
+		{
+			for (int32_t i = 0; i < groups->count; i++)
+			{
+				TELinkInfo *group;
+				result = TEInstanceLinkGetInfo(myInstance, groups->strings[i], &group);
+				if (result == TEResultSuccess)
+				{
+					// Use group info here
+					TERelease(&group);
+				}
+				TEStringArray *children = nullptr;
+				if (result == TEResultSuccess)
+				{
+					result = TEInstanceLinkGetChildren(myInstance, groups->strings[i], &children);
+				}
+				if (result == TEResultSuccess)
+				{
+					for (int32_t j = 0; j < children->count; j++)
+					{
+						TELinkInfo *info;
+						result = TEInstanceLinkGetInfo(myInstance, children->strings[j], &info);
+						if (result == TEResultSuccess)
+						{
+							if (result == TEResultSuccess && info->type == TELinkTypeTexture)
+							{
+								if (scope == TEScopeInput)
+								{
+									std::array<unsigned char, ImageWidth * ImageHeight * 4> tex;
 
-                                    for (int y = 0; y < ImageHeight; y++)
-                                    {
-                                        for (int x = 0; x < ImageWidth; x++)
-                                        {
+									for (int y = 0; y < ImageHeight; y++)
+									{
+										for (int x = 0; x < ImageWidth; x++)
+										{
 											unsigned char xColor = static_cast<double>(x) / (ImageWidth-1) * 255.;
 											unsigned char yColor = static_cast<double>(y) / (ImageHeight-1) * 255.;
-                                            tex[(y * ImageWidth * 4) + (x * 4) + 0] = xColor;
-                                            tex[(y * ImageWidth * 4) + (x * 4) + 1] = 0;
-                                            tex[(y * ImageWidth * 4) + (x * 4) + 2] = getMode() == Mode::OpenGL ? 255 - yColor : yColor;
-                                            tex[(y * ImageWidth * 4) + (x * 4) + 3] = 255;
-                                        }
-                                    }
-                                    myRenderer->addLeftSideImage(tex.data(), ImageWidth * 4, ImageWidth, ImageHeight);
-                                }
-                                else
-                                {
-                                    myRenderer->addRightSideImage();
-                                    myOutputParameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
-                                }
-                            }
-                            TERelease(&info);
-                        }
-                    }
-                    TERelease(&children);
-                }
-            }
-        }
-    }
+											tex[(y * ImageWidth * 4) + (x * 4) + 0] = xColor;
+											tex[(y * ImageWidth * 4) + (x * 4) + 1] = 0;
+											tex[(y * ImageWidth * 4) + (x * 4) + 2] = getMode() == Mode::OpenGL ? 255 - yColor : yColor;
+											tex[(y * ImageWidth * 4) + (x * 4) + 3] = 255;
+										}
+									}
+									myRenderer->addLeftSideImage(tex.data(), ImageWidth * 4, ImageWidth, ImageHeight);
+								}
+								else
+								{
+									myRenderer->addRightSideImage();
+									myOutputParameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
+								}
+							}
+							TERelease(&info);
+						}
+					}
+					TERelease(&children);
+				}
+			}
+		}
+	}
 }
 
 void DocumentWindow::applyOutputTextureChange()
 {
-    // Only hold the lock briefly
-    std::vector<std::string> changes;
-    {
-        std::lock_guard<std::mutex> guard(myMutex);
-        std::swap(myPendingOutputTextures, changes);
-    }
+	// Only hold the lock briefly
+	std::vector<std::string> changes;
+	{
+		std::lock_guard<std::mutex> guard(myMutex);
+		std::swap(myPendingOutputTextures, changes);
+	}
 
-    for (const auto & identifier : changes)
-    {
-        TouchObject<TEDXGITexture> texture;
-        TEResult result = TEInstanceLinkGetTextureValue(myInstance, identifier.c_str(), TELinkValueCurrent, texture.take());
-        if (result == TEResultSuccess)
-        {
-            size_t imageIndex = myOutputParameterTextureMap[identifier];
+	for (const auto & identifier : changes)
+	{
+		TouchObject<TEDXGITexture> texture;
+		TEResult result = TEInstanceLinkGetTextureValue(myInstance, identifier.c_str(), TELinkValueCurrent, texture.take());
+		if (result == TEResultSuccess)
+		{
+			size_t imageIndex = myOutputParameterTextureMap[identifier];
 
-            myRenderer->setRightSideImage(imageIndex, texture);
-        }
-    }
+			myRenderer->setRightSideImage(imageIndex, texture);
+		}
+	}
 }

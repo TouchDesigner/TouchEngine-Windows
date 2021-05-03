@@ -18,7 +18,7 @@
 
 
 Renderer::Renderer()
-    : myBackgroundColor{0.0f, 0.0f, 0.0f}
+	: myBackgroundColor{0.0f, 0.0f, 0.0f}
 {
 }
 
@@ -46,9 +46,9 @@ void Renderer::stop()
 
 void Renderer::setBackgroundColor(float r, float g, float b)
 {
-    myBackgroundColor[0] = r;
-    myBackgroundColor[1] = g;
-    myBackgroundColor[2] = b;
+	myBackgroundColor[0] = r;
+	myBackgroundColor[1] = g;
+	myBackgroundColor[2] = b;
 }
 
 size_t Renderer::getRightSideImageCount()
