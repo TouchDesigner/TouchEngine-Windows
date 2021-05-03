@@ -9,7 +9,7 @@
  *
  * TouchEngine
  *
- * Copyright © 2018 Derivative. All rights reserved.
+ * Copyright © 2021 Derivative. All rights reserved.
  *
  */
 
