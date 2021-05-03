@@ -786,8 +786,8 @@ void DocumentWindow::applyLayoutChange()
 									{
 										for (int x = 0; x < ImageWidth; x++)
 										{
-											unsigned char xColor = static_cast<double>(x) / (ImageWidth-1) * 255.;
-											unsigned char yColor = static_cast<double>(y) / (ImageHeight-1) * 255.;
+											unsigned char xColor = static_cast<unsigned char>(static_cast<double>(x) / (ImageWidth-1) * 255.0);
+											unsigned char yColor = static_cast<unsigned char>(static_cast<double>(y) / (ImageHeight-1) * 255.0);
 											tex[(y * ImageWidth * 4) + (x * 4) + 0] = xColor;
 											tex[(y * ImageWidth * 4) + (x * 4) + 1] = 0;
 											tex[(y * ImageWidth * 4) + (x * 4) + 2] = getMode() == Mode::OpenGL ? 255 - yColor : yColor;
