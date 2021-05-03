@@ -7,7 +7,9 @@ TouchEngine provides an API to load and render TouchDesigner components.
 Instances And TouchDesigner Installations
 -----------------------------------------
 
-TouchEngine requires an installed version of TouchDesigner to load and work with components. TouchEngine will locate an installed version suitable for use on the user's system.
+TouchEngine requires an installed version of TouchDesigner to load and work with components, along with any paid license (TouchPlayer/TouchDesigner Pro/Commercial/Educational). TouchEngine will locate an installed version suitable for use on the user's system. 
+
+By default the most recently installed version of TouchDesigner will be used (which includes the TouchEngine.exe executable).
 
 Users can specify a particular version to use by including a folder named "TouchEngine" alongside the component .tox being loaded. This folder is a renamed TouchDesigner installation directory (on Windows) or application (on macOS), or a file-system link to an installation or application location (either a symbolic link or a Windows Explorer shortcut or macOS Finder alias).
 
