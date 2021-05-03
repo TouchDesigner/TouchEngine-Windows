@@ -97,7 +97,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 //
 //  PURPOSE: Registers the window class.
 //
-ATOM MyRegisterClass(HINSTANCE hInstance)
+ATOM
+MyRegisterClass(HINSTANCE hInstance)
 {
 	WNDCLASSEXW wcex;
 
@@ -128,7 +129,8 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //        In this function, we save the instance handle in a global variable and
 //        create and display the main program window.
 //
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+BOOL
+InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	hInst = hInstance; // Store instance handle in our global variable
 
@@ -161,7 +163,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //  WM_DESTROY  - post a quit message and return
 //
 //
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK
+WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
@@ -211,7 +214,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 // Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK
+About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
@@ -253,7 +257,8 @@ Open(HWND hWnd, DocumentWindow::Mode mode)
 }
 
 
-HRESULT DocumentWindow::registerClass(HINSTANCE hInstance)
+HRESULT
+DocumentWindow::registerClass(HINSTANCE hInstance)
 {
 	WNDCLASSEXW wndClass;
 	wndClass.cbSize = sizeof(WNDCLASSEX);
@@ -283,7 +288,8 @@ HRESULT DocumentWindow::registerClass(HINSTANCE hInstance)
 	return S_OK;
 }
 
-LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK
+DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
@@ -334,7 +340,8 @@ LRESULT CALLBACK DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam,
 	return LRESULT();
 }
 
-void DocumentWindow::eventCallback(TEInstance * instance,
+void
+DocumentWindow::eventCallback(TEInstance * instance,
 									TEEvent event,
 									TEResult result,
 									int64_t start_time_value,
@@ -361,7 +368,8 @@ void DocumentWindow::eventCallback(TEInstance * instance,
 	}
 }
 
-void DocumentWindow::parameterEventCallback(TEInstance * instance, TELinkEvent event, const char *identifier, void * info)
+void
+DocumentWindow::parameterEventCallback(TEInstance * instance, TELinkEvent event, const char *identifier, void * info)
 {
 	DocumentWindow* doc = static_cast<DocumentWindow*>(info);
 	switch (event)
@@ -377,7 +385,8 @@ void DocumentWindow::parameterEventCallback(TEInstance * instance, TELinkEvent e
 	}
 }
 
-void DocumentWindow::parameterValueChange(const char* identifier)
+void
+DocumentWindow::parameterValueChange(const char* identifier)
 {
 	std::lock_guard<std::mutex> guard(myMutex);
 	TELinkInfo* param = nullptr;
@@ -463,7 +472,8 @@ void DocumentWindow::parameterValueChange(const char* identifier)
 	TERelease(&param);
 }
 
-void DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TEResult result)
+void
+DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TEResult result)
 {
 	myInFrame = false;
 }
@@ -491,12 +501,14 @@ DocumentWindow::~DocumentWindow()
 	}
 }
 
-const std::wstring DocumentWindow::getPath() const
+const std::wstring
+DocumentWindow::getPath() const
 {
 	return myPath;
 }
 
-void DocumentWindow::openWindow(HWND parent)
+void
+DocumentWindow::openWindow(HWND parent)
 {
 	RECT rc;
 	SetRect(&rc, 0, 0, InitialWindowWidth, InitialWindowHeight);
@@ -565,12 +577,14 @@ void DocumentWindow::openWindow(HWND parent)
 	}
 }
 
-void DocumentWindow::parameterLayoutDidChange()
+void
+DocumentWindow::parameterLayoutDidChange()
 {
 	myPendingLayoutChange = true;    
 }
 
-void DocumentWindow::render()
+void
+DocumentWindow::render()
 {
 	// Make any pending renderer state updates
 	if (myPendingLayoutChange)
@@ -730,7 +744,8 @@ void DocumentWindow::render()
 	myTime += 100;
 }
 
-void DocumentWindow::cancelFrame()
+void
+DocumentWindow::cancelFrame()
 {
 	if (myInFrame)
 	{
@@ -742,7 +757,8 @@ void DocumentWindow::cancelFrame()
 	}
 }
 
-void DocumentWindow::applyLayoutChange()
+void
+DocumentWindow::applyLayoutChange()
 {
 	myRenderer->clearLeftSideImages();
 	myRenderer->clearRightSideImages();
@@ -812,7 +828,8 @@ void DocumentWindow::applyLayoutChange()
 	}
 }
 
-void DocumentWindow::applyOutputTextureChange()
+void
+DocumentWindow::applyOutputTextureChange()
 {
 	// Only hold the lock briefly
 	std::vector<std::string> changes;

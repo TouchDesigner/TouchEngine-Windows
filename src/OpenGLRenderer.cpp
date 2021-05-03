@@ -58,7 +58,8 @@ OpenGLRenderer::~OpenGLRenderer()
 {
 }
 
-bool OpenGLRenderer::setup(HWND window)
+bool
+OpenGLRenderer::setup(HWND window)
 {
 	bool success = Renderer::setup(window);
 	if (success)
@@ -129,7 +130,8 @@ bool OpenGLRenderer::setup(HWND window)
 	return success;
 }
 
-void OpenGLRenderer::resize(int width, int height)
+void
+OpenGLRenderer::resize(int width, int height)
 {
 	Renderer::resize(width, height);
 
@@ -140,7 +142,8 @@ void OpenGLRenderer::resize(int width, int height)
 	wglMakeCurrent(nullptr, nullptr);
 }
 
-void OpenGLRenderer::stop()
+void
+OpenGLRenderer::stop()
 {
 	wglMakeCurrent(myDC, myRenderingContext);
 
@@ -155,7 +158,8 @@ void OpenGLRenderer::stop()
 	}
 }
 
-bool OpenGLRenderer::render()
+bool
+OpenGLRenderer::render()
 {
 	wglMakeCurrent(myDC, myRenderingContext);
 	
@@ -180,12 +184,14 @@ bool OpenGLRenderer::render()
 	return true;
 }
 
-size_t OpenGLRenderer::getLeftSideImageCount() const
+size_t
+OpenGLRenderer::getLeftSideImageCount() const
 {
 	return myLeftSideImages.size();
 }
 
-void OpenGLRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesPerRow, int width, int height)
+void
+OpenGLRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesPerRow, int width, int height)
 {
 	wglMakeCurrent(myDC, myRenderingContext);
 	
@@ -196,7 +202,8 @@ void OpenGLRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesPe
 	wglMakeCurrent(nullptr, nullptr);
 }
 
-TETexture * OpenGLRenderer::createLeftSideImage(size_t index)
+TETexture*
+OpenGLRenderer::createLeftSideImage(size_t index)
 {
 	// Create a reference-counted reference to the same texture
 	OpenGLTexture *copied = new OpenGLTexture(myLeftSideImages[index].getTexture());
@@ -205,12 +212,14 @@ TETexture * OpenGLRenderer::createLeftSideImage(size_t index)
 	return out;
 }
 
-void OpenGLRenderer::clearLeftSideImages()
+void
+OpenGLRenderer::clearLeftSideImages()
 {
 	myLeftSideImages.clear();
 }
 
-void OpenGLRenderer::addRightSideImage()
+void
+OpenGLRenderer::addRightSideImage()
 {
 	wglMakeCurrent(myDC, myRenderingContext);
 
@@ -222,7 +231,8 @@ void OpenGLRenderer::addRightSideImage()
 	Renderer::addRightSideImage();
 }
 
-void OpenGLRenderer::setRightSideImage(size_t index, const TouchObject<TETexture>& texture)
+void
+OpenGLRenderer::setRightSideImage(size_t index, const TouchObject<TETexture>& texture)
 {
 	bool success = false;
 	if (TETextureGetType(texture) == TETextureTypeDXGI)
@@ -252,20 +262,23 @@ void OpenGLRenderer::setRightSideImage(size_t index, const TouchObject<TETexture
 	}
 }
 
-void OpenGLRenderer::clearRightSideImages()
+void
+OpenGLRenderer::clearRightSideImages()
 {
 
 	Renderer::clearRightSideImages();
 }
 
-void OpenGLRenderer::textureReleaseCallback(GLuint texture, void *info)
+void
+OpenGLRenderer::textureReleaseCallback(GLuint texture, void *info)
 {
 	// TODO: might come from another thread
 	// Delete our reference to the texture (and the texture itself if we are the last reference)
 	delete reinterpret_cast<OpenGLTexture *>(info);
 }
 
-void OpenGLRenderer::drawImages(std::vector<OpenGLImage>& images, float scale, float xOffset)
+void
+OpenGLRenderer::drawImages(std::vector<OpenGLImage>& images, float scale, float xOffset)
 {
 	float numImages = (1.0f / scale) - 1.0f;
 	float spacing = 1.0f / numImages;

@@ -26,15 +26,16 @@ class DirectXImage :
 {
 public:
 	DirectXImage();
-	DirectXImage(DirectXTexture &texture);
-	DirectXImage(DirectXImage &&other);
+	DirectXImage(DirectXTexture& texture);
+	DirectXImage(DirectXImage&& other);
 	~DirectXImage();
-	bool setup(DirectXDevice &device);
-	void draw(DirectXDevice &device);
-	void position(float x, float y);
-	void scale(float scaleX, float scaleY);
-	ID3D11Texture2D *getTexture() const;
-	void update(DirectXTexture &texture);
+
+	bool				setup(DirectXDevice& device);
+	void				draw(DirectXDevice& device);
+	void				position(float x, float y);
+	void				scale(float scaleX, float scaleY);
+	ID3D11Texture2D*	getTexture() const;
+	void				update(DirectXTexture &texture);
 private:
 	struct BasicVertex
 	{
@@ -46,12 +47,12 @@ private:
 		DirectX::XMMATRIX matrix;
 		DirectX::XMINT4 flip; // XM type for easy alignment, only .x used
 	};
-	DirectXTexture myTexture;
-	ID3D11Buffer *myVertexBuffer;
-	ID3D11Buffer *myIndexBuffer;
-	ID3D11Buffer *myConstantBuffer;
-	bool myMatrixDirty;
-	float myScaleX{ 1.0 };
-	float myScaleY{ 1.0 };
+	DirectXTexture	myTexture;
+	ID3D11Buffer*	myVertexBuffer;
+	ID3D11Buffer*	myIndexBuffer;
+	ID3D11Buffer*	myConstantBuffer;
+	bool			myMatrixDirty;
+	float			myScaleX{ 1.0 };
+	float			myScaleY{ 1.0 };
 };
 

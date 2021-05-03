@@ -59,27 +59,32 @@ OpenGLTexture::~OpenGLTexture()
 {
 }
 
-GLuint OpenGLTexture::getName() const
+GLuint
+OpenGLTexture::getName() const
 {
 	return *myName;
 }
 
-GLsizei OpenGLTexture::getWidth() const
+GLsizei
+OpenGLTexture::getWidth() const
 {
 	return myWidth;
 }
 
-GLsizei OpenGLTexture::getHeight() const
+GLsizei
+OpenGLTexture::getHeight() const
 {
 	return myHeight;
 }
 
-bool OpenGLTexture::getFlipped() const
+bool
+OpenGLTexture::getFlipped() const
 {
 	return myFlipped;
 }
 
-bool OpenGLTexture::isValid() const
+bool
+OpenGLTexture::isValid() const
 {
 	if (myName)
 	{

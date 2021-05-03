@@ -30,7 +30,8 @@ DirectXRenderer::~DirectXRenderer()
 	
 }
 
-bool DirectXRenderer::setup(HWND window)
+bool
+DirectXRenderer::setup(HWND window)
 {
 	Renderer::setup(window);
 	HRESULT result = myDevice.createDeviceResources();
@@ -71,13 +72,15 @@ bool DirectXRenderer::setup(HWND window)
 	return SUCCEEDED(result);
 }
 
-void DirectXRenderer::resize(int width, int height)
+void
+DirectXRenderer::resize(int width, int height)
 {
 	Renderer::resize(width, height);
 	myDevice.resize();
 }
 
-void DirectXRenderer::stop()
+void
+DirectXRenderer::stop()
 {
 	myLeftSideImages.clear();
 	myRightSideImages.clear();
@@ -91,7 +94,8 @@ void DirectXRenderer::stop()
 	myDevice.stop();
 }
 
-bool DirectXRenderer::render()
+bool
+DirectXRenderer::render()
 { 
 	myDevice.setRenderTarget();
 	myDevice.clear(myBackgroundColor[0], myBackgroundColor[1], myBackgroundColor[2], 1.0f);
@@ -108,7 +112,8 @@ bool DirectXRenderer::render()
 	return true;
 }
 
-void DirectXRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesPerRow, int width, int height)
+void
+DirectXRenderer::addLeftSideImage(const unsigned char* rgba, size_t bytesPerRow, int width, int height)
 {
 	DirectXTexture texture = myDevice.loadTexture(rgba, int32_t(bytesPerRow), width, height);
 
@@ -122,12 +127,14 @@ TETexture * DirectXRenderer::createLeftSideImage(size_t index)
 	return TED3D11TextureCreate(texture.getTexture(), false);
 }
 
-void DirectXRenderer::clearLeftSideImages()
+void
+DirectXRenderer::clearLeftSideImages()
 {
 	myLeftSideImages.clear();
 }
 
-void DirectXRenderer::addRightSideImage()
+void
+DirectXRenderer::addRightSideImage()
 {
 	myRightSideImages.emplace_back();
 	myRightSideImages.back().setup(myDevice);
@@ -135,7 +142,8 @@ void DirectXRenderer::addRightSideImage()
 	Renderer::addRightSideImage();
 }
 
-void DirectXRenderer::setRightSideImage(size_t index, const TouchObject<TETexture> &texture)
+void
+DirectXRenderer::setRightSideImage(size_t index, const TouchObject<TETexture> &texture)
 {
 	bool success = false;
 	if (texture && TETextureGetType(texture) == TETextureTypeDXGI)
@@ -161,14 +169,16 @@ void DirectXRenderer::setRightSideImage(size_t index, const TouchObject<TETextur
 	}
 }
 
-void DirectXRenderer::clearRightSideImages()
+void
+DirectXRenderer::clearRightSideImages()
 {
 	myRightSideImages.clear();
 
 	Renderer::clearRightSideImages();
 }
 
-void DirectXRenderer::drawImages(std::vector<DirectXImage>& images, float scale, float xOffset)
+void
+DirectXRenderer::drawImages(std::vector<DirectXImage>& images, float scale, float xOffset)
 {
 	float numImages = (1.0f / scale) - 1.0f;
 	float spacing = 1.0f / numImages;

@@ -55,7 +55,8 @@ DirectXImage::~DirectXImage()
 	}
 }
 
-bool DirectXImage::setup(DirectXDevice & device)
+bool
+DirectXImage::setup(DirectXDevice& device)
 {
 	BasicVertex rectangleVertices[] =
 	{
@@ -83,7 +84,8 @@ bool DirectXImage::setup(DirectXDevice & device)
 	return false;
 }
 
-void DirectXImage::draw(DirectXDevice &device)
+void
+DirectXImage::draw(DirectXDevice &device)
 {
 	if (myTexture.isValid())
 	{
@@ -112,7 +114,8 @@ void DirectXImage::draw(DirectXDevice &device)
 	}
 }
 
-void DirectXImage::position(float newx, float newy)
+void
+DirectXImage::position(float newx, float newy)
 {
 	if (x != newx || y != newy)
 	{
@@ -122,7 +125,8 @@ void DirectXImage::position(float newx, float newy)
 	}
 }
 
-void DirectXImage::scale(float scaleX, float scaleY)
+void
+DirectXImage::scale(float scaleX, float scaleY)
 {
 	if (myScaleX != scaleX || myScaleY != scaleY)
 	{
@@ -132,12 +136,14 @@ void DirectXImage::scale(float scaleX, float scaleY)
 	}
 }
 
-ID3D11Texture2D * DirectXImage::getTexture() const
+ID3D11Texture2D*
+DirectXImage::getTexture() const
 {
 	return myTexture.getTexture();
 }
 
-void DirectXImage::update(DirectXTexture & texture)
+void
+DirectXImage::update(DirectXTexture & texture)
 {
 	if (myTexture.getFlipped() != texture.getFlipped())
 	{

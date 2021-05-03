@@ -54,7 +54,8 @@ ID3D11Texture2D * DirectXTexture::getTexture() const
 	return myTexture;
 }
 
-bool DirectXTexture::isValid() const
+bool
+DirectXTexture::isValid() const
 {
 	if (myTexture && myTextureView && mySampler)
 	{
@@ -63,13 +64,15 @@ bool DirectXTexture::isValid() const
 	return false;
 }
 
-void DirectXTexture::setResourceAndSampler(ID3D11DeviceContext * context)
+void
+DirectXTexture::setResourceAndSampler(ID3D11DeviceContext * context)
 {
 	context->PSSetShaderResources(0, 1, &myTextureView);
 	context->PSSetSamplers(0, 1, &mySampler);
 }
 
-int DirectXTexture::getWidth() const
+int
+DirectXTexture::getWidth() const
 {
 	if (myTexture)
 	{
@@ -80,7 +83,8 @@ int DirectXTexture::getWidth() const
 	return 0;
 }
 
-int DirectXTexture::getHeight() const
+int
+DirectXTexture::getHeight() const
 {
 	if (myTexture)
 	{
@@ -91,12 +95,14 @@ int DirectXTexture::getHeight() const
 	return 0;
 }
 
-bool DirectXTexture::getFlipped() const
+bool
+DirectXTexture::getFlipped() const
 {
 	return myVFlipped;
 }
 
-HRESULT DirectXTexture::createShaderResourceView(ID3D11Device *device, const D3D11_TEXTURE2D_DESC & description)
+HRESULT
+DirectXTexture::createShaderResourceView(ID3D11Device* device, const D3D11_TEXTURE2D_DESC & description)
 {
 	D3D11_SHADER_RESOURCE_VIEW_DESC textureViewDescription;
 	ZeroMemory(&textureViewDescription, sizeof(textureViewDescription));
@@ -107,7 +113,8 @@ HRESULT DirectXTexture::createShaderResourceView(ID3D11Device *device, const D3D
 	return device->CreateShaderResourceView(myTexture, &textureViewDescription, &myTextureView);
 }
 
-HRESULT DirectXTexture::createSamplerState(ID3D11Device * device, const D3D11_TEXTURE2D_DESC & description)
+HRESULT
+DirectXTexture::createSamplerState(ID3D11Device* device, const D3D11_TEXTURE2D_DESC & description)
 {
 	D3D11_SAMPLER_DESC samplerDescription;
 	ZeroMemory(&samplerDescription, sizeof(samplerDescription));
@@ -130,7 +137,8 @@ HRESULT DirectXTexture::createSamplerState(ID3D11Device * device, const D3D11_TE
 	return device->CreateSamplerState(&samplerDescription, &mySampler);
 }
 
-void DirectXTexture::releaseResources()
+void
+DirectXTexture::releaseResources()
 {
 	if (myTexture)
 	{
@@ -242,7 +250,8 @@ DirectXTexture::DirectXTexture(const DirectXTexture & o)
 	}
 }
 
-DirectXTexture & DirectXTexture::operator=(const DirectXTexture & o)
+DirectXTexture&
+DirectXTexture::operator=(const DirectXTexture & o)
 {
 	if (&o != this)
 	{

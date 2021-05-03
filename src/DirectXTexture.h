@@ -27,19 +27,22 @@ public:
 	DirectXTexture(DirectXTexture &&o);
 	DirectXTexture &operator=(DirectXTexture &&o);
 	~DirectXTexture();
-	ID3D11Texture2D *getTexture() const;
-	bool isValid() const;
-	void setResourceAndSampler(ID3D11DeviceContext *context);
-	int getWidth() const;
-	int getHeight() const;
-	bool getFlipped() const;
+
+	ID3D11Texture2D*	getTexture() const;
+	bool				isValid() const;
+	void				setResourceAndSampler(ID3D11DeviceContext* context);
+	int					getWidth() const;
+	int					getHeight() const;
+	bool				getFlipped() const;
 private:
-	HRESULT createShaderResourceView(ID3D11Device *device, const D3D11_TEXTURE2D_DESC &description);
-	HRESULT createSamplerState(ID3D11Device *device, const D3D11_TEXTURE2D_DESC &description);
-	void releaseResources();
-	ID3D11Texture2D *myTexture;
-	ID3D11ShaderResourceView *myTextureView;
-	ID3D11SamplerState *mySampler;
-	bool myVFlipped;
+	HRESULT				createShaderResourceView(ID3D11Device *device, const D3D11_TEXTURE2D_DESC &description);
+	HRESULT				createSamplerState(ID3D11Device *device, const D3D11_TEXTURE2D_DESC &description);
+	void				releaseResources();
+
+
+	ID3D11Texture2D*			myTexture;
+	ID3D11ShaderResourceView*	myTextureView;
+	ID3D11SamplerState*			mySampler;
+	bool						myVFlipped;
 };
 

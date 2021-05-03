@@ -46,7 +46,8 @@ FileReader::FileReader(FileReader && o)
 	o.myFile = INVALID_HANDLE_VALUE;
 }
 
-FileReader & FileReader::operator=(FileReader && o)
+FileReader&
+FileReader::operator=(FileReader && o)
 {
 	if (&o != this)
 	{
@@ -60,7 +61,8 @@ FileReader & FileReader::operator=(FileReader && o)
 	return *this;
 }
 
-bool FileReader::read(std::vector<unsigned char>& destination)
+bool
+FileReader::read(std::vector<unsigned char>& destination)
 {
 	FILE_STANDARD_INFO info = { 0 };
 	if (!GetFileInformationByHandleEx(myFile, FileStandardInfo, &info, sizeof(info)))

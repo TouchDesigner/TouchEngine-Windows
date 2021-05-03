@@ -27,36 +27,53 @@ class OpenGLRenderer :
 public:
 	OpenGLRenderer();
 	virtual ~OpenGLRenderer();
-	virtual DWORD getWindowStyleFlags() const { return CS_OWNDC | WS_CLIPCHILDREN | WS_CLIPSIBLINGS; }
-	virtual bool setup(HWND window);
-	HDC getDC() const { return myDC; };
-	HGLRC getRC() const { return myRenderingContext; };
-	virtual TEGraphicsContext* getTEContext() const override
+
+	virtual DWORD
+	getWindowStyleFlags() const
+	{
+		return CS_OWNDC | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+	}
+	HDC
+	getDC() const
+	{
+		return myDC;
+	}
+	HGLRC
+	getRC() const
+	{
+		return myRenderingContext;
+	}
+	virtual TEGraphicsContext*
+	getTEContext() const override
 	{
 		return myContext;
 	}
-	virtual void resize(int width, int height) override;
-	virtual void stop();
-	virtual bool render();
-	virtual size_t getLeftSideImageCount() const;
-	virtual void addLeftSideImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height);
-	virtual TETexture *createLeftSideImage(size_t index);
-	virtual void clearLeftSideImages();
-	virtual void addRightSideImage();
-	virtual void setRightSideImage(size_t index, const TouchObject<TETexture> &texture) override;
-	virtual void clearRightSideImages();
+
+	virtual bool	setup(HWND window);
+	virtual void	resize(int width, int height) override;
+	virtual void	stop();
+	virtual bool	render();
+	virtual size_t	getLeftSideImageCount() const;
+	virtual void	addLeftSideImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height);
+	virtual void	clearLeftSideImages();
+	virtual void	addRightSideImage();
+	virtual void	setRightSideImage(size_t index, const TouchObject<TETexture> &texture) override;
+	virtual void	clearRightSideImages();
+	virtual TETexture*	createLeftSideImage(size_t index);
 private:
-	static const char *VertexShader;
-	static const char *FragmentShader;
-	static void textureReleaseCallback(GLuint texture, void *info);
-	void drawImages(std::vector<OpenGLImage>& images, float scale, float xOffset);
-	OpenGLProgram myProgram;
-	GLuint myVAO = 0;
-	GLuint myVBO = 0;
-	GLint myVAIndex = -1;
-	GLint myTAIndex = -1;
-	HGLRC myRenderingContext = nullptr;
-	HDC myDC = nullptr;
+	static const char* VertexShader;
+	static const char* FragmentShader;
+
+	static void		textureReleaseCallback(GLuint texture, void *info);
+	void			drawImages(std::vector<OpenGLImage>& images, float scale, float xOffset);
+
+	OpenGLProgram	myProgram;
+	GLuint			myVAO = 0;
+	GLuint			myVBO = 0;
+	GLint			myVAIndex = -1;
+	GLint			myTAIndex = -1;
+	HGLRC			myRenderingContext = nullptr;
+	HDC				myDC = nullptr;
 	TEOpenGLContext* myContext = nullptr;
 	std::vector<OpenGLImage> myLeftSideImages;
 	std::vector<OpenGLImage> myRightSideImages;

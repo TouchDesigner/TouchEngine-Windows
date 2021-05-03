@@ -37,7 +37,8 @@ VertexShader::VertexShader(VertexShader && o)
 	o.myInputLayout = nullptr;
 }
 
-VertexShader & VertexShader::operator=(VertexShader && o)
+VertexShader&
+VertexShader::operator=(VertexShader && o)
 {
 	if (myVertexShader)
 	{
@@ -54,7 +55,8 @@ VertexShader & VertexShader::operator=(VertexShader && o)
 	return *this;
 }
 
-bool VertexShader::isValid() const
+bool
+VertexShader::isValid() const
 {
 	if (myVertexShader && myInputLayout)
 	{
@@ -63,12 +65,14 @@ bool VertexShader::isValid() const
 	return false;
 }
 
-void VertexShader::setInputLayout(ID3D11DeviceContext * context)
+void
+VertexShader::setInputLayout(ID3D11DeviceContext * context)
 {
 	context->IASetInputLayout(myInputLayout);
 }
 
-void VertexShader::setShader(ID3D11DeviceContext * context)
+void
+VertexShader::setShader(ID3D11DeviceContext * context)
 {
 	context->VSSetShader(myVertexShader, nullptr, 0);
 }

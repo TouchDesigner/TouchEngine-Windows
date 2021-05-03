@@ -26,7 +26,8 @@ OpenGLProgram::~OpenGLProgram()
 {
 }
 
-bool OpenGLProgram::build(const char * vs, const char * fs)
+bool
+OpenGLProgram::build(const char * vs, const char * fs)
 {
 	destroy();
 
@@ -68,7 +69,8 @@ bool OpenGLProgram::build(const char * vs, const char * fs)
 	return false;
 }
 
-void OpenGLProgram::destroy()
+void
+OpenGLProgram::destroy()
 {
 	if (myProgram != 0)
 	{
@@ -77,7 +79,8 @@ void OpenGLProgram::destroy()
 	}
 }
 
-GLuint OpenGLProgram::compileShader(const char * source, GLenum type)
+GLuint
+OpenGLProgram::compileShader(const char * source, GLenum type)
 {
 	GLuint shader = glCreateShader(type);
 	glShaderSource(shader, 1, &source, nullptr);

@@ -27,7 +27,8 @@ OpenGLImage::OpenGLImage(OpenGLImage&& o)
 	o.myVBO = 0;
 }
 
-OpenGLImage& OpenGLImage::operator=(OpenGLImage&& o)
+OpenGLImage&
+OpenGLImage::operator=(OpenGLImage&& o)
 {
 	myTexture = std::move(o.myTexture);
 	std::swap(myVAO, o.myVAO);
@@ -50,7 +51,8 @@ OpenGLImage::~OpenGLImage()
 	}
 }
 
-bool OpenGLImage::setup(GLint vertexAttribLocation, GLint textureAttribLocation)
+bool
+OpenGLImage::setup(GLint vertexAttribLocation, GLint textureAttribLocation)
 {
 	glGenVertexArrays(1, &myVAO);
 	glGenBuffers(1, &myVBO);
@@ -67,7 +69,8 @@ bool OpenGLImage::setup(GLint vertexAttribLocation, GLint textureAttribLocation)
 	return true;
 }
 
-void OpenGLImage::position(float newx, float newy)
+void
+OpenGLImage::position(float newx, float newy)
 {
 	if (newx != x || newy != y)
 	{
@@ -77,7 +80,8 @@ void OpenGLImage::position(float newx, float newy)
 	}
 }
 
-void OpenGLImage::scale(float scaleX, float scaleY)
+void
+OpenGLImage::scale(float scaleX, float scaleY)
 {
 	if (scaleX != myScaleX || scaleY != myScaleY)
 	{
@@ -87,7 +91,8 @@ void OpenGLImage::scale(float scaleX, float scaleY)
 	}
 }
 
-void OpenGLImage::draw()
+void
+OpenGLImage::draw()
 {
 	if (myDirty)
 	{
@@ -121,7 +126,8 @@ void OpenGLImage::draw()
 	}
 }
 
-void OpenGLImage::update(const OpenGLTexture & texture)
+void
+OpenGLImage::update(const OpenGLTexture & texture)
 {
 	if (myTexture.getWidth() != texture.getWidth() || myTexture.getHeight() != texture.getHeight() || myTexture.getFlipped() != texture.getFlipped())
 	{

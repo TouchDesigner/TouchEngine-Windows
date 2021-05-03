@@ -25,15 +25,16 @@ public:
 	OpenGLTexture(const unsigned char *rgba, size_t bytesPerRow, GLsizei width, GLsizei height);
 	OpenGLTexture(GLuint name, GLsizei width, GLsizei height, bool flipped, std::function<void()> releaseCallback);
 	~OpenGLTexture();
-	GLuint getName() const;
+
+	GLuint	getName() const;
 	GLsizei getWidth() const;
 	GLsizei getHeight() const;
-	bool getFlipped() const;
-	bool isValid() const;
+	bool	getFlipped() const;
+	bool	isValid() const;
 private:
 	std::shared_ptr<GLuint> myName;
-	GLsizei myWidth;
-	GLsizei myHeight;
-	bool myFlipped;
+	GLsizei		myWidth;
+	GLsizei		myHeight;
+	bool		myFlipped;
 };
 
