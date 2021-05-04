@@ -834,7 +834,7 @@ DocumentWindow::applyLayoutChange()
 							{
 								if (scope == TEScopeInput)
 								{
-									std::array<unsigned char, ImageWidth * ImageHeight * 4> tex;
+									std::vector<unsigned char> tex( ImageWidth * ImageHeight * 4 );
 
 									for (int y = 0; y < ImageHeight; y++)
 									{
