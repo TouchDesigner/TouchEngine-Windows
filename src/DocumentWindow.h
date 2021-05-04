@@ -36,7 +36,7 @@ public:
 
 	const std::wstring		getPath() const;
 	void					openWindow(HWND parent);
-	void					parameterLayoutDidChange();
+	void					linkLayoutDidChange();
 	void					update();
 	void					render(bool loaded);
 
@@ -68,7 +68,7 @@ private:
 								int32_t end_time_scale,
 								void * info);
 
-	static void		parameterEventCallback(TEInstance *instance, TELinkEvent event, const char *identifier, void *info);
+	static void		linkEventCallback(TEInstance *instance, TELinkEvent event, const char *identifier, void *info);
 
 	static const double		 InputSampleRate;
 	static const int32_t	 InputChannelCount;
@@ -83,7 +83,7 @@ private:
 	static constexpr unsigned int ImageWidth{ 256 };
 	static constexpr unsigned int ImageHeight{ 256 };
 
-	void	parameterValueChange(const char* identifier);
+	void	linkValueChange(const char* identifier);
 	void	endFrame(int64_t time_value, int32_t time_scale, TEResult result);
 	void	getState(bool& loaded, bool& linksChanged, bool& inFrame);
 	void	setInFrame(bool inFrame);
@@ -106,8 +106,8 @@ private:
 	LARGE_INTEGER	myStartTime{ 0 };
 	LARGE_INTEGER	myPerformanceCounterFrequency{ 1 };
 
-	// TE param identifier to renderer index
-	std::map<std::string, size_t>	myOutputParameterTextureMap;
+	// TE link identifier to renderer index
+	std::map<std::string, size_t>	myOutputLinkTextureMap;
 	std::vector<std::string>		myPendingOutputTextures;
 	bool							myPendingLayoutChange;
 };

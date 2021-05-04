@@ -371,16 +371,16 @@ DocumentWindow::eventCallback(TEInstance * instance,
 }
 
 void
-DocumentWindow::parameterEventCallback(TEInstance * instance, TELinkEvent event, const char *identifier, void * info)
+DocumentWindow::linkEventCallback(TEInstance * instance, TELinkEvent event, const char *identifier, void * info)
 {
 	DocumentWindow* doc = static_cast<DocumentWindow*>(info);
 	switch (event)
 	{
 	case TELinkEventAdded:
-		doc->parameterLayoutDidChange();
+		doc->linkLayoutDidChange();
 		break;
 	case TELinkEventValueChange:
-		doc->parameterValueChange(identifier);
+		doc->linkValueChange(identifier);
 		break;
 	default:
 		break;
@@ -388,13 +388,13 @@ DocumentWindow::parameterEventCallback(TEInstance * instance, TELinkEvent event,
 }
 
 void
-DocumentWindow::parameterValueChange(const char* identifier)
+DocumentWindow::linkValueChange(const char* identifier)
 {
-	TELinkInfo* param = nullptr;
-	TEResult result = TEInstanceLinkGetInfo(myInstance, identifier, &param);
-	if (result == TEResultSuccess && param->scope == TEScopeOutput)
+	TELinkInfo* link = nullptr;
+	TEResult result = TEInstanceLinkGetInfo(myInstance, identifier, &link);
+	if (result == TEResultSuccess && link->scope == TEScopeOutput)
 	{
-		switch (param->type)
+		switch (link->type)
 		{
 		case TELinkTypeDouble:
 		{
@@ -471,7 +471,7 @@ DocumentWindow::parameterValueChange(const char* identifier)
 			break;
 		}
 	}
-	TERelease(&param);
+	TERelease(&link);
 }
 
 void
@@ -586,7 +586,7 @@ DocumentWindow::openWindow(HWND parent)
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 		std::string utf8 = converter.to_bytes(getPath());
 
-		TEResult teresult = TEInstanceCreate(eventCallback, parameterEventCallback, this, &myInstance);
+		TEResult teresult = TEInstanceCreate(eventCallback, linkEventCallback, this, &myInstance);
 		if (teresult == TEResultSuccess)
 		{
 			teresult = TEInstanceAssociateGraphicsContext(myInstance, myRenderer->getTEContext());
@@ -609,7 +609,7 @@ DocumentWindow::openWindow(HWND parent)
 }
 
 void
-DocumentWindow::parameterLayoutDidChange()
+DocumentWindow::linkLayoutDidChange()
 {
 	std::lock_guard<std::mutex> guard(myMutex);
 	myPendingLayoutChange = true;    
@@ -800,7 +800,7 @@ DocumentWindow::applyLayoutChange()
 {
 	myRenderer->clearLeftSideImages();
 	myRenderer->clearRightSideImages();
-	myOutputParameterTextureMap.clear();
+	myOutputLinkTextureMap.clear();
 
 	for (auto scope : { TEScopeInput, TEScopeOutput })
 	{
@@ -853,7 +853,7 @@ DocumentWindow::applyLayoutChange()
 								else
 								{
 									myRenderer->addRightSideImage();
-									myOutputParameterTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
+									myOutputLinkTextureMap[info->identifier] = myRenderer->getRightSideImageCount() - 1;
 								}
 							}
 							TERelease(&info);
@@ -882,7 +882,7 @@ DocumentWindow::applyOutputTextureChange()
 		TEResult result = TEInstanceLinkGetTextureValue(myInstance, identifier.c_str(), TELinkValueCurrent, texture.take());
 		if (result == TEResultSuccess)
 		{
-			size_t imageIndex = myOutputParameterTextureMap[identifier];
+			size_t imageIndex = myOutputLinkTextureMap[identifier];
 
 			myRenderer->setRightSideImage(imageIndex, texture);
 		}
