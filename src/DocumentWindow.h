@@ -15,7 +15,6 @@
 #pragma once
 
 #include <string>
-#include <atomic>
 #include <map>
 #include <memory>
 #include <vector>
@@ -38,8 +37,8 @@ public:
 	const std::wstring		getPath() const;
 	void					openWindow(HWND parent);
 	void					parameterLayoutDidChange();
-	void					render();
-	void					cancelFrame();
+	void					update();
+	void					render(bool loaded);
 
 	Mode
 	getMode() const
@@ -55,9 +54,9 @@ public:
 	void
 	didLoad()
 	{
+		std::lock_guard<std::mutex> guard(myMutex);
 		myDidLoad = true;
 	}
-
 private:
 	static wchar_t* WindowClassName;
 	static void		eventCallback(TEInstance * instance,
@@ -75,7 +74,8 @@ private:
 	static const int32_t	 InputChannelCount;
 	static const int64_t	 InputSampleLimit;
 	static const int64_t	 InputSamplesPerFrame;
-	static const UINT_PTR	 RenderTimerID;
+	static const UINT_PTR	 UpdateTimerID;
+	static constexpr int32_t FramesPerSecond{ 60 };
 	static constexpr int32_t TimeRate{ 6000 };
 	static constexpr UINT	 InitialWindowWidth{ 640 };
 	static constexpr UINT	 InitialWindowHeight{ 480 };
@@ -85,8 +85,11 @@ private:
 
 	void	parameterValueChange(const char* identifier);
 	void	endFrame(int64_t time_value, int32_t time_scale, TEResult result);
+	void	getState(bool& loaded, bool& linksChanged, bool& inFrame);
+	void	setInFrame(bool inFrame);
 	void	applyLayoutChange();
-	void	applyOutputTextureChange();
+	bool	applyOutputTextureChange();
+	int64_t	getRenderTime();
 
 	std::wstring	myPath;
 	Mode			myMode;
@@ -95,15 +98,17 @@ private:
 
 	std::unique_ptr<Renderer>	myRenderer;
 
-	std::atomic<bool>	myDidLoad;
-	std::atomic<bool>	myInFrame;
-	double				myLastFloatValue;
-	std::mutex			myMutex;
+	bool			myDidLoad;
+	bool			myInFrame;
+	double			myLastFloatValue;
+	TEResult		myLastResult{ TEResultSuccess };
+	std::mutex		myMutex;
+	LARGE_INTEGER	myStartTime{ 0 };
+	LARGE_INTEGER	myPerformanceCounterFrequency{ 1 };
 
 	// TE param identifier to renderer index
 	std::map<std::string, size_t>	myOutputParameterTextureMap;
 	std::vector<std::string>		myPendingOutputTextures;
-	std::atomic<bool>				myPendingLayoutChange;
-	int64_t							myTime{ 0 };
+	bool							myPendingLayoutChange;
 };
 

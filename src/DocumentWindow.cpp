@@ -26,7 +26,7 @@ const int32_t DocumentWindow::InputChannelCount = 2;
 const double DocumentWindow::InputSampleRate = 44100.0;
 const int64_t DocumentWindow::InputSampleLimit = 44100 / 2;
 const int64_t DocumentWindow::InputSamplesPerFrame = 44100 / 60;
-const UINT_PTR DocumentWindow::RenderTimerID = 1;
+const UINT_PTR DocumentWindow::UpdateTimerID = 1;
 
 static std::shared_ptr<DocumentWindow> theOpenDocument;
 
@@ -294,7 +294,7 @@ DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CLOSE:
 	{
-		KillTimer(hWnd, RenderTimerID);
+		KillTimer(hWnd, UpdateTimerID);
 		HMENU menu = GetMenu(hWnd);
 		if (menu)
 		{
@@ -323,11 +323,11 @@ DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_TIMER:
 	{
-		if (wParam == RenderTimerID)
+		if (wParam == UpdateTimerID)
 		{
 			if (theOpenDocument)
 			{
-				theOpenDocument->render();
+				theOpenDocument->update();
 			}
 		}
 
@@ -387,7 +387,6 @@ DocumentWindow::parameterEventCallback(TEInstance * instance, TELinkEvent event,
 void
 DocumentWindow::parameterValueChange(const char* identifier)
 {
-	std::lock_guard<std::mutex> guard(myMutex);
 	TELinkInfo* param = nullptr;
 	TEResult result = TEInstanceLinkGetInfo(myInstance, identifier, &param);
 	if (result == TEResultSuccess && param->scope == TEScopeOutput)
@@ -420,6 +419,7 @@ DocumentWindow::parameterValueChange(const char* identifier)
 		case TELinkTypeTexture:
 		{
 			// Stash the state, we don't do any actual renderer work from this thread
+			std::lock_guard<std::mutex> guard(myMutex);
 			myPendingOutputTextures.push_back(identifier);
 			break;
 		}
@@ -474,7 +474,33 @@ DocumentWindow::parameterValueChange(const char* identifier)
 void
 DocumentWindow::endFrame(int64_t time_value, int32_t time_scale, TEResult result)
 {
-	myInFrame = false;
+	setInFrame(false);
+}
+
+void
+DocumentWindow::getState(bool& loaded, bool& linksChanged, bool& inFrame)
+{
+	std::lock_guard<std::mutex> guard(myMutex);
+	loaded = myDidLoad;
+	if (myDidLoad)
+	{
+		// For this example, we are only interested in links after load has completed
+		linksChanged = myPendingLayoutChange;
+		inFrame = myInFrame;
+		myPendingLayoutChange = false;
+	}
+	else
+	{
+		linksChanged = false;
+		inFrame = false;
+	}
+}
+
+void
+DocumentWindow::setInFrame(bool inFrame)
+{
+	std::lock_guard<std::mutex> guard(myMutex);
+	myInFrame = inFrame;
 }
 
 DocumentWindow::DocumentWindow(std::wstring path, Mode mode)
@@ -564,7 +590,7 @@ DocumentWindow::openWindow(HWND parent)
 		}
 		if (teresult == TEResultSuccess)
 		{
-			teresult = TEInstanceLoad(myInstance, utf8.c_str(), TETimeInternal);
+			teresult = TEInstanceLoad(myInstance, utf8.c_str(), TETimeExternal);
 		}
 		if (teresult == TEResultSuccess)
 		{
@@ -572,45 +598,53 @@ DocumentWindow::openWindow(HWND parent)
 		}
 		assert(teresult == TEResultSuccess);
 
-		SetTimer(myWindow, RenderTimerID, 16, nullptr);
+		SetTimer(myWindow, UpdateTimerID, static_cast<UINT>(std::ceil(1000. / FramesPerSecond)), nullptr);
+
+		// Draw once
+		render(false);
 	}
 }
 
 void
 DocumentWindow::parameterLayoutDidChange()
 {
+	std::lock_guard<std::mutex> guard(myMutex);
 	myPendingLayoutChange = true;    
 }
 
 void
-DocumentWindow::render()
+DocumentWindow::update()
 {
+	bool loaded, linksChanged, inFrame;
+	getState(loaded, linksChanged, inFrame);
+
+	bool changed = linksChanged;
+
 	// Make any pending renderer state updates
-	if (myPendingLayoutChange)
+	if (linksChanged)
 	{
-		myPendingLayoutChange = false;
 		applyLayoutChange();
 	}
 
-	applyOutputTextureChange();
-
-	float color[4] = { myDidLoad ? 0.6f : 0.6f, myDidLoad ? 0.6f : 0.6f, myDidLoad ? 1.0f : 0.6f, 1.0f};
-	if (myDidLoad && !myInFrame)
+	if (loaded && !inFrame)
 	{
-		TEStringArray *groups;
+		changed = changed || applyOutputTextureChange();
+
+		// Examples of setting input links
+		TEStringArray* groups;
 		TEResult result = TEInstanceGetLinkGroups(myInstance, TEScopeInput, &groups);
 		if (result == TEResultSuccess)
 		{
 			int textureCount = 0;
 			for (int32_t i = 0; i < groups->count; i++)
 			{
-				TEStringArray *children;
+				TEStringArray* children;
 				result = TEInstanceLinkGetChildren(myInstance, groups->strings[i], &children);
 				if (result == TEResultSuccess)
 				{
 					for (int32_t j = 0; j < children->count; j++)
 					{
-						TELinkInfo *info;
+						TELinkInfo* info;
 						result = TEInstanceLinkGetInfo(myInstance, children->strings[j], &info);
 						if (result == TEResultSuccess)
 						{
@@ -633,7 +667,7 @@ DocumentWindow::render()
 								break;
 							case TELinkTypeTexture:
 							{
-								TETexture *texture = myRenderer->createLeftSideImage(textureCount);
+								TETexture* texture = myRenderer->createLeftSideImage(textureCount);
 								if (texture)
 								{
 									result = TEInstanceLinkSetTextureValue(myInstance, info->identifier, texture, myRenderer->getTEContext());
@@ -644,7 +678,7 @@ DocumentWindow::render()
 							}
 							case TELinkTypeFloatBuffer:
 							{
-								TEFloatBuffer *buffer = nullptr;
+								TEFloatBuffer* buffer = nullptr;
 								// Creating a copy of an existing buffer is more efficient than creating a new one every time
 								result = TEInstanceLinkGetFloatBufferValue(myInstance, info->identifier, TELinkValueCurrent, &buffer);
 								if (result == TEResultSuccess)
@@ -668,13 +702,13 @@ DocumentWindow::render()
 										buffer = TEFloatBufferCreate(-1, 2, 1, nullptr);
 									}
 									float value = static_cast<float>(fmod(myLastFloatValue, 1.0));
-									std::array<const float *, 2> channels{ &value, &value };
+									std::array<const float*, 2> channels{ &value, &value };
 									TEFloatBufferSetValues(buffer, channels.data(), 1);
 
 									result = TEInstanceLinkSetFloatBufferValue(myInstance, info->identifier, buffer);
 
 									TERelease(&buffer);
-								}								
+								}
 								break;
 							}
 							case TELinkTypeStringData:
@@ -684,15 +718,15 @@ DocumentWindow::render()
 
 								// It is more efficient to create a copy of an existing table than to create a new one, so check
 								// for an existing table to re-use first.
-								TEObject *value= nullptr;
+								TEObject* value = nullptr;
 								result = TEInstanceLinkGetObjectValue(myInstance, info->identifier, TELinkValueCurrent, &value);
 
 								if (result == TEResultSuccess)
 								{
-									TETable *table = nullptr;
+									TETable* table = nullptr;
 									if (value && TEGetType(value) == TEObjectTypeTable)
 									{
-										table = TETableCreateCopy(static_cast<TETable *>(value));
+										table = TETableCreateCopy(static_cast<TETable*>(value));
 									}
 									else
 									{
@@ -718,42 +752,44 @@ DocumentWindow::render()
 							}
 							TERelease(&info);
 						}
-						
 					}
 					TERelease(&children);
 				}
 			}
 		}
 
-		if (TEInstanceStartFrameAtTime(myInstance, myTime, TimeRate, false) == TEResultSuccess)
+		setInFrame(true);
+
+		int64_t time = getRenderTime();
+		myLastResult = TEInstanceStartFrameAtTime(myInstance, time, TimeRate, false);
+		if (myLastResult == TEResultSuccess)
 		{
-			myInFrame = true;
-			myLastFloatValue += 1.0/(60.0 * 8.0);
+			myLastFloatValue += 1.0 / (60.0 * 8.0);
 		}
 		else
 		{
-			color[0] = 1.0f;
-			color[1] = color[2] = 0.2f;
+			setInFrame(false);
 		}
+	}
+	if (changed)
+	{
+		render(loaded);
+	}
+}
+
+void
+DocumentWindow::render(bool loaded)
+{
+	float color[4] = { loaded ? 0.6f : 0.6f, loaded ? 0.6f : 0.6f, loaded ? 1.0f : 0.6f, 1.0f };
+
+	if (myLastResult != TEResultSuccess)
+	{
+		color[0] = 1.0f;
+		color[1] = color[2] = 0.2f;
 	}
 
 	myRenderer->setBackgroundColor(color[0], color[1], color[2]);
 	myRenderer->render();
-
-	myTime += 100;
-}
-
-void
-DocumentWindow::cancelFrame()
-{
-	if (myInFrame)
-	{
-		TEResult result = TEInstanceCancelFrame(myInstance);
-		if (result != TEResultSuccess)
-		{
-			// TODO: post it
-		}
-	}
 }
 
 void
@@ -827,7 +863,7 @@ DocumentWindow::applyLayoutChange()
 	}
 }
 
-void
+bool
 DocumentWindow::applyOutputTextureChange()
 {
 	// Only hold the lock briefly
@@ -848,4 +884,29 @@ DocumentWindow::applyOutputTextureChange()
 			myRenderer->setRightSideImage(imageIndex, texture);
 		}
 	}
+
+	return !changes.empty();
+}
+
+int64_t
+DocumentWindow::getRenderTime()
+{
+	LARGE_INTEGER now{ 0 };
+
+	if (myStartTime.QuadPart == 0)
+	{
+		QueryPerformanceFrequency(&myPerformanceCounterFrequency);
+		QueryPerformanceCounter(&myStartTime);
+		now.QuadPart = 0;
+	}
+	else
+	{
+		QueryPerformanceCounter(&now);
+		now.QuadPart -= myStartTime.QuadPart;
+	}
+
+	now.QuadPart *= TimeRate;
+	now.QuadPart /= myPerformanceCounterFrequency.QuadPart;
+
+	return now.QuadPart;
 }
