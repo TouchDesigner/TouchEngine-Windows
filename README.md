@@ -9,9 +9,9 @@ Instances And TouchDesigner Installations
 
 TouchEngine requires an installed version of TouchDesigner to load and work with components, along with any paid license (TouchPlayer/TouchDesigner Pro/Commercial/Educational). TouchEngine will locate an installed version suitable for use on the user's system. 
 
-By default the most recently installed version of TouchDesigner will be used (which includes the TouchEngine.exe executable).
+By default the most recently installed version of TouchDesigner will be used. The earliest TouchDesigner version which works with this version of TouchEngine is 2020.28110. 2021.12380 or later is recommended.
 
-Users can specify a particular version to use by including a folder named "TouchEngine" alongside the component .tox being loaded. This folder is a renamed TouchDesigner installation directory (on Windows) or application (on macOS), or a file-system link to an installation or application location (either a symbolic link or a Windows Explorer shortcut or macOS Finder alias).
+Users can specify a particular version to use by including a folder named "TouchEngine" alongside the component .tox being loaded. This folder can be a renamed TouchDesigner installation directory (on Windows) or application (on macOS), or a file-system link to an installation or application location (either a symbolic link or a Windows Explorer shortcut or macOS Finder alias).
 
 
 TEObjects
