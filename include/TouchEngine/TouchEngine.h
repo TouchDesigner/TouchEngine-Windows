@@ -22,3 +22,6 @@
 #include <TouchEngine/TEAdapter.h>
 #include <TouchEngine/TEFloatBuffer.h>
 #include <TouchEngine/TETable.h>
+#ifdef __cplusplus
+#include <TouchEngine/TouchObject.h>
+#endif
