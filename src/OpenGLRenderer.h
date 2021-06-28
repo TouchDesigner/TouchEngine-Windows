@@ -73,7 +73,7 @@ private:
 	GLint			myTAIndex = -1;
 	HGLRC			myRenderingContext = nullptr;
 	HDC				myDC = nullptr;
-	TEOpenGLContext* myContext = nullptr;
+	TouchObject<TEOpenGLContext> myContext;
 	std::vector<OpenGLImage> myLeftSideImages;
 	std::vector<OpenGLImage> myRightSideImages;
 };

@@ -63,7 +63,7 @@ DirectXRenderer::setup(HWND window)
 	}
 	if (SUCCEEDED(result))
 	{
-		if (TED3D11ContextCreate(myDevice.getDevice(), &myContext) != TEResultSuccess)
+		if (TED3D11ContextCreate(myDevice.getDevice(), myContext.take()) != TEResultSuccess)
 		{
 			result = E_FAIL;
 		}

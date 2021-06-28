@@ -59,7 +59,7 @@ private:
 	void		drawImages(std::vector<DirectXImage> &images, float scale, float xOffset);
 
 	DirectXDevice				myDevice;
-	TED3D11Context*				myContext{ nullptr };
+	TouchObject<TED3D11Context>	myContext;
 	ID3D11PixelShader*			myPixelShader{ nullptr };
 	VertexShader				myVertexShader;
 	std::vector<DirectXImage>	myLeftSideImages;

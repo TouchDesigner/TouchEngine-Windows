@@ -121,7 +121,7 @@ OpenGLRenderer::setup(HWND window)
 	}
 	if (success)
 	{
-		if (TEOpenGLContextCreate(myDC, myRenderingContext, &myContext) != TEResultSuccess)
+		if (TEOpenGLContextCreate(myDC, myRenderingContext, myContext.take()) != TEResultSuccess)
 		{
 			success = false;
 		}
