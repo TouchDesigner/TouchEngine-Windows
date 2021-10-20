@@ -123,7 +123,7 @@ DirectXRenderer::addLeftSideImage(const unsigned char* rgba, size_t bytesPerRow,
 TETexture * DirectXRenderer::createLeftSideImage(size_t index)
 {
 	auto &texture = myLeftSideImages[index];
-	return TED3D11TextureCreate(texture.getTexture(), false);
+	return TED3D11TextureCreate(texture.getTexture(), false, kTETextureComponentMapIdentity);
 }
 
 void

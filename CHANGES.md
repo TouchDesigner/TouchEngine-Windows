@@ -1,5 +1,10 @@
 # Changes
 
+## 1.3
+
+ * Add TETextureComponentMap to support swizzled texture formats.
+ * Fixes for working directly with DXGI textures.
+
 ## 1.2
 
 ### Fixes

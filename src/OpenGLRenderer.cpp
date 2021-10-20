@@ -207,7 +207,15 @@ OpenGLRenderer::createLeftSideImage(size_t index)
 	// Create a reference-counted reference to the same texture
 	OpenGLTexture *copied = new OpenGLTexture(myLeftSideImages[index].getTexture());
 
-	TEOpenGLTexture *out = TEOpenGLTextureCreate(copied->getName(), GL_TEXTURE_2D, GL_RGBA8, copied->getWidth(), copied->getHeight(), false, textureReleaseCallback, copied);
+	TEOpenGLTexture *out = TEOpenGLTextureCreate(copied->getName(),
+		GL_TEXTURE_2D,
+		GL_RGBA8,
+		copied->getWidth(),
+		copied->getHeight(),
+		false,
+		kTETextureComponentMapIdentity,
+		textureReleaseCallback,
+		copied);
 	return out;
 }
 
