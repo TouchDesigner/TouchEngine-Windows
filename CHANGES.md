@@ -1,5 +1,9 @@
 # Changes
 
+## 1.4
+
+* Add `TEInstanceSetStatisticsCallback()`.
+
 ## 1.3
 
  * Add `TETextureComponentMap` to support swizzled texture formats.
