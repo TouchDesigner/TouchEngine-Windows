@@ -1,5 +1,12 @@
 # Changes
 
+
+## 1.5
+
+* Add `TEInstanceConfigure()` and change arguments to `TEInstanceLoad()`
+* Add `TEEventInstanceReady` and `TEEventInstanceDidUnload`
+* `TEInstanceGetPath()` now returns a `TEString` which the caller should release
+
 ## 1.4
 
 * Add `TEInstanceSetStatisticsCallback()`.

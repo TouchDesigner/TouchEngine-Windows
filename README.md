@@ -86,11 +86,15 @@ You may wish to set a frame-rate to match your intended render rate:
         result = TEInstanceSetFrameRate(instance, 30, 1);
     }
 
-Load a component:
+Configure and load a component:
 
     if (result == TEResultSuccess)
     {
-        result = TEInstanceLoad(instance, "sample.tox", TETimeExternal);
+        result = TEInstanceConfigure(instance, "sample.tox", TETimeExternal);
+    }
+    if (result == TEResultSuccess)
+    {
+        result = TEInstanceLoad(instance);
     }
 
 Loading begins immediately.

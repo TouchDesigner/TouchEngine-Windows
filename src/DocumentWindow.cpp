@@ -356,8 +356,12 @@ DocumentWindow::eventCallback(TEInstance * instance,
 
 	switch (event)
 	{
+	case TEEventInstanceReady:
+		break;
 	case TEEventInstanceDidLoad:
 		window->didLoad();
+		break;
+	case TEEventInstanceDidUnload:
 		break;
 	case TEEventFrameDidFinish:
 		window->endFrame(start_time_value, start_time_scale, result);
@@ -593,7 +597,11 @@ DocumentWindow::openWindow(HWND parent)
 		}
 		if (teresult == TEResultSuccess)
 		{
-			teresult = TEInstanceLoad(myInstance, utf8.c_str(), TETimeExternal);
+			teresult = TEInstanceConfigure(myInstance, utf8.c_str(), TETimeExternal);
+		}
+		if (teresult == TEResultSuccess)
+		{
+			teresult = TEInstanceLoad(myInstance);
 		}
 		if (teresult == TEResultSuccess)
 		{
