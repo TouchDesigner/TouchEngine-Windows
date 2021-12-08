@@ -1,6 +1,10 @@
 # Changes
 
 
+## 1.6
+
+* Fix an issue which could cause a long delay before reporting an error in some situations.
+ 
 ## 1.5
 
 * Add `TEInstanceConfigure()` and change arguments to `TEInstanceLoad()`
