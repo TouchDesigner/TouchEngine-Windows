@@ -1,5 +1,8 @@
 # Changes
 
+## 1.7
+
+* Fix a performance issue which affected texture inputs.
 
 ## 1.6
 
