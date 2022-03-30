@@ -1,5 +1,11 @@
 # Changes
 
+## 1.8
+
+ * Fix issue which could cause `TEInstanceAssociateGraphicsContext()` or `TEInstanceAssociateGraphicsContext()` to ignore device selection on multi-GPU machines
+ * Where a link has TELinkIntentPulse, setting `false` will not cancel a previous `true` for the current frame
+ * When a link with TELinkIntentPulse is set to true, it will revert to `false` immediately afterwards
+
 ## 1.7
 
 * Fix a performance issue which affected texture inputs.
