@@ -1,5 +1,9 @@
 # Changes
 
+## 1.9
+
+ * Fix a crash which could occur on systems with TouchDesigner 2022 installed.
+
 ## 1.8
 
  * Fix issue which could cause `TEInstanceAssociateGraphicsContext()` or `TEInstanceAssociateGraphicsContext()` to ignore device selection on multi-GPU machines
