@@ -14,15 +14,17 @@
 
 #include "stdafx.h"
 #include "OpenGLTexture.h"
+#include <TouchEngine/TEOpenGL.h>
 
 OpenGLTexture::OpenGLTexture()
+	: myWidth(0), myHeight(0), myFlipped(false)
 {
 }
 
 OpenGLTexture::OpenGLTexture(const unsigned char * rgba, size_t bytesPerRow, GLsizei width, GLsizei height)
 	: myWidth(width), myHeight(height), myFlipped(false)
 {
-	if (bytesPerRow != width * 4)
+	if (bytesPerRow != width * 4LL)
 	{
 		throw "Needs work";
 	}
@@ -41,21 +43,10 @@ OpenGLTexture::OpenGLTexture(const unsigned char * rgba, size_t bytesPerRow, GLs
 	});
 }
 
-OpenGLTexture::OpenGLTexture(GLuint name, GLsizei width, GLsizei height, bool flipped, std::function<void()> releaseCallback)
-	: myWidth(width), myHeight(height), myFlipped(flipped)
+OpenGLTexture::OpenGLTexture(const TouchObject<TEOpenGLTexture> &source)
+	: mySource(source), myWidth(TEOpenGLTextureGetWidth(source)), myHeight(TEOpenGLTextureGetHeight(source)), myFlipped(TETextureGetOrigin(source) != TETextureOriginBottomLeft)
 {
-	myName = std::shared_ptr<GLuint>(new GLuint(name), [releaseCallback](GLuint* p) {
-		if (releaseCallback)
-		{
-			releaseCallback();
-		}
-		delete p;
-	});
-}
-
-
-OpenGLTexture::~OpenGLTexture()
-{
+	myName = std::make_shared<GLuint>(TEOpenGLTextureGetName(source));
 }
 
 GLuint

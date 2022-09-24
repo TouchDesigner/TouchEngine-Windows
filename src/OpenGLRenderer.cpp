@@ -15,6 +15,7 @@
 #include "stdafx.h"
 #include "OpenGLRenderer.h"
 #include <TouchEngine/TouchEngine.h>
+#include <TouchEngine/TEOpenGL.h>
 
 const char *OpenGLRenderer::VertexShader = "#version 330\n\
 in vec2 vertCoord; \
@@ -168,10 +169,10 @@ OpenGLRenderer::render()
 	
 	glUseProgram(myProgram.getName());
 
-	float scale = 1.0f / (max(myLeftSideImages.size(), myRightSideImages.size()) + 1.0f);
+	float scale = 1.0f / (max(myInputImages.size(), myOutputImages.size()) + 1.0f);
 
-	drawImages(myLeftSideImages, scale, -0.5f);
-	drawImages(myRightSideImages, scale, 0.5f);
+	drawImages(myInputImages, scale, -0.5f);
+	drawImages(myOutputImages, scale, 0.5f);
 
 	glUseProgram(0);
 	
@@ -184,104 +185,134 @@ OpenGLRenderer::render()
 }
 
 size_t
-OpenGLRenderer::getLeftSideImageCount() const
+OpenGLRenderer::getInputImageCount() const
 {
-	return myLeftSideImages.size();
+	return myInputImages.size();
 }
 
 void
-OpenGLRenderer::addLeftSideImage(const unsigned char * rgba, size_t bytesPerRow, int width, int height)
+OpenGLRenderer::addInputImage(const unsigned char * rgba, size_t bytesPerRow, int width, int height)
 {
 	wglMakeCurrent(myDC, myRenderingContext);
 	
-	myLeftSideImages.emplace_back();
-	myLeftSideImages.back().setup(myVAIndex, myTAIndex);
-	myLeftSideImages.back().update(OpenGLTexture(rgba, bytesPerRow, width, height));
+	myInputImages.emplace_back();
+	myInputImages.back().setup(myVAIndex, myTAIndex);
+	myInputImages.back().update(OpenGLTexture(rgba, bytesPerRow, width, height));
 	
 	wglMakeCurrent(nullptr, nullptr);
+
+	Renderer::addInputImage(rgba, bytesPerRow, width, height);
 }
 
-TETexture*
-OpenGLRenderer::createLeftSideImage(size_t index)
+bool
+OpenGLRenderer::getInputImage(size_t index, TouchObject<TETexture> & texture, TouchObject<TESemaphore> & semaphore, uint64_t & waitValue)
 {
-	// Create a reference-counted reference to the same texture
-	OpenGLTexture *copied = new OpenGLTexture(myLeftSideImages[index].getTexture());
+	if (inputDidChange(index))
+	{
+		// Create a reference-counted reference to the same texture
+		OpenGLTexture* copied = new OpenGLTexture(myInputImages[index].getTexture());
 
-	TEOpenGLTexture *out = TEOpenGLTextureCreate(copied->getName(),
-		GL_TEXTURE_2D,
-		GL_RGBA8,
-		copied->getWidth(),
-		copied->getHeight(),
-		false,
-		kTETextureComponentMapIdentity,
-		textureReleaseCallback,
-		copied);
-	return out;
+		TEOpenGLTexture* out = TEOpenGLTextureCreate(copied->getName(),
+			GL_TEXTURE_2D,
+			GL_RGBA8,
+			copied->getWidth(),
+			copied->getHeight(),
+			TETextureOriginBottomLeft,
+			kTETextureComponentMapIdentity,
+			textureReleaseCallback,
+			copied);
+		texture.take(out);
+		// The TEOpenGLContext handles sync for us, so we needn't set semaphore or waitValue
+		markInputUnchanged(index);
+		return true;
+	}
+	return false;
+}
+
+bool OpenGLRenderer::releaseOutputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue)
+{
+	if (index < myOutputImages.size())
+	{
+		const auto& source = myOutputImages.at(index).getTexture().getSource();
+		if (source)
+		{
+			TEOpenGLTextureUnlock(source);
+		}
+	}
+	return false;
+}
+
+void OpenGLRenderer::acquireOutputImage(size_t index, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue)
+{
+	if (index < myOutputImages.size())
+	{
+		const auto& source = myOutputImages.at(index).getTexture().getSource();
+		if (source)
+		{
+			TEOpenGLTextureLock(source);
+		}
+	}
 }
 
 void
-OpenGLRenderer::clearLeftSideImages()
+OpenGLRenderer::clearInputImages()
 {
-	myLeftSideImages.clear();
+	myInputImages.clear();
 }
 
 void
-OpenGLRenderer::addRightSideImage()
+OpenGLRenderer::addOutputImage()
 {
 	wglMakeCurrent(myDC, myRenderingContext);
 
-	myRightSideImages.emplace_back();
-	myRightSideImages.back().setup(myVAIndex, myTAIndex);
+	myOutputImages.emplace_back();
+	myOutputImages.back().setup(myVAIndex, myTAIndex);
 
 	wglMakeCurrent(nullptr, nullptr);
 
-	Renderer::addRightSideImage();
+	Renderer::addOutputImage();
 }
 
 void
-OpenGLRenderer::setRightSideImage(size_t index, const TouchObject<TETexture>& texture)
+OpenGLRenderer::setOutputImage(size_t index, const TouchObject<TETexture>& texture)
 {
 	bool success = false;
-	if (TETextureGetType(texture) == TETextureTypeDXGI)
+	if (TETextureGetType(texture) == TETextureTypeD3DShared)
 	{
 		TouchObject<TEOpenGLTexture> created;
-		if (TEOpenGLContextCreateTexture(myContext, static_cast<TEDXGITexture *>(texture.get()), created.take()) == TEResultSuccess)
+		if (TEOpenGLContextGetTexture(myContext, static_cast<TED3DSharedTexture *>(texture.get()), created.take()) == TEResultSuccess)
 		{
-			myRightSideImages.at(index).update(OpenGLTexture(TEOpenGLTextureGetName(created),
-				TEOpenGLTextureGetWidth(created),
-				TEOpenGLTextureGetHeight(created),
-				TETextureIsVerticallyFlipped(created),
-				[created]() mutable {
-					created.reset(); // release the TETexture when we are done with it
-					// in fact reset() needn't be called, we just want created to last
-				}));
+			myOutputImages.at(index).update(OpenGLTexture(created));
 			
 			// Retains it for us
-			Renderer::setRightSideImage(index, created);
+			Renderer::setOutputImage(index, texture);
 			success = true;
 		}
 	}
 
 	if (!success)
 	{
-		myRightSideImages.at(index).update(OpenGLTexture());
-		Renderer::setRightSideImage(index, nullptr);
+		myOutputImages.at(index).update(OpenGLTexture());
+		Renderer::setOutputImage(index, nullptr);
 	}
 }
 
 void
-OpenGLRenderer::clearRightSideImages()
+OpenGLRenderer::clearOutputImages()
 {
 
-	Renderer::clearRightSideImages();
+	Renderer::clearOutputImages();
 }
 
 void
-OpenGLRenderer::textureReleaseCallback(GLuint texture, void *info)
+OpenGLRenderer::textureReleaseCallback(GLuint texture, TEObjectEvent event, void *info)
 {
 	// TODO: might come from another thread
 	// Delete our reference to the texture (and the texture itself if we are the last reference)
-	delete reinterpret_cast<OpenGLTexture *>(info);
+	if (event == TEObjectEventRelease)
+	{
+		delete reinterpret_cast<OpenGLTexture*>(info);
+	}
 }
 
 void

@@ -13,21 +13,17 @@
 */
 
 #include "stdafx.h"
-#include "DirectXDevice.h"
+#include "DX11Device.h"
 #include "FileReader.h"
 
-DirectXDevice::DirectXDevice()
-{
-}
+using Microsoft::WRL::ComPtr;
 
-
-DirectXDevice::~DirectXDevice()
+DX11Device::DX11Device()
 {
-	releaseEverything();
 }
 
 HRESULT
-DirectXDevice::createDeviceResources()
+DX11Device::createDeviceResources()
 {
 	D3D_FEATURE_LEVEL levels[] = {
 		D3D_FEATURE_LEVEL_11_1,
@@ -57,7 +53,7 @@ DirectXDevice::createDeviceResources()
 }
 
 HRESULT
-DirectXDevice::createWindowResources(HWND window, bool depth)
+DX11Device::createWindowResources(HWND window, bool depth)
 {
 	DXGI_SWAP_CHAIN_DESC desc;
 	ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
@@ -71,12 +67,11 @@ DirectXDevice::createWindowResources(HWND window, bool depth)
 	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 	desc.OutputWindow = window;
 
-	IDXGIAdapter *adapter = nullptr;
-	IDXGIFactory *factory = nullptr;
+	ComPtr<IDXGIAdapter> adapter;
+	ComPtr<IDXGIFactory> factory;
+	ComPtr<IDXGIDevice> dxgiDevice;
 
-	IDXGIDevice *dxgiDevice = nullptr;
-
-	HRESULT result = myDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&dxgiDevice);
+	HRESULT result = myDevice->QueryInterface(IID_PPV_ARGS(&dxgiDevice));
 
 	if (SUCCEEDED(result))
 	{
@@ -86,20 +81,7 @@ DirectXDevice::createWindowResources(HWND window, bool depth)
 		{
 			adapter->GetParent(IID_PPV_ARGS(&factory));
 
-			result = factory->CreateSwapChain(myDevice, &desc, &mySwapChain);
-		}
-
-		if (adapter)
-		{
-			adapter->Release();
-		}
-		if (factory)
-		{
-			factory->Release();
-		}
-		if (dxgiDevice)
-		{
-			dxgiDevice->Release();
+			result = factory->CreateSwapChain(myDevice.Get(), &desc, &mySwapChain);
 		}
 	}
 
@@ -112,7 +94,7 @@ DirectXDevice::createWindowResources(HWND window, bool depth)
 }
 
 HRESULT
-DirectXDevice::resize()
+DX11Device::resize()
 {
 	bool hasDepth = myDepthStencil != nullptr;
 
@@ -128,10 +110,10 @@ DirectXDevice::resize()
 	return result;
 }
 
-VertexShader
-DirectXDevice::loadVertexShader(const std::wstring & file, const D3D11_INPUT_ELEMENT_DESC *layoutDescription, int count)
+DX11VertexShader
+DX11Device::loadVertexShader(const std::wstring & file, const D3D11_INPUT_ELEMENT_DESC *layoutDescription, int count)
 {
-	VertexShader out;
+	DX11VertexShader out;
 	HRESULT result = S_OK;
 
 	std::wstring path = getResourcePath();
@@ -150,14 +132,14 @@ DirectXDevice::loadVertexShader(const std::wstring & file, const D3D11_INPUT_ELE
 		result = EBADF;
 	}
 
-	ID3D11VertexShader *shader = nullptr;
+	ComPtr<ID3D11VertexShader> shader;
 
 	if (SUCCEEDED(result))
 	{
 		result = myDevice->CreateVertexShader(compiled.data(), compiled.size(), nullptr, &shader);
 	}
 	
-	ID3D11InputLayout *layout = nullptr;
+	ComPtr<ID3D11InputLayout> layout;
 
 	if (SUCCEEDED(result))
 	{
@@ -165,21 +147,13 @@ DirectXDevice::loadVertexShader(const std::wstring & file, const D3D11_INPUT_ELE
 	}
 	if (SUCCEEDED(result))
 	{
-		out = VertexShader(shader, layout);
-	}
-	if (shader)
-	{
-		shader->Release();
-	}
-	if (layout)
-	{
-		layout->Release();
+		out = DX11VertexShader(shader.Get(), layout.Get());
 	}
 	return out;
 }
 
-ID3D11PixelShader*
-DirectXDevice::loadPixelShader(const std::wstring & file)
+ComPtr<ID3D11PixelShader>
+DX11Device::loadPixelShader(const std::wstring & file)
 {
 	HRESULT result = S_OK;
 
@@ -199,7 +173,7 @@ DirectXDevice::loadPixelShader(const std::wstring & file)
 		result = EBADF;
 	}
 
-	ID3D11PixelShader *shader = nullptr;
+	ComPtr<ID3D11PixelShader> shader;
 
 	if (SUCCEEDED(result))
 	{
@@ -210,115 +184,115 @@ DirectXDevice::loadPixelShader(const std::wstring & file)
 	{
 		return shader;
 	}
-	return nullptr;
+	return ComPtr<ID3D11PixelShader>();
 }
 
-ID3D11Buffer*
-DirectXDevice::loadIndexBuffer(unsigned short * indices, int count)
+ComPtr<ID3D11Buffer>
+DX11Device::loadIndexBuffer(unsigned short * indices, int count)
 {
 	return loadBuffer(sizeof(unsigned short) * count, D3D11_BIND_INDEX_BUFFER, indices);
 }
 
-DirectXTexture
-DirectXDevice::loadTexture(const unsigned char * src, int bytesPerRow, int width, int height)
+DX11Texture
+DX11Device::loadTexture(const unsigned char * src, int bytesPerRow, int width, int height)
 {
-	return DirectXTexture(*this, src, bytesPerRow, width, height, true);
+	return DX11Texture(*this, src, bytesPerRow, width, height, true);
 }
 
 void
-DirectXDevice::setRenderTarget()
+DX11Device::setRenderTarget()
 {
-	myDeviceContext->OMSetRenderTargets(1, &myRenderTarget, myDepthStencilView);
+	myDeviceContext->OMSetRenderTargets(1, myRenderTarget.GetAddressOf(), myDepthStencilView.Get());
 }
 
 void
-DirectXDevice::clear(float r, float g, float b, float a)
+DX11Device::clear(float r, float g, float b, float a)
 {
 	const float color[4] = { r, g, b, a };
-	myDeviceContext->ClearRenderTargetView(myRenderTarget, color);
+	myDeviceContext->ClearRenderTargetView(myRenderTarget.Get(), color);
 }
 
 void
-DirectXDevice::present()
+DX11Device::present()
 {
 	mySwapChain->Present(1, 0);
 }
 
 void
-DirectXDevice::setInputLayout(VertexShader & shader)
+DX11Device::setInputLayout(DX11VertexShader & shader)
 {
-	shader.setInputLayout(myDeviceContext);
+	shader.setInputLayout(myDeviceContext.Get());
 }
 
 void
-DirectXDevice::setIndexBuffer(ID3D11Buffer * buffer)
+DX11Device::setIndexBuffer(ID3D11Buffer * buffer)
 {
 	myDeviceContext->IASetIndexBuffer(buffer, DXGI_FORMAT_R16_UINT, 0);
 }
 
 void
-DirectXDevice::setTriangleStripTopology()
+DX11Device::setTriangleStripTopology()
 {
 	myDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 }
 
 void
-DirectXDevice::setVertexShader(VertexShader & shader)
+DX11Device::setVertexShader(DX11VertexShader & shader)
 {
-	shader.setShader(myDeviceContext);
+	shader.setShader(myDeviceContext.Get());
 }
 
 void
-DirectXDevice::setPixelShader(ID3D11PixelShader * shader)
+DX11Device::setPixelShader(ID3D11PixelShader * shader)
 {
 	myDeviceContext->PSSetShader(shader, nullptr, 0);
 }
 
 void
-DirectXDevice::setShaderResourceAndSampler(DirectXTexture & texture)
+DX11Device::setShaderResourceAndSampler(DX11Texture & texture)
 {
-	texture.setResourceAndSampler(myDeviceContext);
+	texture.setResourceAndSampler(myDeviceContext.Get());
 }
 
 void
-DirectXDevice::updateSubresource(ID3D11Resource * resource, const void * data)
+DX11Device::updateSubresource(ID3D11Resource * resource, const void * data)
 {
 	myDeviceContext->UpdateSubresource(resource, 0, nullptr, data, 0, 0);
 }
 
 void
-DirectXDevice::updateSubresource(ID3D11Resource * resource, const void * data, size_t bytesPerRow, size_t bytesPerImage)
+DX11Device::updateSubresource(ID3D11Resource * resource, const void * data, size_t bytesPerRow, size_t bytesPerImage)
 {
 	myDeviceContext->UpdateSubresource(resource, 0, nullptr, data, static_cast<UINT>(bytesPerRow), static_cast<UINT>(bytesPerImage));
 }
 
 void
-DirectXDevice::generateMips(ID3D11ShaderResourceView *view)
+DX11Device::generateMips(ID3D11ShaderResourceView *view)
 {
 	myDeviceContext->GenerateMips(view);
 }
 
 void
-DirectXDevice::setConstantBuffer(ID3D11Buffer * buffer)
+DX11Device::setConstantBuffer(ID3D11Buffer * buffer)
 {
 	myDeviceContext->VSSetConstantBuffers(0, 1, &buffer);
 }
 
 void
-DirectXDevice::drawIndexed(int count)
+DX11Device::drawIndexed(int count)
 {
 	myDeviceContext->DrawIndexed(count, 0, 0);
 }
 
 void
-DirectXDevice::stop()
+DX11Device::stop()
 {
 	myDeviceContext->ClearState();
 	releaseEverything();
 }
 
 std::wstring
-DirectXDevice::getResourcePath() const
+DX11Device::getResourcePath() const
 {
 	WCHAR buffer[MAX_PATH];
 	std::wstring prefix;
@@ -335,13 +309,13 @@ DirectXDevice::getResourcePath() const
 }
 
 HRESULT
-DirectXDevice::configureBackBuffer(bool depth)
+DX11Device::configureBackBuffer(bool depth)
 {
-	HRESULT result = mySwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&myBackBuffer);
+	HRESULT result = mySwapChain->GetBuffer(0, IID_PPV_ARGS(&myBackBuffer));
 
 	if (SUCCEEDED(result))
 	{
-		result = myDevice->CreateRenderTargetView(myBackBuffer, nullptr, &myRenderTarget);
+		result = myDevice->CreateRenderTargetView(myBackBuffer.Get(), nullptr, &myRenderTarget);
 	}
 	if (SUCCEEDED(result))
 	{
@@ -360,7 +334,7 @@ DirectXDevice::configureBackBuffer(bool depth)
 
 			CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
 
-			myDevice->CreateDepthStencilView(myDepthStencil, &depthStencilViewDesc, &myDepthStencilView);
+			myDevice->CreateDepthStencilView(myDepthStencil.Get(), &depthStencilViewDesc, &myDepthStencilView);
 		}
 
 		ZeroMemory(&myViewport, sizeof(D3D11_VIEWPORT));
@@ -375,53 +349,21 @@ DirectXDevice::configureBackBuffer(bool depth)
 }
 
 void
-DirectXDevice::releaseEverything()
+DX11Device::releaseEverything()
 {
 	releaseBackBuffer();
-	if (mySwapChain)
-	{
-		mySwapChain->Release();
-		mySwapChain = nullptr;
-	}
-	if (myDeviceContext)
-	{
-		myDeviceContext->Release();
-		myDeviceContext = nullptr;
-	}
-	if (myDevice)
-	{
-		//ID3D11Debug *debug;
-		//myDevice->QueryInterface(__uuidof(ID3D11Debug), (LPVOID *)&debug);
-		myDevice->Release();
-		myDevice = nullptr;
-		//debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-		//debug->Release();
-	}
+	mySwapChain.Reset();
+	myDeviceContext.Reset();
+	myDevice.Reset();
 }
 
 HRESULT
-DirectXDevice::releaseBackBuffer()
+DX11Device::releaseBackBuffer()
 {
-	if (myRenderTarget)
-	{
-		myRenderTarget->Release();
-		myRenderTarget = nullptr;
-	}
-	if (myBackBuffer)
-	{
-		myBackBuffer->Release();
-		myBackBuffer = nullptr;
-	}
-	if (myDepthStencilView)
-	{
-		myDepthStencilView->Release();
-		myDepthStencilView = nullptr;
-	}
-	if (myDepthStencil)
-	{
-		myDepthStencil->Release();
-		myDepthStencil = nullptr;
-	}
+	myRenderTarget.Reset();
+	myBackBuffer.Reset();
+	myDepthStencilView.Reset();
+	myDepthStencil.Reset();
 	if (myDeviceContext)
 	{
 		myDeviceContext->Flush();
@@ -429,8 +371,8 @@ DirectXDevice::releaseBackBuffer()
 	return S_OK;
 }
 
-ID3D11Buffer*
-DirectXDevice::loadBuffer(unsigned int size, D3D11_BIND_FLAG flags, const void *data)
+ComPtr<ID3D11Buffer>
+DX11Device::loadBuffer(unsigned int size, D3D11_BIND_FLAG flags, const void *data)
 {
 	D3D11_BUFFER_DESC bufferDescription = { 0 };
 	bufferDescription.ByteWidth = size;
@@ -445,7 +387,7 @@ DirectXDevice::loadBuffer(unsigned int size, D3D11_BIND_FLAG flags, const void *
 	vertexBufferData.SysMemPitch = 0;
 	vertexBufferData.SysMemSlicePitch = 0;
 
-	ID3D11Buffer *buffer;
+	ComPtr<ID3D11Buffer> buffer;
 
 	HRESULT result = myDevice->CreateBuffer(&bufferDescription, data ? &vertexBufferData : nullptr, &buffer);
 

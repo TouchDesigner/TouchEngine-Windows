@@ -26,7 +26,8 @@ class DocumentWindow
 {
 public:
 	enum class Mode {
-		DirectX,
+		DirectX11,
+		DirectX12,
 		OpenGL
 	};
 	static HRESULT registerClass(HINSTANCE hInstance);
@@ -51,6 +52,7 @@ public:
 	{
 		return myWindow;
 	}
+	void didConfigure();
 	void
 	didLoad()
 	{
@@ -80,27 +82,37 @@ private:
 	static constexpr UINT	 InitialWindowWidth{ 640 };
 	static constexpr UINT	 InitialWindowHeight{ 480 };
 
-	static constexpr unsigned int ImageWidth{ 256 };
-	static constexpr unsigned int ImageHeight{ 256 };
+	static constexpr size_t ImageWidth{ 256 };
+	static constexpr size_t ImageHeight{ 256 };
 
 	void	linkValueChange(const char* identifier);
 	void	endFrame(int64_t time_value, int32_t time_scale, TEResult result);
-	void	getState(bool& loaded, bool& linksChanged, bool& inFrame);
+	void	getState(bool& configured, bool& loaded, bool& linksChanged, bool& inFrame);
 	void	setInFrame(bool inFrame);
 	void	applyLayoutChange();
 	bool	applyOutputTextureChange();
 	int64_t	getRenderTime();
 
-	std::wstring	myPath;
-	Mode			myMode;
-	TEInstance*		myInstance;
-	HWND			myWindow;
+	std::wstring				myPath;
+	Mode						myMode;
+	TouchObject<TEInstance>		myInstance;
+	HWND						myWindow{ 0 };
 
 	std::unique_ptr<Renderer>	myRenderer;
+	struct Color {
+		int red;
+		int green;
+		int blue;
+	};
+	struct Gradient {
+		Color start;
+		Color end;
+	};
 
-	bool			myDidLoad;
-	bool			myInFrame;
-	double			myLastFloatValue;
+	bool			myDidLoad{ false };
+	bool			myInFrame{ false };
+	bool			myConfigureRenderer{ false };
+	double			myLastFloatValue{ 0.0 };
 	TEResult		myLastResult{ TEResultSuccess };
 	std::mutex		myMutex;
 	LARGE_INTEGER	myStartTime{ 0 };
@@ -109,6 +121,6 @@ private:
 	// TE link identifier to renderer index
 	std::map<std::string, size_t>	myOutputLinkTextureMap;
 	std::vector<std::string>		myPendingOutputTextures;
-	bool							myPendingLayoutChange;
+	bool							myPendingLayoutChange{ false };
 };
 

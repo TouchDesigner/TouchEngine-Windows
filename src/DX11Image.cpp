@@ -13,49 +13,22 @@
 */
 
 #include "stdafx.h"
-#include "DirectXImage.h"
-#include "DirectXDevice.h"
+#include "DX11Image.h"
+#include "DX11Device.h"
 
-DirectXImage::DirectXImage()
-	: Drawable(), myVertexBuffer(nullptr), myIndexBuffer(nullptr), myConstantBuffer(nullptr), myMatrixDirty(true)
+DX11Image::DX11Image()
+	: Drawable()
 {
 }
 
-DirectXImage::DirectXImage(DirectXTexture & texture)
+DX11Image::DX11Image(DX11Texture & texture)
 	: Drawable(0.0f, 0.0f, static_cast<float>(texture.getWidth()), static_cast<float>(texture.getHeight())),
-	myTexture(texture), myVertexBuffer(nullptr), myIndexBuffer(nullptr), myConstantBuffer(nullptr), myMatrixDirty(true)
+	myTexture(texture)
 {
-}
-
-DirectXImage::DirectXImage(DirectXImage && other)
-	: Drawable(other), myTexture(other.myTexture),
-	myVertexBuffer(other.myVertexBuffer), myIndexBuffer(other.myIndexBuffer), myConstantBuffer(other.myConstantBuffer),
-	myMatrixDirty(true), myScaleX(other.myScaleX), myScaleY(other.myScaleY)
-{
-	other.myVertexBuffer = nullptr;
-	other.myIndexBuffer = nullptr;
-	other.myConstantBuffer = nullptr;
-}
-
-
-DirectXImage::~DirectXImage()
-{
-	if (myVertexBuffer)
-	{
-		myVertexBuffer->Release();
-	}
-	if (myIndexBuffer)
-	{
-		myIndexBuffer->Release();
-	}
-	if (myConstantBuffer)
-	{
-		myConstantBuffer->Release();
-	}
 }
 
 bool
-DirectXImage::setup(DirectXDevice& device)
+DX11Image::setup(DX11Device& device)
 {
 	BasicVertex rectangleVertices[] =
 	{
@@ -84,7 +57,7 @@ DirectXImage::setup(DirectXDevice& device)
 }
 
 void
-DirectXImage::draw(DirectXDevice &device)
+DX11Image::draw(DX11Device &device)
 {
 	if (myTexture.isValid())
 	{
@@ -99,22 +72,22 @@ DirectXImage::draw(DirectXDevice &device)
 			cbuffer.matrix = DirectX::XMMatrixTranspose(cbuffer.matrix);
 			cbuffer.flip.x = myTexture.getFlipped();
 
-			device.updateSubresource(myConstantBuffer, &cbuffer);
+			device.updateSubresource(myConstantBuffer.Get(), &cbuffer);
 			
 			myMatrixDirty = false;
 		}
 
-		device.setVertexBuffer<BasicVertex>(myVertexBuffer);
-		device.setIndexBuffer(myIndexBuffer);
+		device.setVertexBuffer<BasicVertex>(myVertexBuffer.Get());
+		device.setIndexBuffer(myIndexBuffer.Get());
 		device.setTriangleStripTopology();
-		device.setConstantBuffer(myConstantBuffer);
+		device.setConstantBuffer(myConstantBuffer.Get());
 		device.setShaderResourceAndSampler(myTexture);
 		device.drawIndexed(4);
 	}
 }
 
 void
-DirectXImage::position(float newx, float newy)
+DX11Image::position(float newx, float newy)
 {
 	if (x != newx || y != newy)
 	{
@@ -125,7 +98,7 @@ DirectXImage::position(float newx, float newy)
 }
 
 void
-DirectXImage::scale(float scaleX, float scaleY)
+DX11Image::scale(float scaleX, float scaleY)
 {
 	if (myScaleX != scaleX || myScaleY != scaleY)
 	{
@@ -135,16 +108,16 @@ DirectXImage::scale(float scaleX, float scaleY)
 	}
 }
 
-ID3D11Texture2D*
-DirectXImage::getTexture() const
+DX11Texture &
+DX11Image::getTexture()
 {
-	return myTexture.getTexture();
+	return myTexture;
 }
 
 void
-DirectXImage::update(DirectXTexture & texture)
+DX11Image::update(DX11Texture & texture)
 {
-	if (myTexture.getFlipped() != texture.getFlipped())
+	if (myTexture.getFlipped() != texture.getFlipped() || myTexture.getWidth() != texture.getWidth() || myTexture.getHeight() != texture.getHeight())
 	{
 		myMatrixDirty = true;
 	}

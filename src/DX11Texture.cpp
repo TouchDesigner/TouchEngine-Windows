@@ -13,48 +13,21 @@
 */
 
 #include "stdafx.h"
-#include "DirectXTexture.h"
-#include "DirectXDevice.h"
+#include "DX11Texture.h"
+#include "DX11Device.h"
+#include <TouchEngine/TED3D11.h>
 
-DirectXTexture::DirectXTexture()
-	: myTexture(nullptr), myTextureView(nullptr), mySampler(nullptr), myVFlipped(false)
+DX11Texture::DX11Texture()
 {
 }
 
-
-DirectXTexture::DirectXTexture(DirectXTexture && o)
-	: myTexture(o.myTexture), myTextureView(o.myTextureView), mySampler(o.mySampler), myVFlipped(o.myVFlipped)
+ID3D11Texture2D * DX11Texture::getTexture() const
 {
-	o.myTexture = nullptr;
-	o.myTextureView = nullptr;
-	o.mySampler = nullptr;
-}
-
-DirectXTexture & DirectXTexture::operator=(DirectXTexture && o)
-{
-	releaseResources();
-	myTexture = o.myTexture;
-	o.myTexture = nullptr;
-	myTextureView = o.myTextureView;
-	o.myTextureView = nullptr;
-	mySampler = o.mySampler;
-	o.mySampler = nullptr;
-	myVFlipped = o.myVFlipped;
-	return *this;
-}
-
-DirectXTexture::~DirectXTexture()
-{
-	releaseResources();
-}
-
-ID3D11Texture2D * DirectXTexture::getTexture() const
-{
-	return myTexture;
+	return myTexture.Get();
 }
 
 bool
-DirectXTexture::isValid() const
+DX11Texture::isValid() const
 {
 	if (myTexture && myTextureView && mySampler)
 	{
@@ -64,14 +37,14 @@ DirectXTexture::isValid() const
 }
 
 void
-DirectXTexture::setResourceAndSampler(ID3D11DeviceContext * context)
+DX11Texture::setResourceAndSampler(ID3D11DeviceContext * context)
 {
-	context->PSSetShaderResources(0, 1, &myTextureView);
-	context->PSSetSamplers(0, 1, &mySampler);
+	context->PSSetShaderResources(0, 1, myTextureView.GetAddressOf());
+	context->PSSetSamplers(0, 1, mySampler.GetAddressOf());
 }
 
 int
-DirectXTexture::getWidth() const
+DX11Texture::getWidth() const
 {
 	if (myTexture)
 	{
@@ -83,7 +56,7 @@ DirectXTexture::getWidth() const
 }
 
 int
-DirectXTexture::getHeight() const
+DX11Texture::getHeight() const
 {
 	if (myTexture)
 	{
@@ -95,13 +68,24 @@ DirectXTexture::getHeight() const
 }
 
 bool
-DirectXTexture::getFlipped() const
+DX11Texture::getFlipped() const
 {
 	return myVFlipped;
 }
 
+void DX11Texture::acquire(uint64_t value)
+{
+	myKeyedMutex->AcquireSync(value, INFINITE);
+	myLastAcquireValue = value;
+}
+
+void DX11Texture::release(uint64_t value)
+{
+	myKeyedMutex->ReleaseSync(value);
+}
+
 HRESULT
-DirectXTexture::createShaderResourceView(ID3D11Device* device, const D3D11_TEXTURE2D_DESC & description)
+DX11Texture::createShaderResourceView(ID3D11Device* device, const D3D11_TEXTURE2D_DESC & description)
 {
 	D3D11_SHADER_RESOURCE_VIEW_DESC textureViewDescription;
 	ZeroMemory(&textureViewDescription, sizeof(textureViewDescription));
@@ -109,11 +93,11 @@ DirectXTexture::createShaderResourceView(ID3D11Device* device, const D3D11_TEXTU
 	textureViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	textureViewDescription.Texture2D.MipLevels = description.MipLevels;
 	textureViewDescription.Texture2D.MostDetailedMip = 0;
-	return device->CreateShaderResourceView(myTexture, &textureViewDescription, &myTextureView);
+	return device->CreateShaderResourceView(myTexture.Get(), &textureViewDescription, &myTextureView);
 }
 
 HRESULT
-DirectXTexture::createSamplerState(ID3D11Device* device, const D3D11_TEXTURE2D_DESC & description)
+DX11Texture::createSamplerState(ID3D11Device* device, const D3D11_TEXTURE2D_DESC & description)
 {
 	D3D11_SAMPLER_DESC samplerDescription;
 	ZeroMemory(&samplerDescription, sizeof(samplerDescription));
@@ -137,27 +121,16 @@ DirectXTexture::createSamplerState(ID3D11Device* device, const D3D11_TEXTURE2D_D
 }
 
 void
-DirectXTexture::releaseResources()
+DX11Texture::releaseResources()
 {
-	if (myTexture)
-	{
-		myTexture->Release();
-		myTexture = nullptr;
-	}
-	if (myTextureView)
-	{
-		myTextureView->Release();
-		myTextureView = nullptr;
-	}
-	if (mySampler)
-	{
-		mySampler->Release();
-		mySampler = nullptr;
-	}
+	myTexture.Reset();
+	myKeyedMutex.Reset();
+	myTextureView.Reset();
+	mySampler.Reset();
+	mySource.reset();
 }
 
-DirectXTexture::DirectXTexture(DirectXDevice &device, const unsigned char * src, int bytesPerRow, int width, int height, bool automips)
-	: myTexture(nullptr), myTextureView(nullptr), mySampler(nullptr), myVFlipped(false)
+DX11Texture::DX11Texture(DX11Device &device, const unsigned char * src, int bytesPerRow, int width, int height, bool automips)
 {
 	D3D11_SUBRESOURCE_DATA subresource = { 0 };
 	subresource.pSysMem = src;
@@ -193,8 +166,8 @@ DirectXTexture::DirectXTexture(DirectXDevice &device, const unsigned char * src,
 
 	if (SUCCEEDED(result) && automips)
 	{
-		device.updateSubresource(myTexture, src, bytesPerRow, bytesPerRow * height);
-		device.generateMips(myTextureView);
+		device.updateSubresource(myTexture.Get(), src, bytesPerRow, bytesPerRow * (size_t)height);
+		device.generateMips(myTextureView.Get());
 	}
 
 	if (SUCCEEDED(result))
@@ -208,16 +181,17 @@ DirectXTexture::DirectXTexture(DirectXDevice &device, const unsigned char * src,
 	}
 }
 
-DirectXTexture::DirectXTexture(ID3D11Texture2D * texture, bool flipped)
-	: myTexture(texture), myTextureView(nullptr), mySampler(nullptr), myVFlipped(flipped)
+DX11Texture::DX11Texture(const TouchObject<TED3D11Texture> &source)
+	: mySource(source), myTexture(TED3D11TextureGetTexture(source)),
+		myVFlipped(TETextureGetOrigin(source) != TETextureOriginTopLeft)
 {
-	texture->AddRef();
+	myTexture->QueryInterface(IID_PPV_ARGS(&myKeyedMutex));
 
 	D3D11_TEXTURE2D_DESC description = { 0 };
 	myTexture->GetDesc(&description);
 
 	ID3D11Device *device;
-	texture->GetDevice(&device);
+	myTexture->GetDevice(&device);
 
 	HRESULT result = createShaderResourceView(device, description);
 
@@ -230,47 +204,4 @@ DirectXTexture::DirectXTexture(ID3D11Texture2D * texture, bool flipped)
 	{
 		releaseResources();
 	}
-}
-
-DirectXTexture::DirectXTexture(const DirectXTexture & o)
-	: myTexture(o.myTexture), myTextureView(o.myTextureView), mySampler(o.mySampler), myVFlipped(o.myVFlipped)
-{
-	if (myTexture)
-	{
-		myTexture->AddRef();
-	}
-	if (myTextureView)
-	{
-		myTextureView->AddRef();
-	}
-	if (mySampler)
-	{
-		mySampler->AddRef();
-	}
-}
-
-DirectXTexture&
-DirectXTexture::operator=(const DirectXTexture & o)
-{
-	if (&o != this)
-	{
-		releaseResources();
-		myTexture = o.myTexture;
-		if (myTexture)
-		{
-			myTexture->AddRef();
-		}
-		myTextureView = o.myTextureView;
-		if (myTextureView)
-		{
-			myTextureView->AddRef();
-		}
-		mySampler = o.mySampler;
-		if (mySampler)
-		{
-			mySampler->AddRef();
-		}
-		myVFlipped = o.myVFlipped;
-	}
-	return *this;
 }

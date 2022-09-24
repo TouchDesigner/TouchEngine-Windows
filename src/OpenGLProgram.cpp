@@ -21,8 +21,12 @@ OpenGLProgram::OpenGLProgram()
 }
 
 
-OpenGLProgram::~OpenGLProgram()
+OpenGLProgram::~OpenGLProgram() noexcept(false)
 {
+	if (myProgram)
+	{
+		throw std::exception();
+	}
 }
 
 bool

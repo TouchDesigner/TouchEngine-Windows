@@ -19,7 +19,7 @@ OpenGLImage::OpenGLImage()
 {
 }
 
-OpenGLImage::OpenGLImage(OpenGLImage&& o)
+OpenGLImage::OpenGLImage(OpenGLImage&& o) noexcept
 	: myTexture(std::move(o.myTexture)), myVAO(o.myVAO), myVBO(o.myVBO), myScaleX(o.myScaleX), myScaleY(o.myScaleY), myDirty(o.myDirty)
 {
 	o.myVAO = 0;
@@ -27,7 +27,7 @@ OpenGLImage::OpenGLImage(OpenGLImage&& o)
 }
 
 OpenGLImage&
-OpenGLImage::operator=(OpenGLImage&& o)
+OpenGLImage::operator=(OpenGLImage&& o) noexcept
 {
 	myTexture = std::move(o.myTexture);
 	std::swap(myVAO, o.myVAO);

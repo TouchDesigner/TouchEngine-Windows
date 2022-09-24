@@ -13,45 +13,38 @@
 */
 
 #pragma once
+
 #include "Drawable.h"
-#include "DirectXTexture.h"
-#include "VertexShader.h"
+#include "DX12Texture.h"
 #include <DirectXMath.h>
 
-class DirectXDevice;
-
-class DirectXImage :
+class DX12Image :
 	public Drawable
 {
 public:
-	DirectXImage();
-	DirectXImage(DirectXTexture& texture);
-	DirectXImage(DirectXImage&& other);
-	~DirectXImage();
-
-	bool				setup(DirectXDevice& device);
-	void				draw(DirectXDevice& device);
-	void				position(float x, float y);
-	void				scale(float scaleX, float scaleY);
-	ID3D11Texture2D*	getTexture() const;
-	void				update(DirectXTexture &texture);
+	DX12Image();
+	DX12Image(ID3D12Device* device);
+	DX12Image(DX12Texture& texture);
+	constexpr DX12Texture& getTexture()
+	{
+		return myTexture;
+	}
+	void update(DX12Texture& texture);
+	void position(float newx, float newy);
+	void scale(float scaleX, float scaleY);
+	void draw(ID3D12GraphicsCommandList* commandList);
 private:
 	struct BasicVertex
 	{
-		DirectX::XMFLOAT2 pos;
+		DirectX::XMFLOAT3 pos;
 		DirectX::XMFLOAT2 tex;
 	};
-	struct ConstantBuffer
-	{
-		DirectX::XMMATRIX matrix;
-		DirectX::XMINT4 flip; // XM type for easy alignment, only .x used
-	};
-	DirectXTexture	myTexture;
-	ID3D11Buffer*	myVertexBuffer;
-	ID3D11Buffer*	myIndexBuffer;
-	ID3D11Buffer*	myConstantBuffer;
-	bool			myMatrixDirty;
-	float			myScaleX{ 1.0 };
-	float			myScaleY{ 1.0 };
+	void											setup(ID3D12Device *device);
+	DX12Texture										myTexture;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>	mySRVHeap;
+	Microsoft::WRL::ComPtr<ID3D12Resource>			myVertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW						myVertexBufferView{0, 0, 0};
+	bool											myMatrixDirty{ true };
+	float											myScaleX{ 1.0 };
+	float											myScaleY{ 1.0 };
 };
-

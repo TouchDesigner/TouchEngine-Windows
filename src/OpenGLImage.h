@@ -23,9 +23,9 @@ class OpenGLImage : public Drawable
 public:
 	OpenGLImage();
 	OpenGLImage(const OpenGLImage& o) = delete;
-	OpenGLImage(OpenGLImage&& o);
+	OpenGLImage(OpenGLImage&& o) noexcept;
 	OpenGLImage& operator=(const OpenGLImage& o) = delete;
-	OpenGLImage& operator=(OpenGLImage&& o);
+	OpenGLImage& operator=(OpenGLImage&& o) noexcept;
 	~OpenGLImage();
 
 	bool	setup(GLint vertexAttribLocation, GLint textureAttribLocation);

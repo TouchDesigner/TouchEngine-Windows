@@ -15,44 +15,43 @@
 #pragma once
 
 #include <string>
-#include "VertexShader.h"
-#include "DirectXTexture.h"
+#include "DX11VertexShader.h"
+#include "DX11Texture.h"
 
-class DirectXDevice
+class DX11Device
 {
 public:
-	DirectXDevice();
-	~DirectXDevice();
-	DirectXDevice(const DirectXDevice &o) = delete;
-	DirectXDevice &operator=(const DirectXDevice &o) = delete;
+	DX11Device();
+	DX11Device(const DX11Device &o) = delete;
+	DX11Device &operator=(const DX11Device &o) = delete;
 
 	HRESULT		createDeviceResources();
 	HRESULT		createWindowResources(HWND window, bool depth);
 	HRESULT		resize();
 
-	VertexShader		loadVertexShader(const std::wstring &file, const D3D11_INPUT_ELEMENT_DESC *layout, int count);
-	ID3D11PixelShader*	loadPixelShader(const std::wstring &file);
-	ID3D11Buffer*		loadIndexBuffer(unsigned short *indices, int count);
+	DX11VertexShader							loadVertexShader(const std::wstring &file, const D3D11_INPUT_ELEMENT_DESC *layout, int count);
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>	loadPixelShader(const std::wstring &file);
+	Microsoft::WRL::ComPtr<ID3D11Buffer>		loadIndexBuffer(unsigned short *indices, int count);
 
 	template <class T>
-	ID3D11Buffer*
+	Microsoft::WRL::ComPtr<ID3D11Buffer>
 	loadVertexBuffer(T* vertices, int count)
 	{
 		return loadBuffer(sizeof(T) * count, D3D11_BIND_VERTEX_BUFFER, vertices);
 	}
 
 	template <class T>
-	ID3D11Buffer*
+	Microsoft::WRL::ComPtr<ID3D11Buffer>
 	loadConstantBuffer()
 	{
 		return loadBuffer(sizeof(T), D3D11_BIND_CONSTANT_BUFFER, nullptr);
 	}
 
-	DirectXTexture	loadTexture(const unsigned char *src, int bytesPerRow, int width, int height);
+	DX11Texture	loadTexture(const unsigned char *src, int bytesPerRow, int width, int height);
 	void			setRenderTarget();
 	void			clear(float r, float g, float b, float a);
 	void			present();
-	void			setInputLayout(VertexShader &shader);
+	void			setInputLayout(DX11VertexShader &shader);
 
 	template <class T>
 	void
@@ -65,9 +64,9 @@ public:
 
 	void	setIndexBuffer(ID3D11Buffer *buffer);
 	void	setTriangleStripTopology();
-	void	setVertexShader(VertexShader &shader);
+	void	setVertexShader(DX11VertexShader &shader);
 	void	setPixelShader(ID3D11PixelShader *shader);
-	void	setShaderResourceAndSampler(DirectXTexture &texture);
+	void	setShaderResourceAndSampler(DX11Texture &texture);
 	void	updateSubresource(ID3D11Resource *resource, const void *data);
 	void	updateSubresource(ID3D11Resource *resource, const void *data, size_t bytesPerRow, size_t bytesPerImage);
 	void	generateMips(ID3D11ShaderResourceView *view);
@@ -78,26 +77,26 @@ public:
 	ID3D11Device*
 	getDevice() const
 	{
-		return myDevice;
+		return myDevice.Get();
 	}
 
 private:
-	std::wstring	getResourcePath() const;
-	HRESULT			configureBackBuffer(bool depth);
-	void			releaseEverything();
-	HRESULT			releaseBackBuffer();
-	ID3D11Buffer*	loadBuffer(unsigned int size, D3D11_BIND_FLAG flags, const void *data);
+	std::wstring							getResourcePath() const;
+	HRESULT									configureBackBuffer(bool depth);
+	void									releaseEverything();
+	HRESULT									releaseBackBuffer();
+	Microsoft::WRL::ComPtr<ID3D11Buffer>	loadBuffer(unsigned int size, D3D11_BIND_FLAG flags, const void *data);
 
-	ID3D11Device*			myDevice = nullptr;
-	ID3D11DeviceContext*	myDeviceContext = nullptr;
-	D3D_FEATURE_LEVEL		myFeatureLevel;
-	IDXGISwapChain*			mySwapChain = nullptr;
-	ID3D11Texture2D*		myBackBuffer = nullptr;
-	ID3D11RenderTargetView* myRenderTarget = nullptr;
-	ID3D11Texture2D*		myDepthStencil = nullptr;
-	ID3D11DepthStencilView* myDepthStencilView = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11Device>			myDevice;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext>		myDeviceContext;
+	D3D_FEATURE_LEVEL								myFeatureLevel{ D3D_FEATURE_LEVEL_1_0_CORE };
+	Microsoft::WRL::ComPtr<IDXGISwapChain>			mySwapChain;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D>			myBackBuffer;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>	myRenderTarget;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D>			myDepthStencil;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView>	myDepthStencilView;
 
-	D3D11_TEXTURE2D_DESC	myBackBufferDescription;
-	D3D11_VIEWPORT			myViewport;
+	D3D11_TEXTURE2D_DESC	myBackBufferDescription{ };
+	D3D11_VIEWPORT			myViewport{};
 };
 

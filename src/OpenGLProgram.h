@@ -20,7 +20,7 @@ class OpenGLProgram
 {
 public:
 	OpenGLProgram();
-	~OpenGLProgram();
+	~OpenGLProgram() noexcept(false);
 
 	bool	build(const char *vs, const char *fs);
 	void	destroy();
@@ -30,6 +30,6 @@ private:
 	static const char* LinkError;
 
 	static GLuint	compileShader(const char *source, GLenum type);
-	GLuint			myProgram;
+	GLuint			myProgram{ 0 };
 };
 

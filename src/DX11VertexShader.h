@@ -12,37 +12,18 @@
 * prior written permission from Derivative.
 */
 
+#pragma once
 
-#ifndef TEGraphicsContext_h
-#define TEGraphicsContext_h
+class DX11VertexShader
+{
+public:
+	DX11VertexShader();
+	DX11VertexShader(ID3D11VertexShader *shader, ID3D11InputLayout *layout);
+	bool isValid() const;
+	void setInputLayout(ID3D11DeviceContext *context);
+	void setShader(ID3D11DeviceContext *context);
+private:
+	Microsoft::WRL::ComPtr<ID3D11VertexShader>	myVertexShader;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout>	myInputLayout;
+};
 
-#include <TouchEngine/TEObject.h>
-#include <TouchEngine/TEResult.h>
-#include <TouchEngine/TETexture.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-TE_ASSUME_NONNULL_BEGIN
-
-typedef TEObject TEGraphicsContext;
-typedef struct TEAdapter_ TEAdapter;
-
-/*
- Returns the TEAdapter associated with a context.
- 	The caller is responsible for releasing the returned TEAdapter using TERelease()
- */
-TE_EXPORT TEAdapter *TEGraphicsContextGetAdapter(TEGraphicsContext *context);
-
-/*
- See TEOpenGL.h, TED3D11.h, etc, to create and use TEGraphicsContexts
- */
-
-TE_ASSUME_NONNULL_END
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif

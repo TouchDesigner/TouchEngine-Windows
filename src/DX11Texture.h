@@ -13,19 +13,18 @@
 */
 
 #pragma once
-class DirectXDevice;
 
-class DirectXTexture
+#include <cstdint>
+#include <TouchEngine/TouchObject.h>
+
+class DX11Device;
+
+class DX11Texture
 {
 public:
-	DirectXTexture();
-	DirectXTexture(DirectXDevice &device, const unsigned char *src, int bytesPerRow, int width, int height, bool genMips = false);
-	DirectXTexture(ID3D11Texture2D *texture, bool flipped);
-	DirectXTexture(const DirectXTexture &o);
-	DirectXTexture &operator=(const DirectXTexture &o);
-	DirectXTexture(DirectXTexture &&o);
-	DirectXTexture &operator=(DirectXTexture &&o);
-	~DirectXTexture();
+	DX11Texture();
+	DX11Texture(DX11Device &device, const unsigned char *src, int bytesPerRow, int width, int height, bool genMips = false);
+	DX11Texture(const TouchObject<TED3D11Texture> &texture);
 
 	ID3D11Texture2D*	getTexture() const;
 	bool				isValid() const;
@@ -33,15 +32,25 @@ public:
 	int					getWidth() const;
 	int					getHeight() const;
 	bool				getFlipped() const;
+	void				acquire(uint64_t value);
+	void				release(uint64_t value);
+	constexpr uint64_t
+		getLastAcquireValue() const
+	{
+		return myLastAcquireValue;
+	}
 private:
 	HRESULT				createShaderResourceView(ID3D11Device *device, const D3D11_TEXTURE2D_DESC &description);
 	HRESULT				createSamplerState(ID3D11Device *device, const D3D11_TEXTURE2D_DESC &description);
 	void				releaseResources();
 
 
-	ID3D11Texture2D*			myTexture;
-	ID3D11ShaderResourceView*	myTextureView;
-	ID3D11SamplerState*			mySampler;
-	bool						myVFlipped;
+	TouchObject<TED3D11Texture>							mySource;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D>				myTexture;
+	Microsoft::WRL::ComPtr<IDXGIKeyedMutex>				myKeyedMutex;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	myTextureView;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState>			mySampler;
+	bool												myVFlipped{ false };
+	uint64_t											myLastAcquireValue{ 0 };
 };
 

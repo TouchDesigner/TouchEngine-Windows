@@ -63,9 +63,15 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;opengl32.lib;TouchEngine.lib;Pathcch.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;dxguid.lib;d3d11.lib;d3d12.lib;d3dcompiler.lib;opengl32.lib;TouchEngine.lib;Pathcch.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <TreatOutputAsContent>true</TreatOutputAsContent>
+    </CustomBuildStep>
+    <CustomBuild>
+      <TreatOutputAsContent>true</TreatOutputAsContent>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -88,6 +94,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\DX12Image.h" />
+    <ClInclude Include="src\DX12Texture.h" />
+    <ClInclude Include="src\DX12Renderer.h" />
     <ClInclude Include="include\TouchEngine\TEAdapter.h" />
     <ClInclude Include="include\TouchEngine\TEBase.h" />
     <ClInclude Include="include\TouchEngine\TEFloatBuffer.h" />
@@ -98,10 +107,11 @@
     <ClInclude Include="include\TouchEngine\TETable.h" />
     <ClInclude Include="include\TouchEngine\TETexture.h" />
     <ClInclude Include="include\TouchEngine\TouchEngine.h" />
-    <ClInclude Include="src/DirectXDevice.h" />
-    <ClInclude Include="src/DirectXImage.h" />
-    <ClInclude Include="src/DirectXRenderer.h" />
-    <ClInclude Include="src/DirectXTexture.h" />
+    <ClInclude Include="src\d3dx12.h" />
+    <ClInclude Include="src\DX11Device.h" />
+    <ClInclude Include="src\DX11Image.h" />
+    <ClInclude Include="src\DX11Renderer.h" />
+    <ClInclude Include="src\DX11Texture.h" />
     <ClInclude Include="src/DocumentWindow.h" />
     <ClInclude Include="src/Drawable.h" />
     <ClInclude Include="src/FileReader.h" />
@@ -113,16 +123,20 @@
     <ClInclude Include="src/Resource.h" />
     <ClInclude Include="src/stdafx.h" />
     <ClInclude Include="src/targetver.h" />
-    <ClInclude Include="src/VertexShader.h" />
+    <ClInclude Include="src\DX11VertexShader.h" />
+    <ClInclude Include="src\DX12Utility.h" />
     <ClInclude Include="src\OpenGLImage.h" />
     <ClInclude Include="src\OpenGLProgram.h" />
     <ClInclude Include="include\TouchEngine\TouchObject.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src/DirectXDevice.cpp" />
-    <ClCompile Include="src/DirectXImage.cpp" />
-    <ClCompile Include="src/DirectXRenderer.cpp" />
-    <ClCompile Include="src/DirectXTexture.cpp" />
+    <ClCompile Include="src\DX12Image.cpp" />
+    <ClCompile Include="src\DX12Texture.cpp" />
+    <ClCompile Include="src\DX12Renderer.cpp" />
+    <ClCompile Include="src\DX11Device.cpp" />
+    <ClCompile Include="src\DX11Image.cpp" />
+    <ClCompile Include="src\DX11Renderer.cpp" />
+    <ClCompile Include="src\DX11Texture.cpp" />
     <ClCompile Include="src/DocumentWindow.cpp" />
     <ClCompile Include="src/Drawable.cpp" />
     <ClCompile Include="src/FileReader.cpp" />
@@ -139,7 +153,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src/VertexShader.cpp" />
+    <ClCompile Include="src\DX11VertexShader.cpp" />
     <ClCompile Include="src\OpenGLImage.cpp" />
     <ClCompile Include="src\OpenGLProgram.cpp" />
   </ItemGroup>
@@ -160,6 +174,13 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+    <CopyFileToFolders Include="src\dx12shaders.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copy %(Identity) "$(OutDir)" &gt; NUL</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\%(Identity)</Outputs>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+    </CopyFileToFolders>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

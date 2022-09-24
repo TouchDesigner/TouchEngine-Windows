@@ -12,23 +12,37 @@
 * prior written permission from Derivative.
 */
 
-#pragma once
+#include "stdafx.h"
+#include "DX11VertexShader.h"
 
-class VertexShader
+
+DX11VertexShader::DX11VertexShader()
 {
-public:
-	VertexShader();
-	VertexShader(ID3D11VertexShader *shader, ID3D11InputLayout *layout);
-	VertexShader(const VertexShader &o) = delete;
-	VertexShader &operator=(const VertexShader &o) = delete;
-	VertexShader(VertexShader &&o);
-	~VertexShader();
-	VertexShader &operator=(VertexShader &&o);
-	bool isValid() const;
-	void setInputLayout(ID3D11DeviceContext *context);
-	void setShader(ID3D11DeviceContext *context);
-private:
-	ID3D11VertexShader *myVertexShader;
-	ID3D11InputLayout *myInputLayout;
-};
+}
 
+DX11VertexShader::DX11VertexShader(ID3D11VertexShader * shader, ID3D11InputLayout * layout)
+	:myVertexShader(shader), myInputLayout(layout)
+{
+}
+
+bool
+DX11VertexShader::isValid() const
+{
+	if (myVertexShader && myInputLayout)
+	{
+		return true;
+	}
+	return false;
+}
+
+void
+DX11VertexShader::setInputLayout(ID3D11DeviceContext * context)
+{
+	context->IASetInputLayout(myInputLayout.Get());
+}
+
+void
+DX11VertexShader::setShader(ID3D11DeviceContext * context)
+{
+	context->VSSetShader(myVertexShader.Get(), nullptr, 0);
+}

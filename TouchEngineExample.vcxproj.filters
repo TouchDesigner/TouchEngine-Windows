@@ -9,16 +9,16 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src/DirectXDevice.cpp">
+    <ClCompile Include="src\DX11Device.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src/DirectXImage.cpp">
+    <ClCompile Include="src\DX11Image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src/DirectXRenderer.cpp">
+    <ClCompile Include="src\DX11Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src/DirectXTexture.cpp">
+    <ClCompile Include="src\DX11Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src/DocumentWindow.cpp">
@@ -45,7 +45,7 @@
     <ClCompile Include="src/stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src/VertexShader.cpp">
+    <ClCompile Include="src\DX11VertexShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\OpenGLProgram.cpp">
@@ -54,18 +54,27 @@
     <ClCompile Include="src\OpenGLImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\DX12Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DX12Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DX12Image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src/DirectXDevice.h">
+    <ClInclude Include="src\DX11Device.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src/DirectXImage.h">
+    <ClInclude Include="src\DX11Image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src/DirectXRenderer.h">
+    <ClInclude Include="src\DX11Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src/DirectXTexture.h">
+    <ClInclude Include="src\DX11Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src/DocumentWindow.h">
@@ -101,7 +110,7 @@
     <ClInclude Include="src/targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src/VertexShader.h">
+    <ClInclude Include="src\DX11VertexShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\OpenGLProgram.h">
@@ -143,6 +152,21 @@
     <ClInclude Include="include\TouchEngine\TouchEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\d3dx12.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DX12Renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DX12Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DX12Utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DX12Image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="src/small.ico">
@@ -170,5 +194,8 @@
     <ResourceCompile Include="src/TouchEngineExample.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="src\dx12shaders.hlsl" />
   </ItemGroup>
 </Project>
