@@ -40,7 +40,7 @@ public:
 	}
 
 	virtual bool	setup(HWND window);
-	virtual void	configure(TEInstance* instance);
+	virtual bool	configure(TEInstance* instance, std::wstring& error);
 	virtual bool	doesTextureTransfer() const;
 	virtual void	resize(int width, int height);
 	virtual void	stop();

@@ -653,7 +653,18 @@ DocumentWindow::update()
 
 	if (configured)
 	{
-		myRenderer->configure(myInstance);
+		std::wstring error;
+		myConfigureError = !myRenderer->configure(myInstance, error);
+		if (myConfigureError)
+		{
+			MessageBox(myWindow, error.c_str(), L"Error", MB_OK | MB_ICONERROR);
+			SendMessage(myWindow, WM_CLOSE, 0, 0);
+		}
+	}
+
+	if (myConfigureError)
+	{
+		return;
 	}
 
 	bool changed = linksChanged;

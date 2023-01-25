@@ -33,7 +33,7 @@ public:
 	}
 
 	virtual bool	setup(HWND window) override;
-	virtual void	configure(TEInstance* instance) override;
+	virtual bool	configure(TEInstance* instance, std::wstring& error) override;
 	virtual bool	doesTextureTransfer() const override;
 	virtual void	resize(int width, int height) override;
 	virtual void	stop() override;

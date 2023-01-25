@@ -71,9 +71,10 @@ DX11Renderer::setup(HWND window)
 	return SUCCEEDED(result);
 }
 
-void DX11Renderer::configure(TEInstance* instance)
+bool DX11Renderer::configure(TEInstance* instance, std::wstring& error)
 {
 	myReleaseToZero = TEInstanceRequiresKeyedMutexReleaseToZero(instance);
+	return true;
 }
 
 bool DX11Renderer::doesTextureTransfer() const

@@ -26,6 +26,7 @@ public:
 						DX12Renderer();
 	virtual				~DX12Renderer();
 	virtual bool		setup(HWND window) override;
+	virtual bool		configure(TEInstance* instance, std::wstring & error) override;
 	virtual bool		doesTextureTransfer() const override;
 	virtual void		resize(int width, int height) override;
 	virtual void		stop() override;
@@ -58,6 +59,8 @@ private:
 	void				drawImages(std::vector<DX12Image>& images, float scale, float xOffset);
 	static void			textureCallback(HANDLE handle, TEObjectEvent event, void* TE_NULLABLE info);
 	static void			fenceCallback(HANDLE handle, TEObjectEvent event, void* TE_NULLABLE info);
+
+	static const std::wstring ConfigureError;
 
 	std::wstring myAssetsPath;
 

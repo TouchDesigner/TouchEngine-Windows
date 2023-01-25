@@ -33,8 +33,9 @@ Renderer::setup(HWND window)
 	return true;
 }
 
-void Renderer::configure(TEInstance* instance)
+bool Renderer::configure(TEInstance* instance, std::wstring &error)
 {
+	return true;
 }
 
 bool Renderer::doesTextureTransfer() const

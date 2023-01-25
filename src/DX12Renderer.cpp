@@ -29,6 +29,8 @@
 
 using Microsoft::WRL::ComPtr;
 
+const std::wstring DX12Renderer::ConfigureError = L"DirectX 12 is not supported. Either the installed version of TouchDesigner is too old, or the selected GPU does not have needed features.";
+
 inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
 {
     if (path == nullptr)
@@ -66,6 +68,7 @@ DX12Renderer::~DX12Renderer()
 
 bool DX12Renderer::setup(HWND window)
 {
+    Renderer::setup(window);
     UINT dxgiFactoryFlags = 0;
 #ifdef _DEBUG
     ComPtr<ID3D12Debug> debug;
@@ -253,6 +256,55 @@ bool DX12Renderer::setup(HWND window)
         return false;
     }
 
+    return true;
+}
+
+bool DX12Renderer::configure(TEInstance* instance, std::wstring & error)
+{
+    int32_t count = 0;
+    TEResult result = TEInstanceGetSupportedTextureTypes(instance, nullptr, &count);
+    if (result == TEResultInsufficientMemory)
+    {
+        std::vector<TETextureType> textureTypes(count);
+        result = TEInstanceGetSupportedTextureTypes(instance, textureTypes.data(), &count);
+        if (result == TEResultSuccess)
+        {
+            textureTypes.resize(count);
+            if (std::find(textureTypes.begin(), textureTypes.end(), TETextureTypeD3DShared) != textureTypes.end())
+            {
+                result = TEInstanceGetSupportedD3DHandleTypes(instance, nullptr, &count);
+                if (result == TEResultInsufficientMemory)
+                {
+                    std::vector<TED3DHandleType> handleTypes(count);
+                    result = TEInstanceGetSupportedD3DHandleTypes(instance, handleTypes.data(), &count);
+                    if (result == TEResultSuccess)
+                    {
+                        handleTypes.resize(count);
+                        if (std::find(handleTypes.begin(), handleTypes.end(), TED3DHandleTypeD3D12ResourceNT) == handleTypes.end())
+                        {
+                            error = ConfigureError;
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    result = TEInstanceGetSupportedSemaphoreTypes(instance, nullptr, &count);
+    if (result == TEResultInsufficientMemory)
+    {
+        std::vector<TESemaphoreType> semaphoreTypes(count);
+        result = TEInstanceGetSupportedSemaphoreTypes(instance, semaphoreTypes.data(), &count);
+        if (result == TEResultSuccess)
+        {
+            semaphoreTypes.resize(count);
+            if (std::find(semaphoreTypes.begin(), semaphoreTypes.end(), TESemaphoreTypeD3DFence) == semaphoreTypes.end())
+            {
+                error = ConfigureError;
+                return false;
+            }
+        }
+    }
     return true;
 }
 

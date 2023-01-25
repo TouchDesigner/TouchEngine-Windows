@@ -112,6 +112,7 @@ private:
 	bool			myDidLoad{ false };
 	bool			myInFrame{ false };
 	bool			myConfigureRenderer{ false };
+	bool			myConfigureError{ false };
 	double			myLastFloatValue{ 0.0 };
 	TEResult		myLastResult{ TEResultSuccess };
 	std::mutex		myMutex;
