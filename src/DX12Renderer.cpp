@@ -83,7 +83,7 @@ bool DX12Renderer::setup(HWND window)
 
     ComPtr<IDXGIAdapter1> adapter;
     
-    getHardwareAdapter(factory.Get(), &adapter, true);
+    getHardwareAdapter(factory.Get(), &adapter, myAdapterDescription, true);
 
     if (adapter.Get() == nullptr)
     {
@@ -282,7 +282,7 @@ bool DX12Renderer::configure(TEInstance* instance, std::wstring & error)
                         handleTypes.resize(count);
                         if (std::find(handleTypes.begin(), handleTypes.end(), TED3DHandleTypeD3D12ResourceNT) == handleTypes.end())
                         {
-                            error = ConfigureError;
+                            error = getConfigureError();
                             return false;
                         }
                     }
@@ -300,7 +300,7 @@ bool DX12Renderer::configure(TEInstance* instance, std::wstring & error)
             semaphoreTypes.resize(count);
             if (std::find(semaphoreTypes.begin(), semaphoreTypes.end(), TESemaphoreTypeD3DFence) == semaphoreTypes.end())
             {
-                error = ConfigureError;
+                error = getConfigureError();
                 return false;
             }
         }
@@ -500,7 +500,7 @@ TEGraphicsContext* DX12Renderer::getTEContext() const
     return myContext;
 }
 
-void DX12Renderer::getHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter)
+void DX12Renderer::getHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, std::wstring &description, bool requestHighPerformanceAdapter)
 {
     *ppAdapter = nullptr;
 
@@ -531,6 +531,7 @@ void DX12Renderer::getHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** p
             // actual device yet.
             if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
             {
+                description = desc.Description;
                 break;
             }
         }
@@ -554,6 +555,7 @@ void DX12Renderer::getHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** p
             // actual device yet.
             if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
             {
+                description = desc.Description;
                 break;
             }
         }
@@ -653,4 +655,15 @@ void DX12Renderer::fenceCallback(HANDLE handle, TEObjectEvent event, void* TE_NU
         DX12Renderer* renderer = static_cast<DX12Renderer*>(info);
         renderer->myOutputFences.erase(handle);
     }
+}
+
+std::wstring DX12Renderer::getConfigureError() const
+{
+    std::wstring composed = ConfigureError;
+    if (!myAdapterDescription.empty())
+    {
+        composed += L"\nThe selected GPU is: ";
+        composed += myAdapterDescription;
+    }
+    return composed;
 }

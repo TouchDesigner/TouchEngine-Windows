@@ -51,7 +51,7 @@ public:
 	virtual TEGraphicsContext* getTEContext() const override;
 private:
 	static const UINT FrameCount = 2;
-	void				getHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter = false);
+	void				getHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, std::wstring &description, bool requestHighPerformanceAdapter = false);
 	void				waitForGPU();
 	void				beginCommandList(ID3D12PipelineState* state);
 	void				populateRenderCommandList();
@@ -59,6 +59,7 @@ private:
 	void				drawImages(std::vector<DX12Image>& images, float scale, float xOffset);
 	static void			textureCallback(HANDLE handle, TEObjectEvent event, void* TE_NULLABLE info);
 	static void			fenceCallback(HANDLE handle, TEObjectEvent event, void* TE_NULLABLE info);
+	std::wstring		getConfigureError() const;
 
 	static const std::wstring ConfigureError;
 
@@ -75,6 +76,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> myCommandList;
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> myPipelineState;
+
+	std::wstring myAdapterDescription;
 
 	UINT myRTVDescriptorSize;
 
