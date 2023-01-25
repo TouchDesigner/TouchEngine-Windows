@@ -1,5 +1,12 @@
 # Changes
 
+## 2.1
+
+* Add detailed reporting for component errors via TEInstanceGetErrors()
+* Fix an issue which could upset COM state in hosts in particular circumstances
+* A subsequent call to TEInstanceConfigure() before a previous configuration has completed now completes the initial configuration with TEResultCancelled
+* Other fixes for stability
+
 ## 2.0
 
  * Adds support for Vulkan textures and semaphores (see TEVulkan.h)
