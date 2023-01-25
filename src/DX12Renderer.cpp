@@ -83,7 +83,7 @@ bool DX12Renderer::setup(HWND window)
 
     ComPtr<IDXGIAdapter1> adapter;
     
-    getHardwareAdapter(factory.Get(), &adapter);
+    getHardwareAdapter(factory.Get(), &adapter, true);
 
     if (adapter.Get() == nullptr)
     {
