@@ -344,10 +344,16 @@ DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return LRESULT();
 }
 
-void DocumentWindow::didConfigure()
+void DocumentWindow::didConfigure(TEResult result)
 {
-	std::lock_guard<std::mutex> guard(myMutex);
-	myConfigureRenderer = true;
+	// Configuration can be cancelled by a subsequent configuration or other action
+	// - we can ignore the event in that case and await a following one
+	if (result != TEResultCancelled)
+	{
+		std::lock_guard<std::mutex> guard(myMutex);
+		myConfigureRenderer = true;
+		myConfigureResult = result;
+	}
 }
 
 void
@@ -365,7 +371,7 @@ DocumentWindow::eventCallback(TEInstance * instance,
 	switch (event)
 	{
 	case TEEventInstanceReady:
-		window->didConfigure();
+		window->didConfigure(result);
 		break;
 	case TEEventInstanceDidLoad:
 		window->didLoad();
@@ -653,11 +659,32 @@ DocumentWindow::update()
 
 	if (configured)
 	{
-		std::wstring error;
-		myConfigureError = !myRenderer->configure(myInstance, error);
+		std::wstring message;
+		if (TEResultGetSeverity(myConfigureResult) == TESeverityError)
+		{			
+			const char *description = TEResultGetDescription(myConfigureResult);
+			
+			message = L"There was an error configuring TouchEngine: ";
+			if (description)
+			{
+				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+
+				message += converter.from_bytes(description);
+			}
+			else
+			{
+				message += std::to_wstring(myConfigureResult);
+			}
+			
+			myConfigureError = true;
+		}
+		else
+		{
+			myConfigureError = !myRenderer->configure(myInstance, message);
+		}
 		if (myConfigureError)
 		{
-			MessageBox(myWindow, error.c_str(), L"Error", MB_OK | MB_ICONERROR);
+			MessageBox(myWindow, message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 			SendMessage(myWindow, WM_CLOSE, 0, 0);
 		}
 	}

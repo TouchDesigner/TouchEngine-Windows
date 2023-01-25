@@ -52,7 +52,7 @@ public:
 	{
 		return myWindow;
 	}
-	void didConfigure();
+	void didConfigure(TEResult result);
 	void
 	didLoad()
 	{
@@ -123,5 +123,6 @@ private:
 	std::map<std::string, size_t>	myOutputLinkTextureMap;
 	std::vector<std::string>		myPendingOutputTextures;
 	bool							myPendingLayoutChange{ false };
+	TEResult						myConfigureResult{ TEResultSuccess };
 };
 
