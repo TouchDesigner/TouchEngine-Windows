@@ -1,5 +1,9 @@
 # Changes
 
+## 2.2
+
+* Fix an issue which caused GPU synchronization to fail for Direct3D 11 hosts on some hardware (there is a corresponding fix in TouchDesigner 2022.31800+)
+
 ## 2.1
 
 * Add detailed reporting for component errors via TEInstanceGetErrors()
