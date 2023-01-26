@@ -94,6 +94,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\DXGIUtility.h" />
     <ClInclude Include="src\DX12Image.h" />
     <ClInclude Include="src\DX12Texture.h" />
     <ClInclude Include="src\DX12Renderer.h" />
@@ -130,6 +131,7 @@
     <ClInclude Include="include\TouchEngine\TouchObject.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\DXGIUtility.cpp" />
     <ClCompile Include="src\DX12Image.cpp" />
     <ClCompile Include="src\DX12Texture.cpp" />
     <ClCompile Include="src\DX12Renderer.cpp" />

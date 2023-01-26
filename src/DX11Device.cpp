@@ -15,6 +15,7 @@
 #include "stdafx.h"
 #include "DX11Device.h"
 #include "FileReader.h"
+#include "DXGIUtility.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -25,6 +26,26 @@ DX11Device::DX11Device()
 HRESULT
 DX11Device::createDeviceResources()
 {
+	ComPtr<IDXGIFactory4> factory;
+	HRESULT result = CreateDXGIFactory2(0, IID_PPV_ARGS(&factory));
+
+	if (FAILED(result))
+	{
+		return result;
+	}
+
+	DXGIUtility utility;
+
+	utility.setDX11();
+
+	std::wstring description;
+	ComPtr<IDXGIAdapter1> adapter = utility.getHardwareAdapter(factory.Get(), description, true);
+
+	if (adapter.Get() == nullptr)
+	{
+		return E_FAIL;
+	}
+
 	D3D_FEATURE_LEVEL levels[] = {
 		D3D_FEATURE_LEVEL_11_1,
 		D3D_FEATURE_LEVEL_11_0,
@@ -38,8 +59,8 @@ DX11Device::createDeviceResources()
 	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-	HRESULT result = D3D11CreateDevice(nullptr,
-		D3D_DRIVER_TYPE_HARDWARE,
+	result = D3D11CreateDevice(adapter.Get(),
+		D3D_DRIVER_TYPE_UNKNOWN,
 		0,
 		deviceFlags,
 		levels,

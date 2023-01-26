@@ -51,7 +51,6 @@ public:
 	virtual TEGraphicsContext* getTEContext() const override;
 private:
 	static const UINT FrameCount = 2;
-	void				getHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, std::wstring &description, bool requestHighPerformanceAdapter = false);
 	void				waitForGPU();
 	void				beginCommandList(ID3D12PipelineState* state);
 	void				populateRenderCommandList();
