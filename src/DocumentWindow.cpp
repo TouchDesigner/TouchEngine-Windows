@@ -994,12 +994,12 @@ DocumentWindow::applyOutputTextureChange()
 				if (texture && TEInstanceHasTextureTransfer(myInstance, texture))
 				{
 					result = TEInstanceGetTextureTransfer(myInstance, texture, semaphore.take(), &waitValue);
-				}
-			}
 
-			if (result == TEResultSuccess)
-			{
-				myRenderer->acquireOutputImage(imageIndex, semaphore, waitValue);
+					if (result == TEResultSuccess)
+					{
+						myRenderer->acquireOutputImage(imageIndex, semaphore, waitValue);
+					}
+				}
 			}
 		}
 	}
