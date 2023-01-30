@@ -24,7 +24,7 @@ class DX12Image :
 public:
 	DX12Image();
 	DX12Image(ID3D12Device* device);
-	DX12Image(DX12Texture& texture);
+	DX12Image(const DX12Texture& texture);
 	constexpr DX12Texture& getTexture()
 	{
 		return myTexture;

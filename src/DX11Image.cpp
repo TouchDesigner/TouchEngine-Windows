@@ -115,7 +115,7 @@ DX11Image::getTexture()
 }
 
 void
-DX11Image::update(DX11Texture & texture)
+DX11Image::update(const DX11Texture & texture)
 {
 	if (myTexture.getFlipped() != texture.getFlipped() || myTexture.getWidth() != texture.getWidth() || myTexture.getHeight() != texture.getHeight())
 	{

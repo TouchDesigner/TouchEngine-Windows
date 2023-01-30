@@ -32,7 +32,7 @@ public:
 	void				position(float x, float y);
 	void				scale(float scaleX, float scaleY);
 	DX11Texture &		getTexture();
-	void				update(DX11Texture &texture);
+	void				update(const DX11Texture &texture);
 private:
 	struct BasicVertex
 	{

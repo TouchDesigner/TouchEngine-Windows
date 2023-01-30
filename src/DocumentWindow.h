@@ -60,7 +60,7 @@ public:
 		myDidLoad = true;
 	}
 private:
-	static wchar_t* WindowClassName;
+	static const wchar_t* WindowClassName;
 	static void		eventCallback(TEInstance * instance,
 								TEEvent event,
 								TEResult result,

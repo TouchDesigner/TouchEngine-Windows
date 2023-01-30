@@ -22,7 +22,7 @@
 #include <codecvt>
 #include <array>
 
-wchar_t *DocumentWindow::WindowClassName = L"DocumentWindow";
+const wchar_t *DocumentWindow::WindowClassName = L"DocumentWindow";
 const int32_t DocumentWindow::InputChannelCount = 2;
 const double DocumentWindow::InputSampleRate = 44100.0;
 const int64_t DocumentWindow::InputSampleLimit = 44100 / 2;
@@ -615,29 +615,44 @@ DocumentWindow::openWindow(HWND parent)
 	}
 	if (SUCCEEDED(result))
 	{
-		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-		std::string utf8 = converter.to_bytes(getPath());
+		int count = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, getPath().c_str(), static_cast<int>(getPath().size()), nullptr, 0, nullptr, nullptr);
 
-		TEResult teresult = TEInstanceCreate(eventCallback, linkEventCallback, this, myInstance.take());
-		if (teresult == TEResultSuccess)
-		{
-			teresult = TEInstanceAssociateGraphicsContext(myInstance, myRenderer->getTEContext());
-		}
-		if (teresult == TEResultSuccess)
-		{
-			teresult = TEInstanceConfigure(myInstance, utf8.c_str(), TETimeExternal);
-		}
-		if (teresult == TEResultSuccess)
-		{
-			teresult = TEInstanceLoad(myInstance);
-		}
-		if (teresult == TEResultSuccess)
-		{
-			teresult = TEInstanceResume(myInstance);
-		}
-		assert(teresult == TEResultSuccess);
+		std::string utf8;
+		utf8.resize(count);
+		count = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, getPath().c_str(), static_cast<int>(getPath().size()), utf8.data(), static_cast<int>(utf8.size()), nullptr, nullptr);
 
-		SetTimer(myWindow, UpdateTimerID, static_cast<UINT>(std::ceil(1000. / FramesPerSecond)), nullptr);
+		if (count != 0)
+		{
+			utf8.resize(count);
+		}
+		else
+		{
+			result = HRESULT_FROM_WIN32(GetLastError());
+		}
+
+		if (SUCCEEDED(result))
+		{
+			TEResult teresult = TEInstanceCreate(eventCallback, linkEventCallback, this, myInstance.take());
+			if (teresult == TEResultSuccess)
+			{
+				teresult = TEInstanceAssociateGraphicsContext(myInstance, myRenderer->getTEContext());
+			}
+			if (teresult == TEResultSuccess)
+			{
+				teresult = TEInstanceConfigure(myInstance, utf8.c_str(), TETimeExternal);
+			}
+			if (teresult == TEResultSuccess)
+			{
+				teresult = TEInstanceLoad(myInstance);
+			}
+			if (teresult == TEResultSuccess)
+			{
+				teresult = TEInstanceResume(myInstance);
+			}
+			assert(teresult == TEResultSuccess);
+
+			SetTimer(myWindow, UpdateTimerID, static_cast<UINT>(std::ceil(1000. / FramesPerSecond)), nullptr);
+		}
 
 		// Draw once
 		render(false);
@@ -667,9 +682,17 @@ DocumentWindow::update()
 			message = L"There was an error configuring TouchEngine: ";
 			if (description)
 			{
-				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+				int count = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS | MB_PRECOMPOSED, description, -1, nullptr, 0);
 
-				message += converter.from_bytes(description);
+				std::wstring wide;
+				wide.resize(count);
+				count = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS | MB_PRECOMPOSED, description, -1, wide.data(), static_cast<int>(wide.size()));
+
+				if (count != 0)
+				{
+					wide.resize(count);
+					message += wide;
+				}
 			}
 			else
 			{

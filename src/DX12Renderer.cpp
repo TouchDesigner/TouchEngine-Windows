@@ -534,7 +534,10 @@ void DX12Renderer::populateRenderCommandList()
     myCommandList->RSSetViewports(1, &myViewport);
     myCommandList->RSSetScissorRects(1, &myScissorRect);
 
-    myCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(myRenderTargets[myFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+    CD3DX12_RESOURCE_BARRIER transition(CD3DX12_RESOURCE_BARRIER::Transition(myRenderTargets[myFrameIndex].Get(),
+        D3D12_RESOURCE_STATE_PRESENT,
+        D3D12_RESOURCE_STATE_RENDER_TARGET));
+    myCommandList->ResourceBarrier(1, &transition);
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(myRTVHeap->GetCPUDescriptorHandleForHeapStart(), myFrameIndex, myRTVDescriptorSize);
     myCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
@@ -553,7 +556,10 @@ void DX12Renderer::populateRenderCommandList()
         drawImages(myOutputImages, scale, 0.5f);
     }
 
-	myCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(myRenderTargets[myFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+    CD3DX12_RESOURCE_BARRIER transition2(CD3DX12_RESOURCE_BARRIER::Transition(myRenderTargets[myFrameIndex].Get(),
+        D3D12_RESOURCE_STATE_RENDER_TARGET,
+        D3D12_RESOURCE_STATE_PRESENT));
+	myCommandList->ResourceBarrier(1, &transition2);
 
 	myCommandList->Close();
 }

@@ -26,7 +26,7 @@ DX12Image::DX12Image(ID3D12Device* device)
     setup(device);
 }
 
-DX12Image::DX12Image(DX12Texture& texture)
+DX12Image::DX12Image(const DX12Texture& texture)
 	: Drawable(0.0f, 0.0f, static_cast<float>(texture.getWidth()), static_cast<float>(texture.getHeight())), myTexture(texture)
 {
     setup(texture.getDevice());
@@ -105,10 +105,12 @@ void DX12Image::setup(ID3D12Device *device)
 {
     const UINT vertexBufferSize = sizeof(BasicVertex) * 4;
 
+    CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
+    CD3DX12_RESOURCE_DESC buffer(CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize));
     ThrowIfFailed(device->CreateCommittedResource(
-        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+        &heapProperties,
         D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
+        &buffer,
         D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
         IID_PPV_ARGS(&myVertexBuffer)));
