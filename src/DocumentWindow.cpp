@@ -619,7 +619,7 @@ DocumentWindow::openWindow(HWND parent)
 
 		std::string utf8;
 		utf8.resize(count);
-		count = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, getPath().c_str(), static_cast<int>(getPath().size()), utf8.data(), static_cast<int>(utf8.size()), nullptr, nullptr);
+		count = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, getPath().c_str(), static_cast<int>(getPath().size()), &utf8[0], static_cast<int>(utf8.size()), nullptr, nullptr);
 
 		if (count != 0)
 		{
@@ -686,7 +686,7 @@ DocumentWindow::update()
 
 				std::wstring wide;
 				wide.resize(count);
-				count = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS | MB_PRECOMPOSED, description, -1, wide.data(), static_cast<int>(wide.size()));
+				count = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS | MB_PRECOMPOSED, description, -1, &wide[0], static_cast<int>(wide.size()));
 
 				if (count != 0)
 				{
