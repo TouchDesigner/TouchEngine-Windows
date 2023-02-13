@@ -503,6 +503,11 @@ TEGraphicsContext* DX12Renderer::getTEContext() const
     return myContext;
 }
 
+const std::wstring& DX12Renderer::getDeviceName() const
+{
+    return myAdapterDescription;
+}
+
 void DX12Renderer::waitForGPU()
 {
     if (myCompletedFenceValue < myNextFenceValue)

@@ -222,6 +222,11 @@ DX11Renderer::clearOutputImages()
 	Renderer::clearOutputImages();
 }
 
+const std::wstring& DX11Renderer::getDeviceName() const
+{
+	return myDevice.getDeviceName();
+}
+
 void
 DX11Renderer::drawImages(std::vector<DX11Image>& images, float scale, float xOffset)
 {

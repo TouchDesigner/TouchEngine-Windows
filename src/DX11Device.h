@@ -80,6 +80,10 @@ public:
 		return myDevice.Get();
 	}
 
+	const std::wstring& getDeviceName() const
+	{
+		return myDeviceName;
+	}
 private:
 	std::wstring							getResourcePath() const;
 	HRESULT									configureBackBuffer(bool depth);
@@ -98,5 +102,7 @@ private:
 
 	D3D11_TEXTURE2D_DESC	myBackBufferDescription{ };
 	D3D11_VIEWPORT			myViewport{};
+
+	std::wstring				myDeviceName;
 };
 

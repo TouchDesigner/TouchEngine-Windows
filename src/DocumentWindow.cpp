@@ -19,6 +19,7 @@
 #include "DX11Renderer.h"
 #include "DX12Renderer.h"
 #include "OpenGLRenderer.h"
+#include "Strings.h"
 #include <codecvt>
 #include <array>
 
@@ -573,13 +574,13 @@ DocumentWindow::openWindow(HWND parent)
 	switch (getMode())
 	{
 	case Mode::DirectX11:
-		title += L" (DirectX 11)";
+		title += L" (DirectX 11 - ";
 		break;
 	case Mode::DirectX12:
-		title += L" (DirectX 12)";
+		title += L" (DirectX 12 - ";
 		break;
 	default:
-		title += L" (OpenGL)";
+		title += L" (OpenGL - ";
 		break;
 	}
 	
@@ -611,21 +612,16 @@ DocumentWindow::openWindow(HWND parent)
 	}
 	if (SUCCEEDED(result))
 	{
+		title += myRenderer->getDeviceName();
+		title += L")";
+		SetWindowText(myWindow, title.c_str());
 		myRenderer->resize(InitialWindowWidth, InitialWindowHeight);
 	}
 	if (SUCCEEDED(result))
 	{
-		int count = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, getPath().c_str(), static_cast<int>(getPath().size()), nullptr, 0, nullptr, nullptr);
-
-		std::string utf8;
-		utf8.resize(count);
-		count = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, getPath().c_str(), static_cast<int>(getPath().size()), &utf8[0], static_cast<int>(utf8.size()), nullptr, nullptr);
-
-		if (count != 0)
-		{
-			utf8.resize(count);
-		}
-		else
+		std::string utf8 = ConvertToMultiByte(getPath());
+		
+		if (utf8.empty())
 		{
 			result = HRESULT_FROM_WIN32(GetLastError());
 		}
@@ -682,17 +678,7 @@ DocumentWindow::update()
 			message = L"There was an error configuring TouchEngine: ";
 			if (description)
 			{
-				int count = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS | MB_PRECOMPOSED, description, -1, nullptr, 0);
-
-				std::wstring wide;
-				wide.resize(count);
-				count = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS | MB_PRECOMPOSED, description, -1, &wide[0], static_cast<int>(wide.size()));
-
-				if (count != 0)
-				{
-					wide.resize(count);
-					message += wide;
-				}
+				message += ConvertToWide(description);
 			}
 			else
 			{

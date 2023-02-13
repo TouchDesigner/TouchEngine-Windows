@@ -49,6 +49,8 @@ public:
 	
 	virtual void		clearOutputImages() override;
 	virtual TEGraphicsContext* getTEContext() const override;
+
+	virtual const std::wstring& getDeviceName() const override;
 private:
 	static const UINT FrameCount = 2;
 	void				waitForGPU();

@@ -129,6 +129,7 @@
     <ClInclude Include="src\OpenGLImage.h" />
     <ClInclude Include="src\OpenGLProgram.h" />
     <ClInclude Include="include\TouchEngine\TouchObject.h" />
+    <ClInclude Include="src\Strings.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DXGIUtility.cpp" />
@@ -158,6 +159,7 @@
     <ClCompile Include="src\DX11VertexShader.cpp" />
     <ClCompile Include="src\OpenGLImage.cpp" />
     <ClCompile Include="src\OpenGLProgram.cpp" />
+    <ClCompile Include="src\Strings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src/TouchEngineExample.rc" />

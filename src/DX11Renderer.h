@@ -58,6 +58,8 @@ public:
 	{
 		return myDevice.getDevice();
 	}
+
+	virtual const std::wstring& getDeviceName() const override;
 private:
 	void		drawImages(std::vector<DX11Image> &images, float scale, float xOffset);
 

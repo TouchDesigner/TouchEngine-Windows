@@ -38,8 +38,7 @@ DX11Device::createDeviceResources()
 
 	utility.setDX11();
 
-	std::wstring description;
-	ComPtr<IDXGIAdapter1> adapter = utility.getHardwareAdapter(factory.Get(), description, true);
+	ComPtr<IDXGIAdapter1> adapter = utility.getHardwareAdapter(factory.Get(), myDeviceName, true);
 
 	if (adapter.Get() == nullptr)
 	{

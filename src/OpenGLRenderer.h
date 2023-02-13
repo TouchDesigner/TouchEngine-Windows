@@ -61,6 +61,8 @@ public:
 	virtual bool	getInputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
 	virtual bool	releaseOutputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
 	virtual void	acquireOutputImage(size_t index, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
+
+	virtual const std::wstring& getDeviceName() const override;
 private:
 	static const char* VertexShader;
 	static const char* FragmentShader;
@@ -78,5 +80,6 @@ private:
 	TouchObject<TEOpenGLContext> myContext;
 	std::vector<OpenGLImage> myInputImages;
 	std::vector<OpenGLImage> myOutputImages;
+	std::wstring	myDeviceName;
 };
 

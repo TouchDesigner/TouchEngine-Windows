@@ -14,6 +14,7 @@
 
 #include "stdafx.h"
 #include "OpenGLRenderer.h"
+#include "Strings.h"
 #include <TouchEngine/TouchEngine.h>
 #include <TouchEngine/TEOpenGL.h>
 
@@ -100,6 +101,11 @@ OpenGLRenderer::setup(HWND window)
 	{
 		glEnable(GL_DEBUG_OUTPUT);
 		glDebugMessageCallback(MessageCallback, nullptr);
+	}
+	if (success)
+	{
+		const GLubyte* render = glGetString(GL_RENDERER);
+		myDeviceName = ConvertToWide(reinterpret_cast<const char *>(render));
 	}
 	if (success)
 	{
@@ -252,6 +258,11 @@ void OpenGLRenderer::acquireOutputImage(size_t index, TouchObject<TESemaphore>& 
 			TEOpenGLTextureLock(source);
 		}
 	}
+}
+
+const std::wstring& OpenGLRenderer::getDeviceName() const
+{
+	return myDeviceName;
 }
 
 void

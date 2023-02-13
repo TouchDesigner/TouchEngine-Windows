@@ -39,6 +39,8 @@ public:
 		return 0;
 	}
 
+	virtual const std::wstring& getDeviceName() const = 0;
+
 	virtual bool	setup(HWND window);
 	virtual bool	configure(TEInstance* instance, std::wstring& error);
 	virtual bool	doesTextureTransfer() const;
