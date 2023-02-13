@@ -34,7 +34,6 @@ public:
 
 	virtual bool	setup(HWND window) override;
 	virtual bool	configure(TEInstance* instance, std::wstring& error) override;
-	virtual bool	doesTextureTransfer() const override;
 	virtual void	resize(int width, int height) override;
 	virtual void	stop() override;
 	virtual bool	render() override;
@@ -48,9 +47,7 @@ public:
 	virtual bool		getInputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
 	virtual void		clearInputImages() override;
 	virtual void		addOutputImage() override;
-	virtual bool		releaseOutputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
-	virtual void		setOutputImage(size_t index, const TouchObject<TETexture>& texture) override;
-	virtual void		acquireOutputImage(size_t index, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
+	virtual bool		updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier) override;
 	virtual void		clearOutputImages() override;
 
 	ID3D11Device*

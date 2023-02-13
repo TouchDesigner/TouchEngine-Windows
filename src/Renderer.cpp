@@ -38,7 +38,7 @@ bool Renderer::configure(TEInstance* instance, std::wstring &error)
 	return true;
 }
 
-bool Renderer::doesTextureTransfer() const
+bool Renderer::doesInputTextureTransfer() const
 {
 	return false;
 }
@@ -89,19 +89,10 @@ void Renderer::endImageLayout()
 {
 }
 
-bool Renderer::releaseOutputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue)
-{
-	return false;
-}
-
 void
 Renderer::setOutputImage(size_t index, const TouchObject<TETexture> &texture)
 {
 	myOutputImages[index] = texture;
-}
-
-void Renderer::acquireOutputImage(size_t index, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue)
-{
 }
 
 const TouchObject<TETexture>& Renderer::getOutputImage(size_t index) const

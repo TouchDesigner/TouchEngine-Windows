@@ -311,7 +311,7 @@ bool DX12Renderer::configure(TEInstance* instance, std::wstring & error)
     return true;
 }
 
-bool DX12Renderer::doesTextureTransfer() const
+bool DX12Renderer::doesInputTextureTransfer() const
 {
     return true;
 }
@@ -433,62 +433,88 @@ void DX12Renderer::endImageLayout()
     }
 }
 
-bool DX12Renderer::releaseOutputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue)
+bool DX12Renderer::updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier)
 {
-    const auto& current = getOutputImage(index);
-    if (current)
+    bool success = false;
+    const auto& previous = getOutputImage(index);
+    TEResult result = TEResultSuccess;
+    if (previous)
     {
-        texture = current;
-        semaphore = myTEFence;
-        waitValue = myCompletedFenceValue; // we will have completed the last render at this point
-        return true;
+        result = TEInstanceAddTextureTransfer(instance, previous, myTEFence, myCompletedFenceValue);
     }
-    return false;
-}
+    TouchObject<TETexture> texture;
 
-void DX12Renderer::setOutputImage(size_t index, const TouchObject<TETexture>& texture)
-{
-    if (TETextureGetType(texture) == TETextureTypeD3DShared)
+    if (result == TEResultSuccess)
     {
-        TED3DSharedTexture* shared = static_cast<TED3DSharedTexture*>(texture.get());
-        HANDLE h = TED3DSharedTextureGetHandle(shared);
-        auto it = myOutputTextures.find(h);
-        if (it == myOutputTextures.end())
+        result = TEInstanceLinkGetTextureValue(instance, identifier.c_str(), TELinkValueCurrent, texture.take());
+    }
+    if (result == TEResultSuccess)
+    {
+        setOutputImage(index, texture);
+
+        if (texture && TETextureGetType(texture) == TETextureTypeD3DShared)
         {
-            // We cache output textures because TouchEngine will recycle them -
-            // TouchEngine's callbacks allow us to delete our cached texture when the original is deleted
-            it = myOutputTextures.insert(std::make_pair(h, DX12Texture(myDevice.Get(), shared))).first;
+            TED3DSharedTexture* shared = static_cast<TED3DSharedTexture*>(texture.get());
+            HANDLE h = TED3DSharedTextureGetHandle(shared);
+            auto it = myOutputTextures.find(h);
+            if (it == myOutputTextures.end())
+            {
+                // We cache output textures because TouchEngine will recycle them -
+                // TouchEngine's callbacks allow us to delete our cached texture when the original is deleted
+                it = myOutputTextures.insert(std::make_pair(h, DX12Texture(myDevice.Get(), shared))).first;
 
-            TED3DSharedTextureSetCallback(shared, textureCallback, this);
+                TED3DSharedTextureSetCallback(shared, textureCallback, this);
+            }
+            myOutputImages[index].update(it->second);
+            success = true;
+
+            if (texture && TEInstanceHasTextureTransfer(instance, texture))
+            {
+                TouchObject<TESemaphore> semaphore;
+                uint64_t waitValue = 0;
+                result = TEInstanceGetTextureTransfer(instance, texture, semaphore.take(), &waitValue);
+
+                if (result == TEResultSuccess)
+                {
+                    if (TESemaphoreGetType(semaphore) == TESemaphoreTypeD3DFence)
+                    {
+                        HANDLE handle = TED3DSharedFenceGetHandle(static_cast<TED3DSharedFence*>(semaphore.get()));
+                        auto it = myOutputFences.find(handle);
+                        if (it == myOutputFences.end())
+                        {
+                            // We cache output fences -
+                            // TouchEngine's callbacks allow us to delete our cached fence when the original is deleted
+
+                            ComPtr<ID3D12Fence> fence;
+
+                            ThrowIfFailed(myDevice->OpenSharedHandle(handle, IID_PPV_ARGS(&fence)));
+
+                            it = myOutputFences.insert(std::make_pair(handle, fence)).first;
+
+                            TED3DSharedFenceSetCallback(static_cast<TED3DSharedFence*>(semaphore.get()), fenceCallback, this);
+                        }
+
+                        myCommandQueue->Wait(it->second.Get(), waitValue);
+                    }
+                }
+            }
         }
-        myOutputImages[index].update(it->second);
-
-        Renderer::setOutputImage(index, texture);
-    }
-}
-
-void DX12Renderer::acquireOutputImage(size_t index, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue)
-{
-    if (TESemaphoreGetType(semaphore) == TESemaphoreTypeD3DFence)
-    {
-        HANDLE handle = TED3DSharedFenceGetHandle(static_cast<TED3DSharedFence*>(semaphore.get()));
-        auto it = myOutputFences.find(handle);
-        if (it == myOutputFences.end())
+        else
         {
-            // We cache output fences -
-            // TouchEngine's callbacks allow us to delete our cached fence when the original is deleted
-
-            ComPtr<ID3D12Fence> fence;
-
-            ThrowIfFailed(myDevice->OpenSharedHandle(handle, IID_PPV_ARGS(&fence)));
-
-            it = myOutputFences.insert(std::make_pair(handle, fence)).first;
-
-            TED3DSharedFenceSetCallback(static_cast<TED3DSharedFence*>(semaphore.get()), fenceCallback, this);
+            success = false;
         }
-
-        myCommandQueue->Wait(it->second.Get(), waitValue);
     }
+    if (!success)
+    {
+        myOutputImages.at(index).update(DX12Texture());
+        setOutputImage(index, nullptr);
+        if (!texture)
+        {
+            // Having no texture is OK
+            success = true;
+        }
+    }
+    return success;
 }
 
 void DX12Renderer::clearOutputImages()

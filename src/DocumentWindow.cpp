@@ -762,7 +762,7 @@ DocumentWindow::update()
 								if (myRenderer->getInputImage(textureCount, texture, semaphore, waitValue))
 								{
 									result = TEInstanceLinkSetTextureValue(myInstance, info->identifier, texture, myRenderer->getTEContext());
-									if (result == TEResultSuccess && myRenderer->doesTextureTransfer())
+									if (result == TEResultSuccess && myRenderer->doesInputTextureTransfer())
 									{
 										result = TEInstanceAddTextureTransfer(myInstance, texture, semaphore, waitValue);
 									}
@@ -980,37 +980,9 @@ DocumentWindow::applyOutputTextureChange()
 
 	for (const auto & identifier : changes)
 	{
-		TouchObject<TETexture> texture;
-		
-		TEResult result = TEInstanceLinkGetTextureValue(myInstance, identifier.c_str(), TELinkValueCurrent, texture.take());
-		if (result == TEResultSuccess)
-		{
-			size_t imageIndex = myOutputLinkTextureMap[identifier];
+		size_t imageIndex = myOutputLinkTextureMap[identifier];
 
-			TouchObject<TETexture> previous;
-			TouchObject<TESemaphore> semaphore;
-			uint64_t waitValue;
-
-			if (myRenderer->releaseOutputImage(imageIndex, previous, semaphore, waitValue) && myRenderer->doesTextureTransfer())
-			{
-				TEInstanceAddTextureTransfer(myInstance, previous, semaphore, waitValue);
-			}
-
-			myRenderer->setOutputImage(imageIndex, texture);
-
-			if (result == TEResultSuccess && myRenderer->doesTextureTransfer())
-			{
-				if (texture && TEInstanceHasTextureTransfer(myInstance, texture))
-				{
-					result = TEInstanceGetTextureTransfer(myInstance, texture, semaphore.take(), &waitValue);
-
-					if (result == TEResultSuccess)
-					{
-						myRenderer->acquireOutputImage(imageIndex, semaphore, waitValue);
-					}
-				}
-			}
-		}
+		myRenderer->updateOutputImage(myInstance, imageIndex, identifier);
 	}
 
 	return !changes.empty();

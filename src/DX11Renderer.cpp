@@ -77,11 +77,6 @@ bool DX11Renderer::configure(TEInstance* instance, std::wstring& error)
 	return true;
 }
 
-bool DX11Renderer::doesTextureTransfer() const
-{
-	return true;
-}
-
 void
 DX11Renderer::resize(int width, int height)
 {
@@ -157,12 +152,14 @@ DX11Renderer::addOutputImage()
 	Renderer::addOutputImage();
 }
 
-bool DX11Renderer::releaseOutputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue)
+bool DX11Renderer::updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier)
 {
-	const auto& current = getOutputImage(index);
-	if (current)
+	bool success = false;
+	TEResult result = TEResultSuccess;
+	const auto& previous = getOutputImage(index);
+	if (previous)
 	{
-		texture = current;
+		uint64_t waitValue;
 		// set from TEInstanceRequiresKeyedMutexReleaseToZero(), see the documentation for that function
 		if (myReleaseToZero)
 		{
@@ -178,40 +175,57 @@ bool DX11Renderer::releaseOutputImage(size_t index, TouchObject<TETexture>& text
 		}
 
 		myOutputImages[index].getTexture().release(waitValue);
-		return true;
+
+		// DXGI Keyed Mutexes use the texture as the sync object, so `semaphore` is nullptr
+		result = TEInstanceAddTextureTransfer(instance, previous, nullptr, waitValue);
 	}
-	return false;
-}
-
-void
-DX11Renderer::setOutputImage(size_t index, const TouchObject<TETexture> &texture)
-{
-	bool success = false;
-	if (texture && TETextureGetType(texture) == TETextureTypeD3DShared)
+	TouchObject<TETexture> texture;
+	if (result == TEResultSuccess)
 	{
-		TouchObject<TED3D11Texture> created;
-		if (TED3D11ContextGetTexture(myContext, static_cast<TED3DSharedTexture *>(texture.get()), created.take()) == TEResultSuccess)
+		result = TEInstanceLinkGetTextureValue(instance, identifier.c_str(), TELinkValueCurrent, texture.take());
+	}
+	if (result == TEResultSuccess)
+	{
+		setOutputImage(index, texture);
+
+		if (texture && TETextureGetType(texture) == TETextureTypeD3DShared)
 		{
-			DX11Texture tex(created);
+			TouchObject<TED3D11Texture> created;
+			if (TED3D11ContextGetTexture(myContext, static_cast<TED3DSharedTexture*>(texture.get()), created.take()) == TEResultSuccess)
+			{
+				DX11Texture tex(created);
 
-			myOutputImages.at(index).update(tex);
+				myOutputImages.at(index).update(tex);
 
-			Renderer::setOutputImage(index, texture);
+				success = true;
 
-			success = true;
+				if (texture && TEInstanceHasTextureTransfer(instance, texture))
+				{
+					TouchObject<TESemaphore> semaphore;
+					uint64_t waitValue = 0;
+					// DXGI Keyed Mutexes will be used for sync, so semaphore will be null on return
+					result = TEInstanceGetTextureTransfer(instance, texture, semaphore.take(), &waitValue);
+
+					if (result == TEResultSuccess)
+					{
+						assert(!semaphore);
+						myOutputImages[index].getTexture().acquire(waitValue);
+					}
+				}
+			}
 		}
 	}
-
 	if (!success)
 	{
 		myOutputImages.at(index).update(DX11Texture());
 		Renderer::setOutputImage(index, nullptr);
+		if (!texture)
+		{
+			// Having no texture is OK
+			success = true;
+		}
 	}
-}
-
-void DX11Renderer::acquireOutputImage(size_t index, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue)
-{
-	myOutputImages[index].getTexture().acquire(waitValue);
+	return success;
 }
 
 void

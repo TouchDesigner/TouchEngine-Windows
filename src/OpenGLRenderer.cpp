@@ -235,31 +235,6 @@ OpenGLRenderer::getInputImage(size_t index, TouchObject<TETexture> & texture, To
 	return false;
 }
 
-bool OpenGLRenderer::releaseOutputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue)
-{
-	if (index < myOutputImages.size())
-	{
-		const auto& source = myOutputImages.at(index).getTexture().getSource();
-		if (source)
-		{
-			TEOpenGLTextureUnlock(source);
-		}
-	}
-	return false;
-}
-
-void OpenGLRenderer::acquireOutputImage(size_t index, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue)
-{
-	if (index < myOutputImages.size())
-	{
-		const auto& source = myOutputImages.at(index).getTexture().getSource();
-		if (source)
-		{
-			TEOpenGLTextureLock(source);
-		}
-	}
-}
-
 const std::wstring& OpenGLRenderer::getDeviceName() const
 {
 	return myDeviceName;
@@ -284,34 +259,45 @@ OpenGLRenderer::addOutputImage()
 	Renderer::addOutputImage();
 }
 
-void
-OpenGLRenderer::setOutputImage(size_t index, const TouchObject<TETexture>& texture)
+bool OpenGLRenderer::updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier)
 {
 	bool success = false;
-	if (TETextureGetType(texture) == TETextureTypeD3DShared)
+	if (index < myOutputImages.size())
 	{
-		TouchObject<TEOpenGLTexture> created;
-		if (TEOpenGLContextGetTexture(myContext, static_cast<TED3DSharedTexture *>(texture.get()), created.take()) == TEResultSuccess)
+		const auto& source = myOutputImages.at(index).getTexture().getSource();
+		if (source)
 		{
-			myOutputImages.at(index).update(OpenGLTexture(created));
-			
-			// Retains it for us
-			Renderer::setOutputImage(index, texture);
-			success = true;
+			TEOpenGLTextureUnlock(source);
+		}
+	}
+	TouchObject<TETexture> texture;
+	TEResult result = TEInstanceLinkGetTextureValue(instance, identifier.c_str(), TELinkValueCurrent, texture.take());
+	if (result == TEResultSuccess)
+	{
+		setOutputImage(index, texture);
+		if (texture && TETextureGetType(texture) == TETextureTypeD3DShared)
+		{
+			TouchObject<TEOpenGLTexture> created;
+			if (TEOpenGLContextGetTexture(myContext, static_cast<TED3DSharedTexture*>(texture.get()), created.take()) == TEResultSuccess)
+			{
+				TEOpenGLTextureLock(created);
+				myOutputImages.at(index).update(OpenGLTexture(created));
+				success = true;
+			}
 		}
 	}
 
 	if (!success)
 	{
 		myOutputImages.at(index).update(OpenGLTexture());
-		Renderer::setOutputImage(index, nullptr);
+		setOutputImage(index, nullptr);
 	}
+	return success;
 }
 
 void
 OpenGLRenderer::clearOutputImages()
 {
-
 	Renderer::clearOutputImages();
 }
 

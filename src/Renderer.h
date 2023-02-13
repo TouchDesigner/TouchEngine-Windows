@@ -43,7 +43,7 @@ public:
 
 	virtual bool	setup(HWND window);
 	virtual bool	configure(TEInstance* instance, std::wstring& error);
-	virtual bool	doesTextureTransfer() const;
+	virtual bool	doesInputTextureTransfer() const;
 	virtual void	resize(int width, int height);
 	virtual void	stop();
 	virtual bool	render() = 0;
@@ -59,9 +59,7 @@ public:
 	virtual void		addOutputImage();
 	virtual void		endImageLayout();
 						
-	virtual bool		releaseOutputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue);
-	virtual void		setOutputImage(size_t index, const TouchObject<TETexture> &texture);
-	virtual void		acquireOutputImage(size_t index, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue);
+	virtual bool		updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier) = 0;
 	const TouchObject<TETexture>& getOutputImage(size_t index) const;
 	virtual void		clearOutputImages(); // TODO: ?
 	virtual TEGraphicsContext* getTEContext() const = 0;
@@ -69,6 +67,7 @@ protected:
 	bool				inputDidChange(size_t index) const;
 	void				markInputChange(size_t index);
 	void				markInputUnchanged(size_t index);
+	void				setOutputImage(size_t index, const TouchObject<TETexture>& texture);
 	std::array<float, 3>	myBackgroundColor;
 	int		myWidth = 0;
 	int		myHeight = 0;
