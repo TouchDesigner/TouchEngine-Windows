@@ -1,5 +1,14 @@
 # Changes
 
+## 2.3
+
+* Add TEInstanceLinkHasUserTint() and TEInstanceLinkGetUserTint()
+* Check for presence of TOUCHENGINE_APP_PATH environment variable to specificy a TouchDesigner installation to use
+* Fix an issue which could cause lost CHOP or DAT values when running in independent mode
+* Fix an issue which could leave a TEInstance in an inconsistent state if the TouchEngine process crashed
+* Fix an issue which could cause a hang in some circumstances
+* Fix an issue which could cause a crash releasing a TETable or TEFloatData
+
 ## 2.2
 
 * Fix an issue which caused GPU synchronization to fail for Direct3D 11 hosts on some hardware (there is a corresponding fix in TouchDesigner 2022.31800+)
