@@ -441,7 +441,7 @@ struct TEErrorArray
 	/*
 	 The array of errors
 	 */
-	const TEError *				errors;
+	const struct TEError *		errors;
 };
 
 /*
@@ -805,7 +805,7 @@ TE_EXPORT bool TEInstanceLinkHasUserTint(TEInstance *instance, const char *ident
  'tint' is a pointer to a TEColor which will be set to the color tint on return
  If no color tint is set, returns TEResultNoMatchingEntity
 */
-TE_EXPORT TEResult TEInstanceLinkGetUserTint(TEInstance *instance, const char *identifier, TEColor * TE_NONNULL tint);
+TE_EXPORT TEResult TEInstanceLinkGetUserTint(TEInstance *instance, const char *identifier, struct TEColor * TE_NONNULL tint);
 
 /*
  Notifies the instance of the caller's interest in a link
