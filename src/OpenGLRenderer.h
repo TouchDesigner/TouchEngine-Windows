@@ -49,6 +49,7 @@ public:
 	}
 
 	virtual bool	setup(HWND window);
+	virtual bool	configure(TEInstance* instance, std::wstring& error) override;
 	virtual void	resize(int width, int height) override;
 	virtual void	stop();
 	virtual bool	render();

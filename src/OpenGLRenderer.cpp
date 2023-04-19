@@ -136,6 +136,19 @@ OpenGLRenderer::setup(HWND window)
 	return success;
 }
 
+bool
+OpenGLRenderer::configure(TEInstance* instance, std::wstring& error)
+{
+	if (TEOpenGLContextSupportsTexturesForInstance(myContext, instance))
+	{
+		return true;
+	}
+	error = L"OpenGL is not supported. The selected GPU does not have needed features.";
+	error += L"\nThe selected GPU is: ";
+	error += myDeviceName;
+	return false;
+}
+
 void
 OpenGLRenderer::resize(int width, int height)
 {
@@ -280,9 +293,11 @@ bool OpenGLRenderer::updateOutputImage(const TouchObject<TEInstance>& instance, 
 			TouchObject<TEOpenGLTexture> created;
 			if (TEOpenGLContextGetTexture(myContext, static_cast<TED3DSharedTexture*>(texture.get()), created.take()) == TEResultSuccess)
 			{
-				TEOpenGLTextureLock(created);
-				myOutputImages.at(index).update(OpenGLTexture(created));
-				success = true;
+				if (TEOpenGLTextureLock(created) == TEResultSuccess)
+				{
+					myOutputImages.at(index).update(OpenGLTexture(created));
+					success = true;
+				}
 			}
 		}
 	}
