@@ -1,5 +1,12 @@
 # Changes
 
+## 2.5
+
+* Add TEOpenGLContextSupportsTexturesForInstance()
+* Add TEInstanceSetAssetDirectory() and TEInstanceGetAssetDirectory()
+* Fix crash which could occur handling component errors during loading
+* Improve error reporting in cases where the TouchEngine process crashes
+
 ## 2.3
 
 * Add TEInstanceLinkHasUserTint() and TEInstanceLinkGetUserTint()

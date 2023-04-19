@@ -493,8 +493,9 @@ TE_EXPORT TEResult TEInstanceCreate(TEInstanceEventCallback event_callback,
 
 /*
  Configures an instance for a .tox file which you subsequently intend to load.
- Any in-progress configuration is cancelled.
- Any currently loaded instance will be unloaded.
+ If TEResultSuccess is returned:
+ 	Any in-progress configuration is cancelled.
+ 	Any currently loaded instance will be unloaded.
  The instance is readied but the .tox file is not loaded. Once the instance is ready, your
  TEInstanceEventCallback will receive TEEventInstanceReady and a TEResult indicating success or failure.
  If you wish, you may immediately call TEInstanceLoad() after calling this function, without waiting
@@ -618,6 +619,20 @@ TE_EXPORT TEResult TEInstanceGetFloatFrameRate(TEInstance* instance, float* rate
 	This argument may be NULL, in which case no statistics will be delivered.
  */
 TE_EXPORT TEResult TEInstanceSetStatisticsCallback(TEInstance *instance, TEInstanceStatisticsCallback TE_NULLABLE callback);
+
+/*
+ On return 'string' is the directory path the instance will search to locate file assets referenced by the loaded component,
+ 	or an empty string if no component is loaded and no custom path has been set.
+ The caller is responsible for releasing the returned TEString using TERelease().
+ */
+TE_EXPORT void TEInstanceGetAssetDirectory(TEInstance *instance, struct TEString * TE_NULLABLE * TE_NONNULL string);
+
+/*
+ Sets the path to a directory the instance will search to locate file assets referenced by the loaded component.
+ 	The default is to use the directory for the currently configured .tox file, which can be restored by passing NULL
+ 	or an empty string as 'path'.
+ */
+TE_EXPORT TEResult TEInstanceSetAssetDirectory(TEInstance *instance, const char * TE_NULLABLE path);
 
 /*
  Rendering
