@@ -1,5 +1,9 @@
 # Changes
 
+## 2.6
+
+* Fix an issue which could cause unexpected behaviour for texture inputs or outputs following a crash in the TouchEngine process
+ 
 ## 2.5
 
 * Add TEOpenGLContextSupportsTexturesForInstance()
