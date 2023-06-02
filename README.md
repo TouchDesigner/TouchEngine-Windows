@@ -3,6 +3,10 @@ TouchEngine
 
 TouchEngine provides an API to load and render TouchDesigner components.
 
+SDK
+---
+
+This repository contains the libraries and headers you will use in your own applications, as well as an example project. The SDK for macOS is available at https://github.com/TouchDesigner/TouchEngine-macOS.
 
 Instances And TouchDesigner Installations
 -----------------------------------------
@@ -13,12 +17,20 @@ By default the most recently installed version of TouchDesigner will be used. Th
 
 Users can specify a particular version to use by including a folder named "TouchEngine" alongside the component .tox being loaded. This folder can be a renamed TouchDesigner installation directory, or a file-system link to an installation (either a symbolic link or a Windows Explorer shortcut). Alternatively an environment variable `TOUCHENGINE_APP_PATH` can be set to the path to a TouchDesigner installation directory.
 
+Example Project
+---------------
+
+The example project "TouchEngineExample" demonstrates some of the techniques discussed below, with examples for OpenGL and Direct3D 11 and 12. A Vulkan API is also available.
 
 API Documentation
 -----------------
 
 The TouchEngine API is documented in the TouchEngine headers. This document gives a high-level overview and details some best practices for working with the API.
 
+Using TouchEngine
+-----------------
+
+TouchEngine.dll, TouchEngine.lib and include/TouchEngine should be included/linked in your own applications. `#include <TouchEngine/TouchEngine.h>` in any source file you wish to use TouchEngine in. Note that to graphics-specific functions are not included in the umbrella header. For example to use Direct3D 12, add `#include <TouchEngine/TED3D12.h>` to your includes.
 
 TEObjects
 ---------
