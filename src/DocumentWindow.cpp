@@ -639,6 +639,10 @@ DocumentWindow::openWindow(HWND parent)
 			}
 			if (teresult == TEResultSuccess)
 			{
+				teresult = TEInstanceSetFrameRate(myInstance, FramesPerSecond, 1);
+			}
+			if (teresult == TEResultSuccess)
+			{
 				teresult = TEInstanceLoad(myInstance);
 			}
 			if (teresult == TEResultSuccess)
@@ -647,7 +651,9 @@ DocumentWindow::openWindow(HWND parent)
 			}
 			assert(teresult == TEResultSuccess);
 
-			SetTimer(myWindow, UpdateTimerID, static_cast<UINT>(std::ceil(1000. / FramesPerSecond)), nullptr);
+			const auto interval = static_cast<UINT>(std::ceil(1000. / FramesPerSecond / 2.));
+
+			SetTimer(myWindow, UpdateTimerID, interval, nullptr);
 		}
 
 		// Draw once
