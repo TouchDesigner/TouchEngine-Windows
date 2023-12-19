@@ -1,5 +1,17 @@
 # Changes
 
+
+## 3.0
+
+* Add TELinkTypeSequence and TEInstanceLinkSetSequenceCount()
+	Sequences are repeating groups of parameters. The number of repetitions is user configurable.
+
+## 2.7
+
+* Add TEInstanceLinkHasValue() and TELinkValueUIMinimum, TELinkValueUIMaximum
+* Add support for some more sRGB compressed texture formats
+* Fix issue which could prevent TEObjectEventEndUse being sent in some circumstances
+
 ## 2.6
 
 * Fix an issue which could cause unexpected behaviour for texture inputs or outputs following a crash in the TouchEngine process
