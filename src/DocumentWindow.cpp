@@ -416,28 +416,6 @@ DocumentWindow::linkValueChange(const char* identifier)
 	{
 		switch (link->type)
 		{
-		case TELinkTypeDouble:
-		{
-			double value;
-			result = TEInstanceLinkGetDoubleValue(myInstance, identifier, TELinkValueCurrent, &value, 1);
-			break;
-		}
-		case TELinkTypeInt:
-		{
-			int32_t value;
-			result = TEInstanceLinkGetIntValue(myInstance, identifier, TELinkValueCurrent, &value, 1);
-			break;
-		}
-		case TELinkTypeString:
-		{
-			TouchObject<TEString> value;
-			result = TEInstanceLinkGetStringValue(myInstance, identifier, TELinkValueCurrent, value.take());
-			if (result == TEResultSuccess)
-			{
-				// Use value->string here
-			}
-			break;
-		}
 		case TELinkTypeTexture:
 		{
 			// Stash the state, we don't do any actual renderer work from this thread
