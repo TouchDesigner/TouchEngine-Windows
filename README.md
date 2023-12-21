@@ -30,7 +30,7 @@ The TouchEngine API is documented in the TouchEngine headers. This document give
 Using TouchEngine
 -----------------
 
-TouchEngine.dll, TouchEngine.lib and include/TouchEngine should be included/linked in your own applications. `#include <TouchEngine/TouchEngine.h>` in any source file you wish to use TouchEngine in. Note that to graphics-specific functions are not included in the umbrella header. For example to use Direct3D 12, add `#include <TouchEngine/TED3D12.h>` to your includes.
+TouchEngine.dll, TouchEngine.lib and include/TouchEngine should be included/linked in your own applications. `#include <TouchEngine/TouchEngine.h>` in any source file you wish to use TouchEngine in. Note that graphics-specific functions are not included in the umbrella header. For example to use Direct3D 12, add `#include <TouchEngine/TED3D12.h>` to your includes.
 
 TEObjects
 ---------
