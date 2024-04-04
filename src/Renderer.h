@@ -54,7 +54,7 @@ public:
 	virtual void		beginImageLayout();
 	virtual void		addInputImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height);
 	virtual bool		getInputImage(size_t index, TouchObject<TETexture> & texture, TouchObject<TESemaphore> & semaphore, uint64_t & waitValue) = 0;
-	virtual void		clearInputImages() = 0;
+	virtual void		clearInputImages();
 	size_t				getRightSideImageCount();
 	virtual void		addOutputImage();
 	virtual void		endImageLayout();

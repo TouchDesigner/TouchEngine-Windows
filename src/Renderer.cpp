@@ -73,6 +73,11 @@ void Renderer::addInputImage(const unsigned char* rgba, size_t bytesPerRow, int 
 	myInputImageUpdates.push_back(true);
 }
 
+void Renderer::clearInputImages()
+{
+	myInputImageUpdates.clear();
+}
+
 size_t
 Renderer::getRightSideImageCount()
 {

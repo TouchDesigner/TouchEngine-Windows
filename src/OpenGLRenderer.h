@@ -54,11 +54,11 @@ public:
 	virtual void	stop();
 	virtual bool	render();
 	virtual size_t	getInputImageCount() const;
-	virtual void	addInputImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height);
-	virtual void	clearInputImages();
-	virtual void	addOutputImage();
+	virtual void	addInputImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height) override;
+	virtual void	clearInputImages() override;
+	virtual void	addOutputImage() override;
 	virtual bool	updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier) override;
-	virtual void	clearOutputImages();
+	virtual void	clearOutputImages() override;
 	virtual bool	getInputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
 
 	virtual const std::wstring& getDeviceName() const override;

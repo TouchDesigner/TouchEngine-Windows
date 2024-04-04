@@ -141,6 +141,7 @@ void
 DX11Renderer::clearInputImages()
 {
 	myInputImages.clear();
+	Renderer::clearInputImages();
 }
 
 void

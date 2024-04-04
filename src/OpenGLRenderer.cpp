@@ -257,6 +257,7 @@ void
 OpenGLRenderer::clearInputImages()
 {
 	myInputImages.clear();
+	Renderer::clearInputImages();
 }
 
 void

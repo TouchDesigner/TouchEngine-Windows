@@ -408,6 +408,7 @@ void DX12Renderer::clearInputImages()
 {
     waitForGPU();
     myInputImages.clear();
+    Renderer::clearInputImages();
 }
 
 void DX12Renderer::addOutputImage()

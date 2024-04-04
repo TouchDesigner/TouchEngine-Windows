@@ -43,7 +43,7 @@ public:
 	{
 		return myInputImages.size();
 	}
-	virtual void		addInputImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height);
+	virtual void		addInputImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height) override;
 	virtual bool		getInputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
 	virtual void		clearInputImages() override;
 	virtual void		addOutputImage() override;
