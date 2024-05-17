@@ -1,5 +1,11 @@
 # Changes
 
+## 3.2
+
+* Add TEInstanceSetPreferredEnginePath(), TEInstanceGetPreferredEnginePath() and TEInstanceGetConfiguredEnginePath()
+* Fix issue which could cause unexpected behaviour in OpenGL hosts after a texture output was resized
+* Fix issue which prevented GPU selection working for Vulkan hosts in some circumstances
+* Fix issue which caused TEInstanceGetSupportedTextureTypes() to return bad values for some older TouchDesigner versions
 
 ## 3.0
 

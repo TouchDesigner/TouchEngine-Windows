@@ -220,11 +220,39 @@ typedef TE_ENUM(TELinkIntent, int32_t)
 
 typedef TE_ENUM(TELinkValue, int32_t) 
 {
+	/*
+	 A strict lower limit for the value of the link
+	 Use TEInstanceLinkHasValue() to determine if this is set
+	 */
 	TELinkValueMinimum,
+
+	/*
+	 A strict upper limit for the value of the link
+	 Use TEInstanceLinkHasValue() to determine if this is set
+	 */
 	TELinkValueMaximum,
+
+	/*
+	 A lower limit for UI elements representing the value of the link
+	 Use TEInstanceLinkHasValue() to determine if this is set
+	 */
 	TELinkValueUIMinimum,
+
+	/*
+	 An upper limit for UI elements representing the value of the link
+	 Use TEInstanceLinkHasValue() to determine if this is set
+	 */
 	TELinkValueUIMaximum,
+
+	/*
+	 The default value of the link, which should be used if you allow users
+	 to restore defaults
+	 */
 	TELinkValueDefault,
+
+	/*
+	 The current value of the link
+	 */
 	TELinkValueCurrent
 };
 
@@ -498,6 +526,31 @@ TE_EXPORT TEResult TEInstanceCreate(TEInstanceEventCallback event_callback,
 									void * TE_NULLABLE callback_info,
 									TEInstance * TE_NULLABLE * TE_NONNULL instance);
 
+
+/*
+ Optionally sets a path to a TouchDesigner installation which should be used in the absence of any overriding user direction
+ 	(eg an environment variable or file-system link)
+ In the absence of any setting, TouchEngine will select an installed version to use.
+ 'path' should be a path to an installation, or NULL to remove any earlier setting
+ 	On Windows, this should be the path to the installation directory (e.g. C:\Program Files\Derivative\TouchDesigner)
+ 	On macOS, this should be the path to the application (e.g. /Applications/TouchDesigner.app)
+*/
+TE_EXPORT TEResult TEInstanceSetPreferredEnginePath(TEInstance *instance, const char * TE_NULLABLE path);
+
+/*
+ On return 'string' is the preferred installation path previously set on the instance, or an empty string if no preferred
+ 	installation path has been set.
+ The caller is responsible for releasing the returned TEString using TERelease(). 
+ */
+TE_EXPORT TEResult TEInstanceGetPreferredEnginePath(TEInstance *instance, struct TEString * TE_NULLABLE * TE_NONNULL string);
+
+/*
+ On return 'string' is the path to the installed version of TouchDesigner used by the configured instance, or an empty
+ 	string if the instance has not been configured or configuration failed.
+ The caller is responsible for releasing the returned TEString using TERelease(). 
+ */
+TE_EXPORT TEResult TEInstanceGetConfiguredEnginePath(TEInstance *instance, struct TEString * TE_NULLABLE * TE_NONNULL string);
+
 /*
  Configures an instance for a .tox file which you subsequently intend to load.
  If TEResultSuccess is returned:
@@ -622,7 +675,7 @@ TE_EXPORT TEResult TEInstanceGetFrameRate(TEInstance *instance, int64_t *numerat
 TE_EXPORT TEResult TEInstanceGetFloatFrameRate(TEInstance* instance, float* rate);
 
 /*
-'stats_callback' will be called to deliver statistics related to the instance.
+'callback' will be called to deliver statistics related to the instance.
 	This argument may be NULL, in which case no statistics will be delivered.
  */
 TE_EXPORT TEResult TEInstanceSetStatisticsCallback(TEInstance *instance, TEInstanceStatisticsCallback TE_NULLABLE callback);
