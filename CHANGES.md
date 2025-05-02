@@ -1,5 +1,11 @@
 # Changes
 
+## 3.3
+
+* Add TEInstanceLinkGetChoices(), deprecate TEInstanceLinkHasChoices(), TEInstanceLinkGetChoiceLabels(), TEInstanceLinkGetChoiceValues()
+* Fix issue which could cause texture transfers to be unavailable in some circumstances
+* Fix issue which could cause duplicated callbacks when some outputs changed
+
 ## 3.2
 
 * Add TEInstanceSetPreferredEnginePath(), TEInstanceGetPreferredEnginePath() and TEInstanceGetConfiguredEnginePath()

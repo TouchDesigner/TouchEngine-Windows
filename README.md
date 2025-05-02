@@ -173,18 +173,18 @@ Menus
 
 TELinkTypeInt and TELinkTypeString can have a list of choices associated with them, suitable for presentation to the user as a menu.
 
-	if (TEInstanceLinkHasChoices(instance, identifier))
+	TEStringArray *labels = NULL;
+	TEStringArray *values = NULL;
+	TEResult result = TEInstanceLinkGetChoices(instance, identifier, &labels, &values);
+	if (result == TEResultSuccess && labels)
 	{
-		TEStringArray *labels = nullptr;
-		result = TEInstanceLinkGetChoiceLabels(instance, identifier, &labels);
-		if (result == TEResultSuccess && labels)
-		{
-			// ...
-			TERelease(&labels);
-		}
+		// the link has choices
+		// ...
+		TERelease(&labels);
+		TERelease(&values);
 	}
 
-For TELinkTypeInt, the associated value for a menu item is its index. For TELinkTypeString, `TEInstanceLinkGetChoiceValues()` returns a list of values, ordered to match the labels. Note that this list should not be considered exhaustive and users should be allowed to enter their own values as well as those in this list.
+For TELinkTypeInt, the associated value for a menu item is its index. For TELinkTypeString, `TEInstanceLinkGetChoices()` returns a list of values, ordered to match the labels. Note that this list should not be considered exhaustive and users should be allowed to enter their own values as well as those in this list.
 
 
 Working with TELinkTypeTexture
