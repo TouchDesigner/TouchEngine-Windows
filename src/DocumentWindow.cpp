@@ -323,6 +323,7 @@ DocumentWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			UINT width = LOWORD(lParam);
 			UINT height = HIWORD(lParam);
 			theOpenDocument->myRenderer->resize(width, height);
+			theOpenDocument->myPendingResize = true;
 			theOpenDocument->update();
 		}
 		break;
@@ -842,6 +843,8 @@ DocumentWindow::update()
 			setInFrame(false);
 		}
 	}
+	changed |= myPendingResize;
+	myPendingResize = false;
 	if (changed)
 	{
 		render(loaded);

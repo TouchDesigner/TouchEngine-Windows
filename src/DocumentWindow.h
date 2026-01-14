@@ -124,5 +124,6 @@ private:
 	std::vector<std::string>		myPendingOutputTextures;
 	bool							myPendingLayoutChange{ false };
 	TEResult						myConfigureResult{ TEResultSuccess };
+	bool							myPendingResize{ false };
 };
 
