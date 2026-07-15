@@ -28,18 +28,22 @@ TE_ASSUME_NONNULL_BEGIN
 typedef TE_ENUM(TEObjectType, int32_t)
 {
 	TEObjectTypeUnknown,
-	TEObjectTypeInstance,
-	TEObjectTypeTexture,
 	TEObjectTypeAdapter,
+	TEObjectTypeAllocation,
+	TEObjectTypeBuffer,
+	TEObjectTypeErrorArray,
+	TEObjectTypeFloatBuffer,
 	TEObjectTypeGraphicsContext,
+	TEObjectTypeInstance,
 	TEObjectTypeLinkInfo,
 	TEObjectTypeLinkState,
+	TEObjectTypeGeometry,
+	TEObjectTypeGeometryAttributeInfo,
+	TEObjectTypeSemaphore,
 	TEObjectTypeString,
 	TEObjectTypeStringArray,
 	TEObjectTypeTable,
-	TEObjectTypeFloatBuffer,
-	TEObjectTypeSemaphore,
-	TEObjectTypeErrorArray,
+	TEObjectTypeTexture
 };
 
 /*

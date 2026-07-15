@@ -55,7 +55,7 @@ public:
 	virtual bool	render();
 	virtual size_t	getInputImageCount() const;
 	virtual void	addInputImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height) override;
-	virtual void	clearInputImages() override;
+	virtual void	clearInputs() override;
 	virtual void	addOutputImage() override;
 	virtual bool	updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier) override;
 	virtual void	clearOutputImages() override;

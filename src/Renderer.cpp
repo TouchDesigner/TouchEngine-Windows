@@ -15,7 +15,6 @@
 #include "stdafx.h"
 #include "Renderer.h"
 
-
 Renderer::Renderer()
 	: myBackgroundColor{0.0f, 0.0f, 0.0f}
 {
@@ -38,7 +37,7 @@ bool Renderer::configure(TEInstance* instance, std::wstring &error)
 	return true;
 }
 
-bool Renderer::doesInputTextureTransfer() const
+bool Renderer::doesInputResourceTransfer() const
 {
 	return false;
 }
@@ -73,7 +72,7 @@ void Renderer::addInputImage(const unsigned char* rgba, size_t bytesPerRow, int 
 	myInputImageUpdates.push_back(true);
 }
 
-void Renderer::clearInputImages()
+void Renderer::clearInputs()
 {
 	myInputImageUpdates.clear();
 }

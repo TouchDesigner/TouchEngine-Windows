@@ -27,7 +27,7 @@ public:
 	virtual				~DX12Renderer();
 	virtual bool		setup(HWND window) override;
 	virtual bool		configure(TEInstance* instance, std::wstring & error) override;
-	virtual bool		doesInputTextureTransfer() const override;
+	virtual bool		doesInputResourceTransfer() const override;
 	virtual void		resize(int width, int height) override;
 	virtual void		stop() override;
 	virtual bool		render() override;
@@ -39,7 +39,7 @@ public:
 	virtual void		beginImageLayout() override;
 	virtual void		addInputImage(const unsigned char* rgba, size_t bytesPerRow, int width, int height) override;
 	virtual bool		getInputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
-	virtual void		clearInputImages() override;
+	virtual void		clearInputs() override;
 	virtual void		addOutputImage() override;
 	virtual void		endImageLayout() override;
 
@@ -56,7 +56,7 @@ private:
 	void				populateRenderCommandList();
 	std::wstring		getAssetFullPath(LPCWSTR assetName) const;
 	void				drawImages(std::vector<DX12Image>& images, float scale, float xOffset);
-	static void			textureCallback(HANDLE handle, TEObjectEvent event, void* TE_NULLABLE info);
+	static void			textureCallback(TED3DAllocation *allocation, size_t offset, TEObjectEvent event, void* TE_NULLABLE info);
 	static void			fenceCallback(HANDLE handle, TEObjectEvent event, void* TE_NULLABLE info);
 	std::wstring		getConfigureError() const;
 

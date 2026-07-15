@@ -75,7 +75,9 @@ DX12Texture::DX12Texture(ID3D12Device* device, ID3D12GraphicsCommandList* comman
 		HANDLE handle;
 		ThrowIfFailed(device->CreateSharedHandle(myResource.Get(), nullptr, GENERIC_ALL, nullptr, &handle));
 		
-		myTETexture.take(TED3DSharedTextureCreate(handle, TED3DHandleTypeD3D12ResourceNT, textureDesc.Format, textureDesc.Width, textureDesc.Height, TETextureOriginTopLeft, kTETextureComponentMapIdentity, nullptr, nullptr));
+		TouchObject<TED3DAllocation> allocation;
+		allocation.take(TED3DAllocationCreate(handle, TED3DHandleTypeD3D12ResourceNT, 0, nullptr, nullptr));
+		myTETexture.take(TED3DSharedTextureCreate(allocation, 0, textureDesc.Format, textureDesc.Width, textureDesc.Height, TETextureOriginTopLeft, kTETextureComponentMapIdentity, nullptr, nullptr));
 
 		// TouchEngine duplicates it for its own use
 		CloseHandle(handle);
@@ -85,8 +87,10 @@ DX12Texture::DX12Texture(ID3D12Device* device, ID3D12GraphicsCommandList* comman
 DX12Texture::DX12Texture(ID3D12Device* device, TED3DSharedTexture *texture)
 	: myFlipped(TETextureGetOrigin(texture) == TETextureOriginBottomLeft), myDevice(device)
 {
-	HANDLE h = TED3DSharedTextureGetHandle(texture);
-	TED3DHandleType type = TED3DSharedTextureGetHandleType(texture);
+	TouchObject<TED3DAllocation> allocation;
+	allocation.take(TED3DSharedTextureGetAllocation(texture));
+	HANDLE h = TED3DAllocationGetHandle(allocation);
+	TED3DHandleType type = TED3DAllocationGetHandleType(allocation);
 	if (type == TED3DHandleTypeD3D12ResourceNT)
 	{
 		HRESULT hr = device->OpenSharedHandle(h, IID_PPV_ARGS(&myResource));

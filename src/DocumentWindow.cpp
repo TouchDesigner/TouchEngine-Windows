@@ -32,7 +32,7 @@ const UINT_PTR DocumentWindow::UpdateTimerID = 1;
 
 static std::shared_ptr<DocumentWindow> theOpenDocument;
 
-#define MAX_LOADSTRING 100
+constexpr int MAX_LOADSTRING = 100;
 
 HINSTANCE theInstance;
 
@@ -614,7 +614,7 @@ DocumentWindow::openWindow(HWND parent)
 			}
 			if (teresult == TEResultSuccess)
 			{
-				teresult = TEInstanceConfigure(myInstance, utf8.c_str(), TETimeExternal);
+				teresult = TEInstanceConfigure(myInstance, utf8.c_str(), TETimeExternal, TEUINone);
 			}
 			if (teresult == TEResultSuccess)
 			{
@@ -747,9 +747,9 @@ DocumentWindow::update()
 								if (myRenderer->getInputImage(textureCount, texture, semaphore, waitValue))
 								{
 									result = TEInstanceLinkSetTextureValue(myInstance, info->identifier, texture, myRenderer->getTEContext());
-									if (result == TEResultSuccess && myRenderer->doesInputTextureTransfer())
+									if (result == TEResultSuccess && myRenderer->doesInputResourceTransfer())
 									{
-										result = TEInstanceAddTextureTransfer(myInstance, texture, semaphore, waitValue);
+										result = TEInstanceAddResourceTransfer(myInstance, texture, semaphore, waitValue);
 									}
 								}
 								textureCount++;
@@ -871,7 +871,7 @@ DocumentWindow::applyLayoutChange()
 {
 	myRenderer->beginImageLayout();
 
-	myRenderer->clearInputImages();
+	myRenderer->clearInputs();
 	myRenderer->clearOutputImages();
 	myOutputLinkTextureMap.clear();
 

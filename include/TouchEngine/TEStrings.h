@@ -13,16 +13,42 @@
 */
 
 
-#include <TouchEngine/TEBase.h>
-#include <TouchEngine/TEResult.h>
+#ifndef TEStrings_h
+#define TEStrings_h
+
 #include <TouchEngine/TEObject.h>
-#include <TouchEngine/TEInstance.h>
-#include <TouchEngine/TEAllocation.h>
-#include <TouchEngine/TETexture.h>
-#include <TouchEngine/TEGraphicsContext.h>
-#include <TouchEngine/TEAdapter.h>
-#include <TouchEngine/TEFloatBuffer.h>
-#include <TouchEngine/TETable.h>
-#include <TouchEngine/TEGeometry.h>
-#include <TouchEngine/TEBuffer.h>
-#include <TouchEngine/TouchObject.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+TE_ASSUME_NONNULL_BEGIN
+
+struct TEString
+{
+	/*
+	 A null-terminated UTF-8 encoded string
+	 */
+	const char *string;
+};
+
+struct TEStringArray
+{
+	/*
+	 The number of strings in the array
+	 */
+	int32_t										count;
+
+	/*
+	 The array of strings, each entry being a null-terminated UTF-8 encoded string
+	 */
+	const char * TE_NONNULL const * TE_NULLABLE	strings;
+};
+
+TE_ASSUME_NONNULL_END
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* TEStrings_h */

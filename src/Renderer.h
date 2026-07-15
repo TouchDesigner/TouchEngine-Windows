@@ -43,7 +43,7 @@ public:
 
 	virtual bool	setup(HWND window);
 	virtual bool	configure(TEInstance* instance, std::wstring& error);
-	virtual bool	doesInputTextureTransfer() const;
+	virtual bool	doesInputResourceTransfer() const;
 	virtual void	resize(int width, int height);
 	virtual void	stop();
 	virtual bool	render() = 0;
@@ -54,7 +54,7 @@ public:
 	virtual void		beginImageLayout();
 	virtual void		addInputImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height);
 	virtual bool		getInputImage(size_t index, TouchObject<TETexture> & texture, TouchObject<TESemaphore> & semaphore, uint64_t & waitValue) = 0;
-	virtual void		clearInputImages();
+	virtual void		clearInputs();
 	size_t				getRightSideImageCount();
 	virtual void		addOutputImage();
 	virtual void		endImageLayout();

@@ -82,8 +82,8 @@ private:
 	static constexpr UINT	 InitialWindowWidth{ 640 };
 	static constexpr UINT	 InitialWindowHeight{ 480 };
 
-	static constexpr size_t ImageWidth{ 256 };
-	static constexpr size_t ImageHeight{ 256 };
+	static constexpr size_t ImageWidth{ 1024 };
+	static constexpr size_t ImageHeight{ 1024 };
 
 	void	linkValueChange(const char* identifier);
 	void	endFrame(int64_t time_value, int32_t time_scale, TEResult result);

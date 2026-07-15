@@ -1,5 +1,18 @@
 # Changes
 
+## 4.0
+
+ * The following functions have **CHANGED** their parameters and your code **MUST** be updated:
+ 	- TEInstanceConfigure() - takes a TEUIMode
+ 	- TEVulkanTextureCreate() - takes a TEVulkanAllocation and offset
+ 	- TED3DSharedTextureCreate() - takes a TED3DAllocation and offset
+ * Adds support for geometry data as input and output for POP operators (see TEGeometry.h)
+ * TouchEngine can optionally be configured to allow user components to open windows
+ * Python functions on user components can be called and results returned to the host
+ * Allocated memory is a distinct API object (TEAllocation) and a single allocation can be shared between several textures or buffers
+ * Adds TEInstanceLinkGetStateForValue() for parameters with multiple values
+ * Some functions have been renamed and the old versions marked deprecated
+
 ## 3.3
 
 * Add TEInstanceLinkGetChoices(), deprecate TEInstanceLinkHasChoices(), TEInstanceLinkGetChoiceLabels(), TEInstanceLinkGetChoiceValues()

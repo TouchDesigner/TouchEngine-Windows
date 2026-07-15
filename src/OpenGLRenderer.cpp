@@ -141,7 +141,7 @@ OpenGLRenderer::configure(TEInstance* instance, std::wstring& error)
 {
 	if (TEOpenGLContextSupportsTexturesForInstance(myContext, instance))
 	{
-		return true;
+		return Renderer::configure(instance, error);
 	}
 	error = L"OpenGL is not supported. The selected GPU does not have needed features.";
 	error += L"\nThe selected GPU is: ";
@@ -254,10 +254,10 @@ const std::wstring& OpenGLRenderer::getDeviceName() const
 }
 
 void
-OpenGLRenderer::clearInputImages()
+OpenGLRenderer::clearInputs()
 {
 	myInputImages.clear();
-	Renderer::clearInputImages();
+	Renderer::clearInputs();
 }
 
 void

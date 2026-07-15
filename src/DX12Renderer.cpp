@@ -63,7 +63,7 @@ DX12Renderer::DX12Renderer()
 DX12Renderer::~DX12Renderer()
 {
     // Do this now because it will cause our texture release callback to be invoked
-    clearInputImages();
+    clearInputs();
     clearOutputImages();
 }
 
@@ -308,10 +308,10 @@ bool DX12Renderer::configure(TEInstance* instance, std::wstring & error)
             }
         }
     }
-    return true;
+    return Renderer::configure(instance, error);
 }
 
-bool DX12Renderer::doesInputTextureTransfer() const
+bool DX12Renderer::doesInputResourceTransfer() const
 {
     return true;
 }
@@ -404,11 +404,11 @@ bool DX12Renderer::getInputImage(size_t index, TouchObject<TETexture> & texture,
     return false;
 }
 
-void DX12Renderer::clearInputImages()
+void DX12Renderer::clearInputs()
 {
     waitForGPU();
     myInputImages.clear();
-    Renderer::clearInputImages();
+    Renderer::clearInputs();
 }
 
 void DX12Renderer::addOutputImage()
@@ -441,7 +441,7 @@ bool DX12Renderer::updateOutputImage(const TouchObject<TEInstance>& instance, si
     TEResult result = TEResultSuccess;
     if (previous)
     {
-        result = TEInstanceAddTextureTransfer(instance, previous, myTEFence, myCompletedFenceValue);
+        result = TEInstanceAddResourceTransfer(instance, previous, myTEFence, myCompletedFenceValue);
     }
     TouchObject<TETexture> texture;
 
@@ -456,7 +456,9 @@ bool DX12Renderer::updateOutputImage(const TouchObject<TEInstance>& instance, si
         if (texture && TETextureGetType(texture) == TETextureTypeD3DShared)
         {
             TED3DSharedTexture* shared = static_cast<TED3DSharedTexture*>(texture.get());
-            HANDLE h = TED3DSharedTextureGetHandle(shared);
+            TouchObject<TED3DAllocation> allocation;
+            allocation.take(TED3DSharedTextureGetAllocation(shared));
+            HANDLE h = TED3DAllocationGetHandle(allocation);
             auto it = myOutputTextures.find(h);
             if (it == myOutputTextures.end())
             {
@@ -469,11 +471,11 @@ bool DX12Renderer::updateOutputImage(const TouchObject<TEInstance>& instance, si
             myOutputImages[index].update(it->second);
             success = true;
 
-            if (texture && TEInstanceHasTextureTransfer(instance, texture))
+            if (texture && TEInstanceHasResourceTransfer(instance, texture))
             {
                 TouchObject<TESemaphore> semaphore;
                 uint64_t waitValue = 0;
-                result = TEInstanceGetTextureTransfer(instance, texture, semaphore.take(), &waitValue);
+                result = TEInstanceGetResourceTransfer(instance, texture, semaphore.take(), &waitValue);
 
                 if (result == TEResultSuccess)
                 {
@@ -616,10 +618,11 @@ void DX12Renderer::drawImages(std::vector<DX12Image>& images, float scale, float
     }
 }
 
-void DX12Renderer::textureCallback(HANDLE handle, TEObjectEvent event, void* TE_NULLABLE info)
+void DX12Renderer::textureCallback(TED3DAllocation *allocation, size_t offset, TEObjectEvent event, void* TE_NULLABLE info)
 {
     if (event == TEObjectEventRelease)
     {
+        HANDLE handle = TED3DAllocationGetHandle(allocation);
         DX12Renderer* renderer = static_cast<DX12Renderer*>(info);
         renderer->myOutputTextures.erase(handle);
     }

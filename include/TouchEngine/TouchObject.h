@@ -57,7 +57,7 @@
 * Utility for TouchObject
 */
 
-#ifdef _WIN32
+#if defined(_WIN32)
 typedef struct TED3DSharedTexture_ TED3DSharedTexture;
 typedef struct TED3DSharedFence_ TED3DSharedFence;
 typedef struct TED3D11Texture_ TED3D11Texture;
@@ -65,9 +65,13 @@ typedef struct TED3D11Context_ TED3D11Context;
 typedef struct TED3D12Context_ TED3D12Context;
 typedef struct TEVulkanTexture_ TEVulkanTexture;
 typedef struct TEVulkanSemaphore_ TEVulkanSemaphore;
-#else
+typedef struct TEVulkanBuffer_ TEVulkanBuffer;
+#elif defined(__APPLE__)
 typedef struct TEMetalSemaphore_ TEMetalSemaphore;
+typedef struct TEMetalBuffer_ TEMetalBuffer;
+typedef struct TEMetalContext_ TEMetalContext;
 #endif
+typedef struct TEHostBuffer_ TEHostBuffer;
 typedef struct TEOpenGLTexture_ TEOpenGLTexture;
 typedef struct TEOpenGLContext_ TEOpenGLContext;
 typedef struct TEVulkanContext_ TEVulkanContext;
@@ -81,11 +85,11 @@ struct TouchIsMemberOf<T, U, typename std::enable_if_t<
 	std::is_same<T, TEObject>::value ||
 	(std::is_same<T, TETexture>::value && (
 		std::is_same<U, TEOpenGLTexture>::value ||
-#ifdef _WIN32
+#if defined(_WIN32)
 		std::is_same<U, TED3DSharedTexture>::value ||
 		std::is_same<U, TED3D11Texture>::value ||
 		std::is_same<U, TEVulkanTexture>::value
-#else
+#elif defined(__APPLE__)
 		std::is_same<U, TEIOSurfaceTexture>::value
 #endif
 		)
@@ -93,25 +97,33 @@ struct TouchIsMemberOf<T, U, typename std::enable_if_t<
 
 	(std::is_same<T, TEGraphicsContext>::value && (
 		std::is_same<U, TEOpenGLContext>::value ||
-		std::is_same<U, TEVulkanContext>::value
-#ifdef _WIN32
-		|| std::is_same<U, TED3D11Context>::value ||
+		std::is_same<U, TEVulkanContext>::value ||
+#if defined(_WIN32)
+		std::is_same<U, TED3D11Context>::value ||
 		std::is_same<U, TED3D12Context>::value
+#elif defined(__APPLE__)
+		std::is_same<U, TEMetalContext>::value
 #endif
 		)
 	)
-#ifdef _WIN32
 	|| (std::is_same<T, TESemaphore>::value && (
+#if defined(_WIN32)
 		std::is_same<U, TEVulkanSemaphore>::value ||
 		std::is_same<U, TED3DSharedFence>::value
-		)
-	)
-#else
-	|| (std::is_same<T, TESemaphore>::value && (
+#elif defined(__APPLE__)
 		std::is_same<U, TEMetalSemaphore>::value
+#endif
 		)
 	)
+	|| (std::is_same<T, TEBuffer>::value && (
+		std::is_same<U, TEHostBuffer>::value ||
+#if defined(_WIN32)
+		std::is_same<U, TEVulkanBuffer>::value
+#elif defined(__APPLE__)
+		std::is_same<U, TEMetalBuffer>::value
 #endif
+		)
+	)
 	>> : std::true_type
 {};
 

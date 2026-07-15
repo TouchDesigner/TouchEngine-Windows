@@ -99,7 +99,7 @@ TE_EXPORT TEResult TEOpenGLTextureUnlock(TEOpenGLTexture *texture);
  Sets 'callback' to be invoked for object use and lifetime events - see TEObjectEvent in TEObject.h.
  This replaces (or cancels) any callback previously set on the TEOpenGLTexture
  */
-TE_EXPORT TEResult TEDOpenGLTextureSetCallback(TEOpenGLTexture *texture, TEOpenGLTextureCallback TE_NULLABLE callback, void * TE_NULLABLE info);
+TE_EXPORT TEResult TEOpenGLTextureSetCallback(TEOpenGLTexture *texture, TEOpenGLTextureCallback TE_NULLABLE callback, void * TE_NULLABLE info);
 
 /*
  OpenGL Adapter
@@ -210,9 +210,16 @@ TE_EXPORT TEResult TEOpenGLContextGetTexture(TEOpenGLContext *context, TEIOSurfa
 
 /*
  Returns true if OpenGL textures are supported by the instance with the use of the context.
- This may change during configuration of an instance, and must be queried after receiving TEEventInstanceReady
+ This may change during configuration of an instance, and must be queried after receiving TEEventInstanceDidConfigure
  */
 TE_EXPORT bool TEOpenGLContextSupportsTexturesForInstance(TEOpenGLContext *context, TEInstance *instance);
+
+
+/*
+ Deprecated Symbols
+ */
+
+TE_EXPORT TE_DEPRECATED("Use TEOpenGLTextureSetCallback") TEResult TEDOpenGLTextureSetCallback(TEOpenGLTexture *texture, TEOpenGLTextureCallback TE_NULLABLE callback, void * TE_NULLABLE info);
 
 TE_ASSUME_NONNULL_END
 

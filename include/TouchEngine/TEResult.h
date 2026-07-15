@@ -158,6 +158,16 @@ typedef TE_ENUM(TEResult, int32_t)
 	*/
 	TEResultComponentWarnings,
 
+	/*
+	An unexpected or unsupported object was passed as an argument to, or returned from a Python function
+	 */
+	TEResultPythonBadObject,
+
+	/*
+	A Python error occurred when the host made a call to a user function
+	 */
+	TEResultPythonError,
+
 	TEResultNoMatchingLink = TEResultNoMatchingEntity,
 
 	TEResultBadFileBindings = TEResultComponentErrors,

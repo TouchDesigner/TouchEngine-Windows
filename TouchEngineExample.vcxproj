@@ -21,13 +21,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -94,6 +94,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\TouchEngine\TEBuffer.h" />
+    <ClInclude Include="include\TouchEngine\TED3D.h" />
+    <ClInclude Include="include\TouchEngine\TED3D11.h" />
+    <ClInclude Include="include\TouchEngine\TED3D12.h" />
+    <ClInclude Include="include\TouchEngine\TEOpenGL.h" />
+    <ClInclude Include="include\TouchEngine\TEGeometry.h" />
+    <ClInclude Include="include\TouchEngine\TESemaphore.h" />
+    <ClInclude Include="include\TouchEngine\TEStrings.h" />
+    <ClInclude Include="include\TouchEngine\TEVulkan.h" />
     <ClInclude Include="src\DXGIUtility.h" />
     <ClInclude Include="src\DX12Image.h" />
     <ClInclude Include="src\DX12Texture.h" />

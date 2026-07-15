@@ -3,10 +3,22 @@ TouchEngine
 
 TouchEngine provides an API to load and render TouchDesigner components.
 
+> [!IMPORTANT]
+> This is an experimental branch to preview new features and provide you with a chance to give feedback. For production use, the tagged releases on `main` are recommended.
+
+> [!NOTE]
+> This document and the example code are yet to be expanded to cover new features. Please refer to [CHANGES.md](CHANGES.md) and documentation in headers in the meantime.
+
 SDK
 ---
 
 This repository contains the libraries and headers you will use in your own applications, as well as an example project. The SDK for macOS is available at https://github.com/TouchDesigner/TouchEngine-macOS.
+
+Changes
+-------
+
+Changes to the SDK are documented in [CHANGES.md](CHANGES.md), please consult this when updating from an earlier release.
+
 
 Instances And TouchDesigner Installations
 -----------------------------------------
@@ -109,7 +121,7 @@ Configure and load a component:
 
 	if (result == TEResultSuccess)
 	{
-		result = TEInstanceConfigure(instance, "sample.tox", TETimeExternal);
+		result = TEInstanceConfigure(instance, "sample.tox", TETimeExternal, TEUINone);
 	}
 	if (result == TEResultSuccess)
 	{
@@ -250,11 +262,11 @@ Getting an output (Direct3D 11):
 GPU Synchronization
 -------------------
 
-Usage of texture inputs and outputs must be synchronized between the host and TouchEngine. TouchEngine describes this operation as a texture transfer. The exact process depends on the graphics API in use - as determined by the TEGraphicsContext associated with the instance.
+Usage of texture and buffer inputs and outputs must be synchronized between the host and TouchEngine. TouchEngine describes this operation as a resource transfer. The exact process depends on the graphics API in use - as determined by the TEGraphicsContext associated with the instance.
 
 #### OpenGL
 
-There are no texture transfer operations at the host level if you operate only with TEOpenGLTextures, but you must bracket GPU usage of output textures with calls to `TEOpenGLTextureLock()` and `TEOpenGLTextureUnlock()`.
+There are no resource transfer operations at the host level if you operate only with TEOpenGLTextures, but you must bracket GPU usage of output textures with calls to `TEOpenGLTextureLock()` and `TEOpenGLTextureUnlock()`.
 
 #### Direct3D 11
 
@@ -264,7 +276,7 @@ For outputs, even if you use the TED3D11GraphicsContext to instantiate a TED3D11
 
 A transfer for Direct3D 11 can be done either using a DXGI Keyed Mutex, or a Direct3D 11 fence (as a TED3DSharedFence).
 
-The transfer using a DXGI Keyed Mutex will have NULL for the `semaphore` parameter to `TEInstanceGetTextureTransfer()` and `TEInstanceAddTextureTransfer()`. When using a texture in the host, the `waitValue` parameter from `TEInstanceGetTextureTransfer()` is the value which should be passed to `IDXGIKeyedMutex::AcquireSync()`. After use the `waitValue` parameter you pass to `TEInstanceAddTextureTransfer()` is the value you passed to `IDXGIKeyedMutex::ReleaseSync()`.
+The transfer using a DXGI Keyed Mutex will have NULL for the `semaphore` parameter to `TEInstanceGetResourceTransfer()` and `TEInstanceAddResourceTransfer()`. When using a texture in the host, the `waitValue` parameter from `TEInstanceGetResourceTransfer()` is the value which should be passed to `IDXGIKeyedMutex::AcquireSync()`. After use the `waitValue` parameter you pass to `TEInstanceAddResourceTransfer()` is the value you passed to `IDXGIKeyedMutex::ReleaseSync()`.
 
 One further complication for the use of a DXGI Keyed Mutex is that some older versions of TouchDesigner required that textures always be released to a value of 0. This requirement can be tested using `TEInstanceRequiresKeyedMutexReleaseToZero()`.
 
@@ -272,11 +284,11 @@ Transfers using a fence are simpler - see the directions for Direct3D 12 below.
 
 #### Direct3D 12
 
-Texture transfers are required for inputs and outputs, which are always TED3DSharedTextures. The transfer is done with a Direct3D 12 fence (as a TED3DSharedFence).
+Resource transfers are required for inputs and outputs, which are always TED3DSharedTexture or TED3DSharedBuffer. The transfer is done with a Direct3D 12 fence (as a TED3DSharedFence).
 
-When transferring a texture *to* TouchEngine, schedule a signal for the fence with a known value, then pass the fence and value to `TEInstanceAddTextureTransfer()`. TouchEngine will schedule a wait for the provided value before utilising the texture.
+When transferring a resource *to* TouchEngine, schedule a signal for the fence with a known value, then pass the fence and value to `TEInstanceAddResourceTransfer()`. TouchEngine will schedule a wait for the provided value before using the resource.
 
-When transferring a texture *from* TouchEngine, `TEInstanceGetTextureTransfer()` will return a fence and wait-value. Schedule a wait for the returned value before utilising the texture.
+When transferring a resource *from* TouchEngine, `TEInstanceGetResourceTransfer()` will return a fence and wait-value. Schedule a wait for the returned value before using the resource.
 
 #### Vulkan
 
@@ -286,11 +298,11 @@ Texture transfers are required for inputs and outputs, which are always TEVulkan
 
 When transferring textures the contents of which should be kept (ie transferring inputs to TouchEngine, and outputs from TouchEngine), a Vulkan memory barrier is required. For inputs, perform the barrier to the image layout returned from `TEInstanceGetVulkanReleaseImageLayout()` and then provide the old and new layouts to `TEInstanceAddVulkanTextureTransfer()`. You can change the image layout the instance transfers textures to by calling `TEInstanceSetVulkanAcquireImageLayout()` once. This will determine the new layout you receive from `TEInstanceGetVulkanTextureTransfer()`.
 
-When transferring textures the contents of which can be discarded, use a regular texture transfer with `TEInstanceAddTextureTransfer()` or `TEInstanceGetTextureTransfer()`.
+When transferring textures the contents of which can be discarded, and when transferring any buffers, use a regular resource transfer with `TEInstanceAddResourceTransfer()` or `TEInstanceGetResourceTransfer()`.
 
-When transferring a texture *to* TouchEngine, schedule a signal for the semaphore (with a known value for a timeline semaphore), then pass the semaphore and value to `TEInstanceAddVulkanTextureTransfer()` or `TEInstanceAddTextureTransfer()`. TouchEngine will schedule a wait for the provided value before utilising the texture. For a binary semaphore TouchEngine will schedule a signal after the wait, to maintain consistent state.
+When transferring a resource *to* TouchEngine, schedule a signal for the semaphore (with a known value for a timeline semaphore), then pass the semaphore and value to `TEInstanceAddVulkanTextureTransfer()` or `TEInstanceAddResourceTransfer()`. TouchEngine will schedule a wait for the provided value before using the resource. For a binary semaphore TouchEngine will schedule a signal after the wait, to maintain consistent state.
 
-When transferring a texture *from* TouchEngine, `TEInstanceGetTextureTransfer()` or `TEInstanceGetVulkanTextureTransfer()` will return a semaphore and wait-value. Schedule a wait (for the returned value, if the semaphore is a timeline semaphore) before utilising the texture. If the semaphore is a binary semaphore, you must schedule a signal after the wait, to maintain consistent state.
+When transferring a resource *from* TouchEngine, `TEInstanceGetResourceTransfer()` or `TEInstanceGetVulkanTextureTransfer()` will return a semaphore and wait-value. Schedule a wait (for the returned value, if the semaphore is a timeline semaphore) before using the resource. If the semaphore is a binary semaphore, you must schedule a signal after the wait, to maintain consistent state.
 
 
 Allowing users to reference known TouchDesigner objects

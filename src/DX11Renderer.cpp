@@ -74,7 +74,7 @@ DX11Renderer::setup(HWND window)
 bool DX11Renderer::configure(TEInstance* instance, std::wstring& error)
 {
 	myReleaseToZero = TEInstanceRequiresKeyedMutexReleaseToZero(instance);
-	return true;
+	return Renderer::configure(instance, error);
 }
 
 void
@@ -138,10 +138,10 @@ bool DX11Renderer::getInputImage(size_t index, TouchObject<TETexture> & texture,
 }
 
 void
-DX11Renderer::clearInputImages()
+DX11Renderer::clearInputs()
 {
 	myInputImages.clear();
-	Renderer::clearInputImages();
+	Renderer::clearInputs();
 }
 
 void
@@ -178,7 +178,7 @@ bool DX11Renderer::updateOutputImage(const TouchObject<TEInstance>& instance, si
 		myOutputImages[index].getTexture().release(waitValue);
 
 		// DXGI Keyed Mutexes use the texture as the sync object, so `semaphore` is nullptr
-		result = TEInstanceAddTextureTransfer(instance, previous, nullptr, waitValue);
+		result = TEInstanceAddResourceTransfer(instance, previous, nullptr, waitValue);
 	}
 	TouchObject<TETexture> texture;
 	if (result == TEResultSuccess)
@@ -200,12 +200,12 @@ bool DX11Renderer::updateOutputImage(const TouchObject<TEInstance>& instance, si
 
 				success = true;
 
-				if (texture && TEInstanceHasTextureTransfer(instance, texture))
+				if (texture && TEInstanceHasResourceTransfer(instance, texture))
 				{
 					TouchObject<TESemaphore> semaphore;
 					uint64_t waitValue = 0;
 					// DXGI Keyed Mutexes will be used for sync, so semaphore will be null on return
-					result = TEInstanceGetTextureTransfer(instance, texture, semaphore.take(), &waitValue);
+					result = TEInstanceGetResourceTransfer(instance, texture, semaphore.take(), &waitValue);
 
 					if (result == TEResultSuccess)
 					{
