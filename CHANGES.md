@@ -11,6 +11,7 @@
  * Python functions on user components can be called and results returned to the host
  * Allocated memory is a distinct API object (TEAllocation) and a single allocation can be shared between several textures or buffers
  * Adds TEInstanceLinkGetStateForValue() for parameters with multiple values
+ * Adds TEInstanceLinkGetIdentifier() to find links by domain and name
  * Some functions have been renamed and the old versions marked deprecated
 
 ## 3.3

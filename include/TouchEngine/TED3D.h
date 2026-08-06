@@ -42,7 +42,7 @@ typedef TE_ENUM(TED3DHandleType, int32_t)
 	TED3DHandleType11NT,
 
 	/*
-	A NT handle referring to a comitted resource from a call to ID3D12Device::CreateSharedHandle()
+	A NT handle referring to a committed resource from a call to ID3D12Device::CreateSharedHandle()
 	 */
 	TED3DHandleType12CommittedNT,
 

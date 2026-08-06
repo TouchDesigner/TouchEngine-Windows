@@ -882,6 +882,12 @@ TE_EXPORT TEResult TEInstanceGetLinkGroups(TEInstance *instance, TEScope scope, 
 TE_EXPORT TEResult TEInstanceLinkGetInfo(TEInstance *instance, const char *identifier, struct TELinkInfo * TE_NULLABLE * TE_NONNULL info);
 
 /*
+ On return 'identifier' is the identifier for the link matching 'domain' and 'name', or NULL if no such link exists.
+ The caller is responsible for releasing the returned TEString using TERelease(). 
+ */
+TE_EXPORT TEResult TEInstanceLinkGetIdentifier(TEInstance *instance, TELinkDomain domain, const char *name, struct TEString * TE_NULLABLE * TE_NONNULL identifier);
+
+/*
  On return 'state' describes the state of the link denoted by 'identifier'.
  See TEInstanceLinkGetStateForValue() for TELinkTypeInt and TELinkTypeDouble.
  The caller is responsible for releasing the returned TELinkState using TERelease().
