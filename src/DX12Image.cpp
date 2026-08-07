@@ -14,7 +14,8 @@
 
 #include "stdafx.h"
 #include "DX12Image.h"
-#include "DX12Utility.h"
+#include "DXUtility.h"
+#include "DX12CommandList.h"
 
 DX12Image::DX12Image()
 {
@@ -26,78 +27,58 @@ DX12Image::DX12Image(ID3D12Device* device)
     setup(device);
 }
 
-DX12Image::DX12Image(const DX12Texture& texture)
-	: Drawable(0.0f, 0.0f, static_cast<float>(texture.getWidth()), static_cast<float>(texture.getHeight())), myTexture(texture)
-{
-    setup(texture.getDevice());
-}
-
-void DX12Image::update(DX12Texture& texture)
+void DX12Image::update(ID3D12Device* device, const DX12Texture& texture)
 {
     if (myTexture.getFlipped() != texture.getFlipped() || myTexture.getWidth() != texture.getWidth() || myTexture.getHeight() != texture.getHeight())
     {
-        myMatrixDirty = true;
+        changed = true;
     }
     myTexture = texture;
     width = static_cast<float>(myTexture.getWidth());
     height = static_cast<float>(myTexture.getHeight());
-}
-
-void DX12Image::position(float newx, float newy)
-{
-    if (newx != x || newy != y)
+    mySRVHeap.Reset();
+    if (myTexture.isValid())
     {
-        x = newx;
-        y = newy;
-        myMatrixDirty = true;
+        setupSRV(device);
     }
 }
 
-void DX12Image::scale(float scaleX, float scaleY)
-{
-    if (myScaleX != scaleX || myScaleY != scaleY)
-    {
-        myScaleX = scaleX;
-        myScaleY = scaleY;
-        myMatrixDirty = true;
-    }
-}
-
-void DX12Image::draw(ID3D12GraphicsCommandList* commandList)
+void DX12Image::draw(DX12CommandList& commandList)
 {
     if (myTexture.isValid())
     {
-        if (myMatrixDirty)
+        if (changed)
         {
             bool flipped = myTexture.getFlipped();
 
-            float ratio = width == 0.0f ? 1.0f : height / width;
-
             BasicVertex rectangleVertices[] =
             {
-                { { (-1.0f * myScaleX) + x, (-1.0f * myScaleY * ratio) + y, 0.0f }, { 0.0f, flipped ? 0.0f : 1.0f } },
-                { { (-1.0f * myScaleX) + x, ( 1.0f * myScaleY * ratio) + y, 0.0f }, { 0.0f, flipped ? 1.0f : 0.0f } },
-                { {  (1.0f * myScaleX) + x, (-1.0f * myScaleY * ratio) + y, 0.0f }, { 1.0f, flipped ? 0.0f : 1.0f } },
-                { {  (1.0f * myScaleX) + x, ( 1.0f * myScaleY * ratio) + y, 0.0f }, { 1.0f, flipped ? 1.0f : 0.0f } }
+                { { (-1.0f * scaleX) + x, (-1.0f * scaleY) + y, 0.0f }, { 0.0f, flipped ? 0.0f : 1.0f } },
+                { { (-1.0f * scaleX) + x, ( 1.0f * scaleY) + y, 0.0f }, { 0.0f, flipped ? 1.0f : 0.0f } },
+                { {  (1.0f * scaleX) + x, (-1.0f * scaleY) + y, 0.0f }, { 1.0f, flipped ? 0.0f : 1.0f } },
+                { {  (1.0f * scaleX) + x, ( 1.0f * scaleY) + y, 0.0f }, { 1.0f, flipped ? 1.0f : 0.0f } }
             };
 
-            UINT8* pVertexDataBegin;
+            UINT8* pVertexDataBegin = nullptr;
             CD3DX12_RANGE readRange(0, 0);
             ThrowIfFailed(myVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
             memcpy(pVertexDataBegin, rectangleVertices, sizeof(rectangleVertices));
             myVertexBuffer->Unmap(0, nullptr);
 
-            myMatrixDirty = false;
+            changed = false;
         }
-        ID3D12DescriptorHeap* heaps[] = { myTexture.getSRVHeap() };
+        ID3D12DescriptorHeap* heaps[] = { mySRVHeap.Get() };
 
-        commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+        commandList.usingResource(myVertexBuffer);
+        commandList.usingResource(myTexture);
 
-        commandList->SetGraphicsRootDescriptorTable(0, myTexture.getSRVHeap()->GetGPUDescriptorHandleForHeapStart());
+        commandList.get()->SetDescriptorHeaps(_countof(heaps), heaps);
 
-        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-        commandList->IASetVertexBuffers(0, 1, &myVertexBufferView);
-        commandList->DrawInstanced(4, 1, 0, 0);
+        commandList.get()->SetGraphicsRootDescriptorTable(0, mySRVHeap->GetGPUDescriptorHandleForHeapStart());
+
+        commandList.get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+        commandList.get()->IASetVertexBuffers(0, 1, &myVertexBufferView);
+        commandList.get()->DrawInstanced(4, 1, 0, 0);
     }
 }
 
@@ -119,4 +100,24 @@ void DX12Image::setup(ID3D12Device *device)
     myVertexBufferView.BufferLocation = myVertexBuffer->GetGPUVirtualAddress();
     myVertexBufferView.StrideInBytes = sizeof(BasicVertex);
     myVertexBufferView.SizeInBytes = vertexBufferSize;
+}
+
+void DX12Image::setupSRV(ID3D12Device* device)
+{
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+        srvHeapDesc.NumDescriptors = 1;
+        srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mySRVHeap));
+    }
+
+    {
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.Format = DX12Texture::Format;
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MipLevels = 1;
+        device->CreateShaderResourceView(myTexture, &srvDesc, mySRVHeap->GetCPUDescriptorHandleForHeapStart());
+    }
 }

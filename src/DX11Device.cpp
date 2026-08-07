@@ -16,6 +16,7 @@
 #include "DX11Device.h"
 #include "FileReader.h"
 #include "DXGIUtility.h"
+#include "Strings.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -38,12 +39,15 @@ DX11Device::createDeviceResources()
 
 	utility.setDX11();
 
-	ComPtr<IDXGIAdapter1> adapter = utility.getHardwareAdapter(factory.Get(), myDeviceName, true);
+	std::wstring description;
+	ComPtr<IDXGIAdapter1> adapter = utility.getHardwareAdapter(factory.Get(), description, true);
 
 	if (adapter.Get() == nullptr)
 	{
 		return E_FAIL;
 	}
+
+	myDeviceName = ConvertToMultiByte(description);
 
 	D3D_FEATURE_LEVEL levels[] = {
 		D3D_FEATURE_LEVEL_11_1,
@@ -73,7 +77,7 @@ DX11Device::createDeviceResources()
 }
 
 HRESULT
-DX11Device::createWindowResources(HWND window, bool depth)
+DX11Device::createWindowResources(HWND window)
 {
 	DXGI_SWAP_CHAIN_DESC desc;
 	ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
@@ -107,7 +111,7 @@ DX11Device::createWindowResources(HWND window, bool depth)
 
 	if (SUCCEEDED(result))
 	{
-		result = configureBackBuffer(depth);
+		result = configureBackBuffer();
 	}
 
 	return result;
@@ -116,8 +120,6 @@ DX11Device::createWindowResources(HWND window, bool depth)
 HRESULT
 DX11Device::resize()
 {
-	bool hasDepth = myDepthStencil != nullptr;
-
 	myDeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 	
 	releaseBackBuffer();
@@ -125,7 +127,7 @@ DX11Device::resize()
 	HRESULT result = mySwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
 	if (SUCCEEDED(result))
 	{
-		result = configureBackBuffer(hasDepth);
+		result = configureBackBuffer();
 	}
 	return result;
 }
@@ -213,6 +215,29 @@ DX11Device::loadIndexBuffer(unsigned short * indices, int count)
 	return loadBuffer(sizeof(unsigned short) * count, D3D11_BIND_INDEX_BUFFER, indices);
 }
 
+Microsoft::WRL::ComPtr<ID3D11BlendState> DX11Device::createBlendState()
+{
+	CD3D11_BLEND_DESC description(D3D11_DEFAULT);
+	
+	description.RenderTarget[0].BlendEnable = true;
+	description.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	description.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	description.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	description.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+	description.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	description.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	description.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	Microsoft::WRL::ComPtr<ID3D11BlendState> state;
+
+	HRESULT result = myDevice->CreateBlendState(&description, &state);
+	if (SUCCEEDED(result))
+	{
+		return state;
+	}
+	return Microsoft::WRL::ComPtr<ID3D11BlendState>();
+}
+
 DX11Texture
 DX11Device::loadTexture(const unsigned char * src, int bytesPerRow, int width, int height)
 {
@@ -222,14 +247,14 @@ DX11Device::loadTexture(const unsigned char * src, int bytesPerRow, int width, i
 void
 DX11Device::setRenderTarget()
 {
-	myDeviceContext->OMSetRenderTargets(1, myRenderTarget.GetAddressOf(), myDepthStencilView.Get());
+	myDeviceContext->OMSetRenderTargets(1, myRenderTarget.GetAddressOf(), nullptr);
 }
 
 void
-DX11Device::clear(float r, float g, float b, float a)
+DX11Device::clear(const Color &color)
 {
-	const float color[4] = { r, g, b, a };
-	myDeviceContext->ClearRenderTargetView(myRenderTarget.Get(), color);
+	const float c[4] = { color.red, color.green, color.blue, color.alpha };
+	myDeviceContext->ClearRenderTargetView(myRenderTarget.Get(), c);
 }
 
 void
@@ -298,6 +323,11 @@ DX11Device::setConstantBuffer(ID3D11Buffer * buffer)
 	myDeviceContext->VSSetConstantBuffers(0, 1, &buffer);
 }
 
+void DX11Device::setBlendState(ID3D11BlendState* state)
+{
+	myDeviceContext->OMSetBlendState(state, nullptr, 0xffffffff);
+}
+
 void
 DX11Device::drawIndexed(int count)
 {
@@ -329,7 +359,7 @@ DX11Device::getResourcePath() const
 }
 
 HRESULT
-DX11Device::configureBackBuffer(bool depth)
+DX11Device::configureBackBuffer()
 {
 	HRESULT result = mySwapChain->GetBuffer(0, IID_PPV_ARGS(&myBackBuffer));
 
@@ -339,29 +369,15 @@ DX11Device::configureBackBuffer(bool depth)
 	}
 	if (SUCCEEDED(result))
 	{
-		myBackBuffer->GetDesc(&myBackBufferDescription);
+		D3D11_TEXTURE2D_DESC	backBufferDescription{ };
 
-		if (depth)
-		{
-			CD3D11_TEXTURE2D_DESC depthStencilDesc(DXGI_FORMAT_D24_UNORM_S8_UINT,
-				static_cast<UINT>(myBackBufferDescription.Width),
-				static_cast<UINT>(myBackBufferDescription.Height),
-				1,
-				1,
-				D3D11_BIND_DEPTH_STENCIL);
+		myBackBuffer->GetDesc(&backBufferDescription);
 
-			myDevice->CreateTexture2D(&depthStencilDesc, nullptr, &myDepthStencil);
-
-			CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
-
-			myDevice->CreateDepthStencilView(myDepthStencil.Get(), &depthStencilViewDesc, &myDepthStencilView);
-		}
-
-		ZeroMemory(&myViewport, sizeof(D3D11_VIEWPORT));
-		myViewport.Height = (float)myBackBufferDescription.Height;
-		myViewport.Width = (float)myBackBufferDescription.Width;
-		myViewport.MinDepth = 0;
-		myViewport.MaxDepth = 1;
+		myViewport = CD3D11_VIEWPORT(
+			0.0f,
+			0.0f,
+			static_cast<float>(backBufferDescription.Width),
+			static_cast<float>(backBufferDescription.Height));
 
 		myDeviceContext->RSSetViewports(1, &myViewport);
 	}
@@ -382,8 +398,6 @@ DX11Device::releaseBackBuffer()
 {
 	myRenderTarget.Reset();
 	myBackBuffer.Reset();
-	myDepthStencilView.Reset();
-	myDepthStencil.Reset();
 	if (myDeviceContext)
 	{
 		myDeviceContext->Flush();
@@ -394,18 +408,20 @@ DX11Device::releaseBackBuffer()
 ComPtr<ID3D11Buffer>
 DX11Device::loadBuffer(unsigned int size, D3D11_BIND_FLAG flags, const void *data)
 {
-	D3D11_BUFFER_DESC bufferDescription = { 0 };
-	bufferDescription.ByteWidth = size;
-	bufferDescription.Usage = D3D11_USAGE_DEFAULT;
-	bufferDescription.BindFlags = flags;
-	bufferDescription.CPUAccessFlags = 0;
-	bufferDescription.MiscFlags = 0;
-	bufferDescription.StructureByteStride = 0;
+	CD3D11_BUFFER_DESC bufferDescription(
+		size,
+		flags,
+		D3D11_USAGE_DEFAULT,
+		0,
+		0,
+		0
+	);
 
-	D3D11_SUBRESOURCE_DATA vertexBufferData;
-	vertexBufferData.pSysMem = data;
-	vertexBufferData.SysMemPitch = 0;
-	vertexBufferData.SysMemSlicePitch = 0;
+	D3D11_SUBRESOURCE_DATA vertexBufferData = {
+		.pSysMem = data,
+		.SysMemPitch = 0,
+		.SysMemSlicePitch = 0
+	};
 
 	ComPtr<ID3D11Buffer> buffer;
 

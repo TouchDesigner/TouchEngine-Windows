@@ -13,35 +13,9 @@
 */
 
 #pragma once
-
-#include "Drawable.h"
-#include "DX12Texture.h"
-#include <DirectXMath.h>
-
-class DX12CommandList;
-
-class DX12Image :
-	public Drawable
+enum class Graphics
 {
-public:
-	DX12Image();
-	DX12Image(ID3D12Device* device);
-	constexpr DX12Texture& getTexture()
-	{
-		return myTexture;
-	}
-	void update(ID3D12Device* device, const DX12Texture& texture);
-	void draw(DX12CommandList& commandList);
-private:
-	struct BasicVertex
-	{
-		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT2 tex;
-	};
-	void											setup(ID3D12Device *device);
-	void											setupSRV(ID3D12Device* device);
-	DX12Texture										myTexture;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>	mySRVHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource>			myVertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW						myVertexBufferView{0, 0, 0};
+	OpenGL,
+	DX11,
+	DX12,
 };

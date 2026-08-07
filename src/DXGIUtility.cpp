@@ -15,13 +15,11 @@
 #include "stdafx.h"
 #include "DXGIUtility.h"
 
-using Microsoft::WRL::ComPtr;
-
 Microsoft::WRL::ComPtr<IDXGIAdapter1> DXGIUtility::getHardwareAdapter(IDXGIFactory1* pFactory, std::wstring& description, bool requestHighPerformanceAdapter)
 {
-    ComPtr<IDXGIAdapter1> adapter;
+    Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
 
-    ComPtr<IDXGIFactory6> factory6;
+    Microsoft::WRL::ComPtr<IDXGIFactory6> factory6;
     if (SUCCEEDED(pFactory->QueryInterface(IID_PPV_ARGS(&factory6))))
     {
         for (
@@ -38,7 +36,6 @@ Microsoft::WRL::ComPtr<IDXGIAdapter1> DXGIUtility::getHardwareAdapter(IDXGIFacto
             if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
             {
                 // Don't select the Basic Render Driver adapter.
-                // If you want a software adapter, pass in "/warp" on the command line.
                 continue;
             }
 
@@ -62,7 +59,6 @@ Microsoft::WRL::ComPtr<IDXGIAdapter1> DXGIUtility::getHardwareAdapter(IDXGIFacto
             if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
             {
                 // Don't select the Basic Render Driver adapter.
-                // If you want a software adapter, pass in "/warp" on the command line.
                 continue;
             }
 

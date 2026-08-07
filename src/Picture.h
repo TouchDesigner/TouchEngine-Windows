@@ -13,35 +13,16 @@
 */
 
 #pragma once
+#include <TouchEngine/TouchEngine.h>
 
-#include "Drawable.h"
-#include "DX12Texture.h"
-#include <DirectXMath.h>
+struct Color;
 
-class DX12CommandList;
-
-class DX12Image :
-	public Drawable
+namespace Picture
 {
-public:
-	DX12Image();
-	DX12Image(ID3D12Device* device);
-	constexpr DX12Texture& getTexture()
-	{
-		return myTexture;
-	}
-	void update(ID3D12Device* device, const DX12Texture& texture);
-	void draw(DX12CommandList& commandList);
-private:
-	struct BasicVertex
-	{
-		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT2 tex;
+	class TextureProvider {
+	public:
+		virtual TouchObject<TETexture> getTexture(const unsigned char* rgba, size_t bytesPerRow, int width, int height) = 0;
 	};
-	void											setup(ID3D12Device *device);
-	void											setupSRV(ID3D12Device* device);
-	DX12Texture										myTexture;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>	mySRVHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource>			myVertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW						myVertexBufferView{0, 0, 0};
-};
+
+	TouchObject<TETexture> getCircleTexture(int width, int height, float radius, const Color& foreground, const Color& background, TextureProvider& provider);
+}

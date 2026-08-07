@@ -28,9 +28,8 @@ public:
 	OpenGLImage& operator=(OpenGLImage&& o) noexcept;
 	~OpenGLImage();
 
+	bool	isValid() const;
 	bool	setup(GLint vertexAttribLocation, GLint textureAttribLocation);
-	void	position(float x, float y);
-	void	scale(float scaleX, float scaleY);
 	void	draw();
 	void	update(const OpenGLTexture &texture);
 
@@ -43,8 +42,5 @@ private:
 	OpenGLTexture	myTexture;
 	GLuint			myVAO = 0;
 	GLuint			myVBO = 0;
-	float			myScaleX = 1.0f;
-	float			myScaleY = 1.0f;
-	bool			myDirty = true;
 };
 

@@ -14,7 +14,8 @@
 
 #include "stdafx.h"
 #include "DX12Texture.h"
-#include "DX12Utility.h"
+#include "DX12CommandList.h"
+#include "DXUtility.h"
 #include <TouchEngine/TED3D12.h>
 
 using Microsoft::WRL::ComPtr;
@@ -23,13 +24,13 @@ DX12Texture::DX12Texture()
 {
 }
 
-DX12Texture::DX12Texture(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, const unsigned char* src, size_t bytesPerRow, int width, int height, bool genMips)
-	: myWidth(width), myHeight(height), myDevice(device)
+DX12Texture::DX12Texture(ID3D12Device* device, DX12CommandList& commandList, const unsigned char* src, size_t bytesPerRow, int width, int height)
+	: myWidth(width), myHeight(height)
 {
 	D3D12_RESOURCE_DESC textureDesc = {};
 
 	textureDesc.MipLevels = 1;
-	textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	textureDesc.Format = Format;
 	textureDesc.Width = width;
 	textureDesc.Height = height;
 	textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
@@ -41,9 +42,11 @@ DX12Texture::DX12Texture(ID3D12Device* device, ID3D12GraphicsCommandList* comman
 	ThrowIfFailed(device->CreateCommittedResource(&heapDefault,
 		D3D12_HEAP_FLAG_SHARED,
 		&textureDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
+		D3D12_RESOURCE_STATE_COMMON,
 		nullptr,
 		IID_PPV_ARGS(&myResource)));
+
+	Microsoft::WRL::ComPtr<ID3D12Resource>	textureUploadHeap;
 
 	{
 		const UINT64 uploadBufferSize = GetRequiredIntermediateSize(myResource.Get(), 0, 1);
@@ -55,7 +58,7 @@ DX12Texture::DX12Texture(ID3D12Device* device, ID3D12GraphicsCommandList* comman
 			&buffer,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
-			IID_PPV_ARGS(&myTextureUploadHeap));
+			IID_PPV_ARGS(&textureUploadHeap));
 	}
 
 	{
@@ -64,57 +67,26 @@ DX12Texture::DX12Texture(ID3D12Device* device, ID3D12GraphicsCommandList* comman
 		textureData.RowPitch = bytesPerRow;
 		textureData.SlicePitch = textureData.RowPitch * height;
 
-		UpdateSubresources(commandList, myResource.Get(), myTextureUploadHeap.Get(), 0, 0, 1, &textureData);
-		CD3DX12_RESOURCE_BARRIER barrier(CD3DX12_RESOURCE_BARRIER::Transition(myResource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-		commandList->ResourceBarrier(1, &barrier);
-	}
+		UpdateSubresources(commandList, myResource.Get(), textureUploadHeap.Get(), 0, 0, 1, &textureData);
 
-	setupSRV(textureDesc);
-
-	{
-		HANDLE handle;
-		ThrowIfFailed(device->CreateSharedHandle(myResource.Get(), nullptr, GENERIC_ALL, nullptr, &handle));
-		
-		TouchObject<TED3DAllocation> allocation;
-		allocation.take(TED3DAllocationCreate(handle, TED3DHandleTypeD3D12ResourceNT, 0, nullptr, nullptr));
-		myTETexture.take(TED3DSharedTextureCreate(allocation, 0, textureDesc.Format, textureDesc.Width, textureDesc.Height, TETextureOriginTopLeft, kTETextureComponentMapIdentity, nullptr, nullptr));
-
-		// TouchEngine duplicates it for its own use
-		CloseHandle(handle);
+		commandList.barrier(myResource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
+		commandList.usingResource(textureUploadHeap);
+		commandList.usingResource(myResource);
 	}
 }
 
-DX12Texture::DX12Texture(ID3D12Device* device, TED3DSharedTexture *texture)
-	: myFlipped(TETextureGetOrigin(texture) == TETextureOriginBottomLeft), myDevice(device)
+DX12Texture::DX12Texture(ID3D12Device* device, HANDLE h)
 {
-	TouchObject<TED3DAllocation> allocation;
-	allocation.take(TED3DSharedTextureGetAllocation(texture));
-	HANDLE h = TED3DAllocationGetHandle(allocation);
-	TED3DHandleType type = TED3DAllocationGetHandleType(allocation);
-	if (type == TED3DHandleTypeD3D12ResourceNT)
-	{
-		HRESULT hr = device->OpenSharedHandle(h, IID_PPV_ARGS(&myResource));
-		ThrowIfFailed(hr);
-	}
-	else
-	{
-		throw std::runtime_error("Unexpected TED3DHandleType");
-	}
+	ThrowIfFailed(device->OpenSharedHandle(h, IID_PPV_ARGS(&myResource)));
 	if (myResource.Get())
 	{
 		D3D12_RESOURCE_DESC resourceDesc = myResource->GetDesc();
 		myWidth = static_cast<int>(resourceDesc.Width);
 		myHeight = resourceDesc.Height;
-		setupSRV(resourceDesc);
 	}
 }
 
-void DX12Texture::uploadDidComplete()
-{
-	myTextureUploadHeap.Reset();
-}
-
-ID3D12Resource* DX12Texture::getResource() const
+DX12Texture::operator ID3D12Resource* () const
 {
 	return myResource.Get();
 }
@@ -122,24 +94,4 @@ ID3D12Resource* DX12Texture::getResource() const
 bool DX12Texture::isValid() const
 {
 	return myResource.Get() != nullptr;
-}
-
-void DX12Texture::setupSRV(D3D12_RESOURCE_DESC& textureDesc)
-{
-	{
-		D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-		srvHeapDesc.NumDescriptors = 1;
-		srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		myDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mySRVHeap));
-	}
-
-	{
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Format = textureDesc.Format;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MipLevels = 1;
-		myDevice->CreateShaderResourceView(myResource.Get(), &srvDesc, mySRVHeap->GetCPUDescriptorHandleForHeapStart());
-	}
 }

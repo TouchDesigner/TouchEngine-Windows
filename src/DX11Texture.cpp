@@ -87,35 +87,20 @@ void DX11Texture::release(uint64_t value)
 HRESULT
 DX11Texture::createShaderResourceView(ID3D11Device* device, const D3D11_TEXTURE2D_DESC & description)
 {
-	D3D11_SHADER_RESOURCE_VIEW_DESC textureViewDescription;
-	ZeroMemory(&textureViewDescription, sizeof(textureViewDescription));
-	textureViewDescription.Format = description.Format;
-	textureViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	textureViewDescription.Texture2D.MipLevels = description.MipLevels;
-	textureViewDescription.Texture2D.MostDetailedMip = 0;
+	
+	CD3D11_SHADER_RESOURCE_VIEW_DESC textureViewDescription(
+		D3D11_SRV_DIMENSION_TEXTURE2D,
+		description.Format,
+		0,
+		description.MipLevels
+		);
 	return device->CreateShaderResourceView(myTexture.Get(), &textureViewDescription, &myTextureView);
 }
 
 HRESULT
 DX11Texture::createSamplerState(ID3D11Device* device, const D3D11_TEXTURE2D_DESC & description)
 {
-	D3D11_SAMPLER_DESC samplerDescription;
-	ZeroMemory(&samplerDescription, sizeof(samplerDescription));
-
-	samplerDescription.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-
-	samplerDescription.MaxAnisotropy = 0;
-	samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDescription.MipLODBias = 0.0f;
-	samplerDescription.MinLOD = 0;
-	samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
-	samplerDescription.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	samplerDescription.BorderColor[0] = 0.0f;
-	samplerDescription.BorderColor[1] = 0.0f;
-	samplerDescription.BorderColor[2] = 0.0f;
-	samplerDescription.BorderColor[3] = 0.0f;
+	CD3D11_SAMPLER_DESC samplerDescription(D3D11_DEFAULT);
 
 	return device->CreateSamplerState(&samplerDescription, &mySampler);
 }
@@ -137,7 +122,7 @@ DX11Texture::DX11Texture(DX11Device &device, const unsigned char * src, int byte
 	subresource.SysMemPitch = bytesPerRow;
 	subresource.SysMemSlicePitch = 0;
 
-	D3D11_TEXTURE2D_DESC description = { 0 };
+	CD3D11_TEXTURE2D_DESC description;
 	description.Width = width;
 	description.Height = height;
 	description.Format = DXGI_FORMAT_B8G8R8A8_UNORM;

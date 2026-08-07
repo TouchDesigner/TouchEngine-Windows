@@ -14,34 +14,30 @@
 
 #pragma once
 
-#include "Drawable.h"
-#include "DX12Texture.h"
-#include <DirectXMath.h>
+#include <TouchEngine/TouchEngine.h>
+#include <vector>
 
-class DX12CommandList;
+struct Color;
 
-class DX12Image :
-	public Drawable
-{
+namespace Geometry {
+
+class BufferProvider {
 public:
-	DX12Image();
-	DX12Image(ID3D12Device* device);
-	constexpr DX12Texture& getTexture()
+	virtual TouchObject<TEBuffer>	getDeviceBuffer(const void* src, size_t size) = 0;
+	virtual TouchObject<TEBuffer>	getHostBuffer(const void* src, size_t size) = 0;
+
+	template <class T>
+	TouchObject<TEBuffer>			getDeviceBuffer(const std::vector<T>& vector)
 	{
-		return myTexture;
+		return getDeviceBuffer(vector.data(), sizeof(T) * vector.size());
 	}
-	void update(ID3D12Device* device, const DX12Texture& texture);
-	void draw(DX12CommandList& commandList);
-private:
-	struct BasicVertex
+	template <class T>
+	TouchObject<TEBuffer>			getHostBuffer(const std::vector<T>& vector)
 	{
-		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT2 tex;
-	};
-	void											setup(ID3D12Device *device);
-	void											setupSRV(ID3D12Device* device);
-	DX12Texture										myTexture;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>	mySRVHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource>			myVertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW						myVertexBufferView{0, 0, 0};
+		return getHostBuffer(vector.data(), sizeof(T) * vector.size());
+	}
 };
+
+TouchObject<TEGeometry> getCircleGeometry(float radius, int divisions, const Color &color1, const Color &color2, BufferProvider &provider);
+
+}

@@ -14,10 +14,15 @@
 
 #pragma once
 #include "Renderer.h"
+#include "DX12CommandList.h"
 #include "DX12Image.h"
+#include "DX12UploadBuffer.h"
+#include "DX12SharedBuffer.h"
 #include <TouchEngine/TED3D12.h>
 #include <DirectXMath.h>
 #include <map>
+#include <string>
+#include <mutex>
 
 class DX12Renderer :
     public Renderer
@@ -25,77 +30,79 @@ class DX12Renderer :
 public:
 						DX12Renderer();
 	virtual				~DX12Renderer();
-	virtual bool		setup(HWND window) override;
-	virtual bool		configure(TEInstance* instance, std::wstring & error) override;
+	virtual Graphics	getMode() const override;
+	virtual void		setup(HWND window) override;
+	virtual bool		configure(TEInstance* instance, std::string & error) override;
 	virtual bool		doesInputResourceTransfer() const override;
 	virtual void		resize(int width, int height) override;
 	virtual void		stop() override;
 	virtual bool		render() override;
 
-	void executeCommandList();
+	void copyBuffer();
 
-	virtual size_t		getInputImageCount() const override;
-
-	virtual void		beginImageLayout() override;
-	virtual void		addInputImage(const unsigned char* rgba, size_t bytesPerRow, int width, int height) override;
-	virtual bool		getInputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
+	virtual TouchObject<TETexture>	getTexture(const unsigned char* rgba, size_t bytesPerRow, int width, int height) override;
 	virtual void		clearInputs() override;
-	virtual void		addOutputImage() override;
-	virtual void		endImageLayout() override;
 
-	virtual bool		updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier) override;
-	
-	virtual void		clearOutputImages() override;
-	virtual TEGraphicsContext* getTEContext() const override;
+	virtual bool		setOutputImage(const TouchObject<TETexture>& texture, const TouchObject<TESemaphore>& semaphore, uint64_t waitValue) override;
+	virtual void		setOutputImage(const TouchObject<TETexture>& texture) override;
+	virtual void		clearOutputs() override;
+	virtual TouchObject<TEGraphicsContext> getTEContext() const override;
 
-	virtual const std::wstring& getDeviceName() const override;
+	virtual const std::string& getDeviceName() const override;
+
+protected:
+	virtual TouchObject<TEBuffer> getDeviceBuffer(const void* src, size_t size) override;
 private:
 	static const UINT FrameCount = 2;
 	void				waitForGPU();
-	void				beginCommandList(ID3D12PipelineState* state);
 	void				populateRenderCommandList();
 	std::wstring		getAssetFullPath(LPCWSTR assetName) const;
-	void				drawImages(std::vector<DX12Image>& images, float scale, float xOffset);
 	static void			textureCallback(TED3DAllocation *allocation, size_t offset, TEObjectEvent event, void* TE_NULLABLE info);
 	static void			fenceCallback(HANDLE handle, TEObjectEvent event, void* TE_NULLABLE info);
-	std::wstring		getConfigureError() const;
+	std::string			getConfigureError() const;
+	void				willAllocateBuffer(size_t size);
+	uint64_t			getNextFenceValue() const;
+	void				signal();
 
-	static const std::wstring ConfigureError;
+	static const std::string ConfigureError;
 
 	std::wstring myAssetsPath;
 
 	CD3DX12_VIEWPORT myViewport;
 	CD3DX12_RECT myScissorRect;
-	Microsoft::WRL::ComPtr<ID3D12Device> myDevice;
+	Microsoft::WRL::ComPtr<ID3D12Device4> myDevice;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> myCommandQueue;
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> myCommandAllocator;
 	Microsoft::WRL::ComPtr<IDXGISwapChain3> mySwapChain;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myRTVHeap;
 	Microsoft::WRL::ComPtr<ID3D12Resource> myRenderTargets[FrameCount];
-	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> myCommandList;
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> myPipelineState;
 
-	std::wstring myAdapterDescription;
+	DX12CommandList myCommandList = DX12CommandList(D3D12_COMMAND_LIST_TYPE_DIRECT);
 
-	UINT myRTVDescriptorSize;
+	std::string myAdapterDescription;
 
-	HANDLE myFenceEvent;
+	UINT myRTVDescriptorSize = 0;
+
+	HANDLE myFenceEvent = INVALID_HANDLE_VALUE;
 	Microsoft::WRL::ComPtr<ID3D12Fence> myFence;
 	TouchObject<TED3DSharedFence> myTEFence;
-	UINT64 myNextFenceValue{ 1 };
-	UINT64 myCompletedFenceValue{ 0 };
-	UINT64 myInputUpdateFenceValue{ 0 };
+	uint64_t mySignalledFenceValue{ 0 };
+	uint64_t myCompletedFenceValue{ 0 };
 
 	TouchObject<TED3D12Context> myContext;
 
 	UINT myFrameIndex = 0;
-	int myWidth;
-	int myHeight;
 
-	std::vector<DX12Image> myInputImages;
-	std::vector<DX12Image> myOutputImages;
+	DX12Image	myOutputImage;
+	std::mutex	myOutputsLock;
 	std::map<HANDLE, DX12Texture> myOutputTextures;
 	std::map<HANDLE, Microsoft::WRL::ComPtr<ID3D12Fence>> myOutputFences;
+
+	DX12UploadBuffer myInputUploadBuffer;
+	DX12SharedBuffer myInputSharedBuffer;
+	TouchObject<TED3DAllocation> myInputSharedAllocation;
+	size_t myInputBufferUsedOffset = 0;
+	size_t myInputBufferCopyOffset = 0;
 };
 

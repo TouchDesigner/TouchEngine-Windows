@@ -25,14 +25,16 @@
 
 #include "stdafx.h"
 #include "DX12Renderer.h"
-#include "DX12Utility.h"
+#include "DXUtility.h"
 #include "DXGIUtility.h"
+#include "Strings.h"
+#include <algorithm>
 
 using Microsoft::WRL::ComPtr;
 
-const std::wstring DX12Renderer::ConfigureError = L"DirectX 12 is not supported. Either the installed version of TouchDesigner is too old, or the selected GPU does not have needed features.";
+const std::string DX12Renderer::ConfigureError = "DirectX 12 is not supported. Either the installed version of TouchDesigner is too old, or the selected GPU does not have needed features.";
 
-inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
+static inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
 {
     if (path == nullptr)
     {
@@ -62,12 +64,15 @@ DX12Renderer::DX12Renderer()
 
 DX12Renderer::~DX12Renderer()
 {
-    // Do this now because it will cause our texture release callback to be invoked
-    clearInputs();
-    clearOutputImages();
+    CloseHandle(myFenceEvent);
 }
 
-bool DX12Renderer::setup(HWND window)
+Graphics DX12Renderer::getMode() const
+{
+    return Graphics::DX12;
+}
+
+void DX12Renderer::setup(HWND window)
 {
     Renderer::setup(window);
     UINT dxgiFactoryFlags = 0;
@@ -86,12 +91,15 @@ bool DX12Renderer::setup(HWND window)
 
     utility.setDX12();
 
-    ComPtr<IDXGIAdapter1> adapter = utility.getHardwareAdapter(factory.Get(), myAdapterDescription, true);
+    std::wstring description;
+    ComPtr<IDXGIAdapter1> adapter = utility.getHardwareAdapter(factory.Get(), description, true);
 
     if (adapter.Get() == nullptr)
     {
-        return false;
+        throw std::runtime_error("Couldn't find suitable graphics device.");
     }
+
+    myAdapterDescription = ConvertToMultiByte(description);
 
     ThrowIfFailed(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&myDevice)));
 
@@ -152,14 +160,12 @@ bool DX12Renderer::setup(HWND window)
         }
     }
 
-    ThrowIfFailed(myDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&myCommandAllocator)));
-    
     ThrowIfFailed(myDevice->CreateFence(0, D3D12_FENCE_FLAG_SHARED, IID_PPV_ARGS(&myFence)));
 
 	myFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 	if (myFenceEvent == nullptr)
 	{
-		return false;
+		throw std::runtime_error("CreateEvent failed.");
 	}
     
     {
@@ -181,29 +187,36 @@ bool DX12Renderer::setup(HWND window)
             featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
-        CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[1] = {
+            CD3DX12_DESCRIPTOR_RANGE1(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC)
+        };
 
-        CD3DX12_ROOT_PARAMETER1 rootParameters[1];
-        rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+        CD3DX12_ROOT_PARAMETER1 rootParameters[1] = { };
+        rootParameters[0].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
 
-        D3D12_STATIC_SAMPLER_DESC sampler = {};
-        sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-        sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-        sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-        sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-        sampler.MipLODBias = 0;
-        sampler.MaxAnisotropy = 0;
-        sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-        sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-        sampler.MinLOD = 0.0f;
-        sampler.MaxLOD = D3D12_FLOAT32_MAX;
-        sampler.ShaderRegister = 0;
-        sampler.RegisterSpace = 0;
-        sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+        D3D12_STATIC_SAMPLER_DESC sampler = {
+            .Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+            .AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+            .AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+            .AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+            .MipLODBias = 0,
+            .MaxAnisotropy = 0,
+            .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
+            .BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK,
+            .MinLOD = 0.0f,
+            .MaxLOD = D3D12_FLOAT32_MAX,
+            .ShaderRegister = 0,
+            .RegisterSpace = 0,
+            .ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL
+        };
 
-        CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc(
+            _countof(rootParameters),
+            rootParameters,
+            1,
+            &sampler,
+            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+        );
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
@@ -231,6 +244,14 @@ bool DX12Renderer::setup(HWND window)
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
         };
 
+        // Configure the blend state description
+        CD3DX12_BLEND_DESC blendDesc(D3D12_DEFAULT);
+        blendDesc.RenderTarget[0].BlendEnable = TRUE;
+        blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+        blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+        blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+        blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
+
         // Describe and create the graphics pipeline state object (PSO).
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
@@ -238,7 +259,7 @@ bool DX12Renderer::setup(HWND window)
         psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
         psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        psoDesc.BlendState = blendDesc;
         psoDesc.DepthStencilState.DepthEnable = FALSE;
         psoDesc.DepthStencilState.StencilEnable = FALSE;
         psoDesc.SampleMask = UINT_MAX;
@@ -249,21 +270,26 @@ bool DX12Renderer::setup(HWND window)
         ThrowIfFailed(myDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&myPipelineState)));
     }
 
-    ThrowIfFailed(myDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, myCommandAllocator.Get(), myPipelineState.Get(), IID_PPV_ARGS(&myCommandList)));
+    myCommandList.setup(myDevice.Get());
 
-    ThrowIfFailed(myCommandList->Close());
+    myOutputImage = DX12Image(myDevice.Get());
 
     TEResult result = TED3D12ContextCreate(myDevice.Get(), myContext.take());
     if (result != TEResultSuccess)
     {
+        throw std::runtime_error("Couldn't create TED3D12Context.");
+    }
+}
+
+bool DX12Renderer::configure(TEInstance* instance, std::string & error)
+{
+    if (!Renderer::configure(instance, error))
+    {
         return false;
     }
 
-    return true;
-}
+    myMinBufferAlignment = std::max<size_t>(myMinBufferAlignment, 16);
 
-bool DX12Renderer::configure(TEInstance* instance, std::wstring & error)
-{
     int32_t count = 0;
     TEResult result = TEInstanceGetSupportedTextureTypes(instance, nullptr, &count);
     if (result == TEResultInsufficientMemory)
@@ -308,7 +334,7 @@ bool DX12Renderer::configure(TEInstance* instance, std::wstring & error)
             }
         }
     }
-    return Renderer::configure(instance, error);
+    return true;
 }
 
 bool DX12Renderer::doesInputResourceTransfer() const
@@ -320,6 +346,7 @@ void DX12Renderer::resize(int width, int height)
 {
     if (width != myWidth || height != myHeight)
     {
+        signal();
         waitForGPU();
 
         for (UINT n = 0; n < FrameCount; n++)
@@ -351,251 +378,256 @@ void DX12Renderer::resize(int width, int height)
 
 void DX12Renderer::stop()
 {
-    CloseHandle(myFenceEvent);
+    Renderer::stop();    // Do this first because it will cause our texture release callback to be invoked
+    signal();
+    waitForGPU();
 }
 
 bool DX12Renderer::render()
 {
+    // Do any pending buffer copy
+    copyBuffer();
+
+    // Render
     populateRenderCommandList();
 
-    executeCommandList();
+    ID3D12CommandList* ppCommandLists[] = { myCommandList };
+    myCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+    // Signal for our own use and for the resource transfers we've added for TouchEngine
+    signal();
 
     mySwapChain->Present(1, 0);
 
     waitForGPU();
 
+    myCommandList.completed();
+
     return true;
 }
 
-void DX12Renderer::executeCommandList()
+void DX12Renderer::copyBuffer()
 {
-    ID3D12CommandList* ppCommandLists[] = { myCommandList.Get() };
-    myCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-    myNextFenceValue++;
-}
-
-size_t DX12Renderer::getInputImageCount() const
-{
-    return myInputImages.size();
-}
-
-void DX12Renderer::beginImageLayout()
-{
-    beginCommandList(nullptr);
-}
-
-void DX12Renderer::addInputImage(const unsigned char* rgba, size_t bytesPerRow, int width, int height)
-{
-	myInputImages.emplace_back(DX12Texture(myDevice.Get(), myCommandList.Get(), rgba, bytesPerRow, width, height));
-    Renderer::addInputImage(rgba, bytesPerRow, width, height);
-}
-
-bool DX12Renderer::getInputImage(size_t index, TouchObject<TETexture> & texture, TouchObject<TESemaphore> & semaphore, uint64_t & waitValue)
-{
-    if (inputDidChange(index))
+    if (myInputBufferCopyOffset < myInputBufferUsedOffset)
     {
-        texture.set(myInputImages[index].getTexture().getTETexture());
-        semaphore = myTEFence;
-        waitValue = myInputUpdateFenceValue;
+        if (!myCommandList.isRecording())
+        {
+            myCommandList.reset(myPipelineState.Get());
+        }
 
-        markInputUnchanged(index);
-        return true;
+        myCommandList.get()->CopyResource(myInputSharedBuffer, myInputUploadBuffer);
+        myCommandList.get()->CopyBufferRegion(myInputSharedBuffer, myInputBufferCopyOffset, myInputUploadBuffer, myInputBufferCopyOffset, myInputBufferUsedOffset - myInputBufferCopyOffset);
+
+        myCommandList.usingResource(myInputSharedBuffer);
+        myCommandList.usingResource(myInputUploadBuffer);
+
+        myCommandList.barrier(myInputSharedBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
+
+        myInputBufferCopyOffset = myInputBufferUsedOffset;
     }
-    return false;
+}
+
+TouchObject<TETexture>	DX12Renderer::getTexture(const unsigned char* rgba, size_t bytesPerRow, int width, int height)
+{
+    if (!myCommandList.isRecording())
+    {
+        myCommandList.reset(myPipelineState.Get());
+    }
+
+    DX12Texture inputTex = DX12Texture(myDevice.Get(), myCommandList, rgba, bytesPerRow, width, height);
+
+    TouchObject<TETexture> texture;
+    {
+        HANDLE handle;
+        ThrowIfFailed(myDevice->CreateSharedHandle(inputTex, nullptr, GENERIC_ALL, nullptr, &handle));
+
+        TouchObject<TED3DAllocation> allocation;
+        allocation.take(TED3DAllocationCreate(handle, TED3DHandleTypeD3D12ResourceNT, 0, nullptr, nullptr));
+        texture.take(TED3DSharedTextureCreate(allocation, 0, DX12Texture::Format, width, height, TETextureOriginTopLeft, kTETextureComponentMapIdentity, nullptr, nullptr));
+
+        // TouchEngine duplicates it for its own use
+        CloseHandle(handle);
+    }
+
+    // Add a resource transfer so TouchEngine will wait for the upload to complete on the GPU before using the texture
+    addResourceTransfer(texture, myTEFence, getNextFenceValue());
+
+    return texture;
 }
 
 void DX12Renderer::clearInputs()
 {
     waitForGPU();
-    myInputImages.clear();
+    myInputSharedAllocation.reset();
     Renderer::clearInputs();
 }
 
-void DX12Renderer::addOutputImage()
+bool DX12Renderer::setOutputImage(const TouchObject<TETexture>& texture, const TouchObject<TESemaphore>& semaphore, uint64_t waitValue)
 {
-    myOutputImages.emplace_back(myDevice.Get());
-    Renderer::addOutputImage();
+    setOutputImage(texture);
+
+	if (semaphore)
+	{
+        if (TESemaphoreGetType(semaphore) != TESemaphoreTypeD3DFence)
+        {
+            throw std::runtime_error("Unexpected semaphore type");
+        }
+		HANDLE handle = TED3DSharedFenceGetHandle(static_cast<TED3DSharedFence*>(semaphore.get()));
+        // lock because myOutputFences may be accessed from fenceCallback on another thread
+        std::lock_guard<std::mutex> guard(myOutputsLock);
+		auto it = myOutputFences.find(handle);
+		if (it == myOutputFences.end())
+		{
+			// We cache output fences -
+			// TouchEngine's callbacks allow us to delete our cached fence when the original is deleted
+
+			ComPtr<ID3D12Fence> fence;
+
+			ThrowIfFailed(myDevice->OpenSharedHandle(handle, IID_PPV_ARGS(&fence)));
+
+			it = myOutputFences.insert(std::make_pair(handle, fence)).first;
+
+			TED3DSharedFenceSetCallback(static_cast<TED3DSharedFence*>(semaphore.get()), fenceCallback, this);
+		}
+
+        // We must wait before using the texture on the GPU in the next frame
+		myCommandQueue->Wait(it->second.Get(), waitValue);
+	}
+	
+    return true;
 }
 
-void DX12Renderer::endImageLayout()
+void DX12Renderer::setOutputImage(const TouchObject<TETexture>& texture)
 {
-    myCommandList->Close();
-
-    executeCommandList();
-
-    myInputUpdateFenceValue = myNextFenceValue;
-
-    // For simplicity we wait here so we can dispose of associated resources at this point
-    waitForGPU();
-
-    for (auto& next : myInputImages)
-    {
-        next.getTexture().uploadDidComplete();
-    }
-}
-
-bool DX12Renderer::updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier)
-{
-    bool success = false;
-    const auto& previous = getOutputImage(index);
-    TEResult result = TEResultSuccess;
+    const auto& previous = getOutputImage();
     if (previous)
     {
-        result = TEInstanceAddResourceTransfer(instance, previous, myTEFence, myCompletedFenceValue);
+        // We can use the value from the previous frame here.
+        // Strictly speaking there is no need for this for our simple renderer,
+        // but it would be required if we didn't wait for the GPU after presenting
+        // the current frame
+        addResourceTransfer(previous, myTEFence, mySignalledFenceValue);
     }
-    TouchObject<TETexture> texture;
 
-    if (result == TEResultSuccess)
+    Renderer::setOutputImage(texture);
+
+    if (texture && TETextureGetType(texture) == TETextureTypeD3DShared)
     {
-        result = TEInstanceLinkGetTextureValue(instance, identifier.c_str(), TELinkValueCurrent, texture.take());
+        TED3DSharedTexture* shared = static_cast<TED3DSharedTexture*>(texture.get());
+        TouchObject<TED3DAllocation> allocation;
+        allocation.take(TED3DSharedTextureGetAllocation(shared));
+        HANDLE h = TED3DAllocationGetHandle(allocation);
+        TED3DHandleType type = TED3DAllocationGetHandleType(allocation);
+        if (type != TED3DHandleTypeD3D12ResourceNT)
+        {
+            throw std::runtime_error("Unexpected D3D handle type");
+        }
+
+        // lock because myOutputTextures may be accessed from textureCallback on another thread
+        std::lock_guard<std::mutex> guard(myOutputsLock);
+        auto it = myOutputTextures.find(h);
+        if (it == myOutputTextures.end())
+        {
+            // We cache output textures because TouchEngine will recycle them -
+            // TouchEngine's callbacks allow us to delete our cached texture when the original is deleted
+            it = myOutputTextures.insert(std::make_pair(h, DX12Texture(myDevice.Get(), h))).first;
+
+            TED3DSharedTextureSetCallback(shared, textureCallback, this);
+        }
+        myOutputImage.update(myDevice.Get(), it->second);
     }
-    if (result == TEResultSuccess)
+    else
     {
-        setOutputImage(index, texture);
-
-        if (texture && TETextureGetType(texture) == TETextureTypeD3DShared)
-        {
-            TED3DSharedTexture* shared = static_cast<TED3DSharedTexture*>(texture.get());
-            TouchObject<TED3DAllocation> allocation;
-            allocation.take(TED3DSharedTextureGetAllocation(shared));
-            HANDLE h = TED3DAllocationGetHandle(allocation);
-            auto it = myOutputTextures.find(h);
-            if (it == myOutputTextures.end())
-            {
-                // We cache output textures because TouchEngine will recycle them -
-                // TouchEngine's callbacks allow us to delete our cached texture when the original is deleted
-                it = myOutputTextures.insert(std::make_pair(h, DX12Texture(myDevice.Get(), shared))).first;
-
-                TED3DSharedTextureSetCallback(shared, textureCallback, this);
-            }
-            myOutputImages[index].update(it->second);
-            success = true;
-
-            if (texture && TEInstanceHasResourceTransfer(instance, texture))
-            {
-                TouchObject<TESemaphore> semaphore;
-                uint64_t waitValue = 0;
-                result = TEInstanceGetResourceTransfer(instance, texture, semaphore.take(), &waitValue);
-
-                if (result == TEResultSuccess)
-                {
-                    if (TESemaphoreGetType(semaphore) == TESemaphoreTypeD3DFence)
-                    {
-                        HANDLE handle = TED3DSharedFenceGetHandle(static_cast<TED3DSharedFence*>(semaphore.get()));
-                        auto it = myOutputFences.find(handle);
-                        if (it == myOutputFences.end())
-                        {
-                            // We cache output fences -
-                            // TouchEngine's callbacks allow us to delete our cached fence when the original is deleted
-
-                            ComPtr<ID3D12Fence> fence;
-
-                            ThrowIfFailed(myDevice->OpenSharedHandle(handle, IID_PPV_ARGS(&fence)));
-
-                            it = myOutputFences.insert(std::make_pair(handle, fence)).first;
-
-                            TED3DSharedFenceSetCallback(static_cast<TED3DSharedFence*>(semaphore.get()), fenceCallback, this);
-                        }
-
-                        myCommandQueue->Wait(it->second.Get(), waitValue);
-                    }
-                }
-            }
-        }
-        else
-        {
-            success = false;
-        }
+        myOutputImage.update(myDevice.Get(), DX12Texture());
     }
-    if (!success)
-    {
-        myOutputImages.at(index).update(DX12Texture());
-        setOutputImage(index, nullptr);
-        if (!texture)
-        {
-            // Having no texture is OK
-            success = true;
-        }
-    }
-    return success;
 }
 
-void DX12Renderer::clearOutputImages()
+void DX12Renderer::clearOutputs()
 {
     waitForGPU();
-    myOutputImages.clear();
-    Renderer::clearOutputImages();
+    setOutputImage(nullptr);
+    std::lock_guard<std::mutex> guard(myOutputsLock);
+    myOutputTextures.clear();
+    myOutputFences.clear();
+    Renderer::clearOutputs();
 }
 
-TEGraphicsContext* DX12Renderer::getTEContext() const
+TouchObject<TEGraphicsContext> DX12Renderer::getTEContext() const
 {
     return myContext;
 }
 
-const std::wstring& DX12Renderer::getDeviceName() const
+const std::string& DX12Renderer::getDeviceName() const
 {
     return myAdapterDescription;
 }
 
+TouchObject<TEBuffer> DX12Renderer::getDeviceBuffer(const void* src, size_t size)
+{    
+    // round so our sub-allocations are always aligned
+    size = alignedBufferSize(size);
+
+    willAllocateBuffer(size);
+
+    auto buffer = TouchObject<TED3DSharedBuffer>::make_take(TED3DSharedBufferCreate(myInputSharedAllocation, myInputBufferUsedOffset, size, nullptr, nullptr));
+
+    memcpy(static_cast<uint8_t*>(myInputUploadBuffer.data()) + myInputBufferUsedOffset, src, size);
+    myInputBufferUsedOffset += size;
+
+    // Add a resource transfer so TouchEngine will wait for the upload to complete on the GPU before using the buffer
+    addResourceTransfer(buffer, myTEFence, getNextFenceValue());
+
+    return buffer;
+}
+
 void DX12Renderer::waitForGPU()
 {
-    if (myCompletedFenceValue < myNextFenceValue)
+    if (myCompletedFenceValue < mySignalledFenceValue)
     {
-        myCommandQueue->Signal(myFence.Get(), myNextFenceValue);
-
-        myFence->SetEventOnCompletion(myNextFenceValue, myFenceEvent);
+        myFence->SetEventOnCompletion(mySignalledFenceValue, myFenceEvent);
 
         WaitForSingleObjectEx(myFenceEvent, INFINITE, FALSE);
 
         myFrameIndex = mySwapChain->GetCurrentBackBufferIndex();
 
-        myCompletedFenceValue = myNextFenceValue;
-        myNextFenceValue++;
+        myCompletedFenceValue = mySignalledFenceValue;
     }
-}
-
-void DX12Renderer::beginCommandList(ID3D12PipelineState* state)
-{
-    ThrowIfFailed(myCommandAllocator->Reset());
-
-    ThrowIfFailed(myCommandList->Reset(myCommandAllocator.Get(), state));
 }
 
 void DX12Renderer::populateRenderCommandList()
 {
-    beginCommandList(myPipelineState.Get());
-
-    myCommandList->RSSetViewports(1, &myViewport);
-    myCommandList->RSSetScissorRects(1, &myScissorRect);
-
-    CD3DX12_RESOURCE_BARRIER transition(CD3DX12_RESOURCE_BARRIER::Transition(myRenderTargets[myFrameIndex].Get(),
-        D3D12_RESOURCE_STATE_PRESENT,
-        D3D12_RESOURCE_STATE_RENDER_TARGET));
-    myCommandList->ResourceBarrier(1, &transition);
-
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(myRTVHeap->GetCPUDescriptorHandleForHeapStart(), myFrameIndex, myRTVDescriptorSize);
-    myCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-
-    const float clearColor[] = { myBackgroundColor[0], myBackgroundColor[1], myBackgroundColor[2], 1.0f };
-    myCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-
-    auto longest = max(myInputImages.size(), myOutputImages.size());
-    float scale = 1.0f / (longest + 1.0f);
-
-    if (longest > 0)
+    if (!myCommandList.isRecording())
     {
-        myCommandList->SetGraphicsRootSignature(myRootSignature.Get());
-
-        drawImages(myInputImages, scale, -0.5f);
-        drawImages(myOutputImages, scale, 0.5f);
+        myCommandList.reset(myPipelineState.Get());
     }
 
-    CD3DX12_RESOURCE_BARRIER transition2(CD3DX12_RESOURCE_BARRIER::Transition(myRenderTargets[myFrameIndex].Get(),
-        D3D12_RESOURCE_STATE_RENDER_TARGET,
-        D3D12_RESOURCE_STATE_PRESENT));
-	myCommandList->ResourceBarrier(1, &transition2);
+    myCommandList.get()->RSSetViewports(1, &myViewport);
+    myCommandList.get()->RSSetScissorRects(1, &myScissorRect);
 
-	myCommandList->Close();
+    myCommandList.usingResource(myRenderTargets[myFrameIndex]);
+
+    myCommandList.barrier(myRenderTargets[myFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(myRTVHeap->GetCPUDescriptorHandleForHeapStart(), myFrameIndex, myRTVDescriptorSize);
+    myCommandList.get()->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+    const float clearColor[] = { myBackgroundColor.red, myBackgroundColor.green, myBackgroundColor.blue, myBackgroundColor.alpha};
+    myCommandList.get()->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+
+    myCommandList.get()->SetGraphicsRootSignature(myRootSignature.Get());
+    float blendFactors[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    myCommandList.get()->OMSetBlendFactor(blendFactors);
+
+    if (myOutputImage.getTexture().isValid())
+    {
+        myOutputImage.fit(static_cast<float>(myWidth), static_cast<float>(myHeight));
+        myOutputImage.position(0.0f, 0.0f);
+        myOutputImage.draw(myCommandList);
+    }
+
+    myCommandList.barrier(myRenderTargets[myFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+
+	myCommandList.close();
 }
 
 std::wstring DX12Renderer::getAssetFullPath(LPCWSTR assetName) const
@@ -603,27 +635,14 @@ std::wstring DX12Renderer::getAssetFullPath(LPCWSTR assetName) const
     return myAssetsPath + assetName;
 }
 
-void DX12Renderer::drawImages(std::vector<DX12Image>& images, float scale, float xOffset)
-{
-    float numImages = (1.0f / scale) - 1.0f;
-    float spacing = 1.0f / numImages;
-    float yOffset = 1.0f - spacing;
-    float ratio = static_cast<float>(myHeight) / myWidth;
-    for (auto& image : images)
-    {
-        image.scale(scale * ratio, scale);
-        image.position(xOffset, yOffset);
-        image.draw(myCommandList.Get());
-        yOffset -= spacing * 2;
-    }
-}
-
 void DX12Renderer::textureCallback(TED3DAllocation *allocation, size_t offset, TEObjectEvent event, void* TE_NULLABLE info)
 {
     if (event == TEObjectEventRelease)
     {
         HANDLE handle = TED3DAllocationGetHandle(allocation);
+        
         DX12Renderer* renderer = static_cast<DX12Renderer*>(info);
+        std::lock_guard<std::mutex> guard(renderer->myOutputsLock);
         renderer->myOutputTextures.erase(handle);
     }
 }
@@ -633,17 +652,43 @@ void DX12Renderer::fenceCallback(HANDLE handle, TEObjectEvent event, void* TE_NU
     if (event == TEObjectEventRelease)
     {
         DX12Renderer* renderer = static_cast<DX12Renderer*>(info);
+        std::lock_guard<std::mutex> guard(renderer->myOutputsLock);
         renderer->myOutputFences.erase(handle);
     }
 }
 
-std::wstring DX12Renderer::getConfigureError() const
+std::string DX12Renderer::getConfigureError() const
 {
-    std::wstring composed = ConfigureError;
+    std::string composed = ConfigureError;
     if (!myAdapterDescription.empty())
     {
-        composed += L"\nThe selected GPU is: ";
+        composed += "\nThe selected GPU is: ";
         composed += myAdapterDescription;
     }
     return composed;
+}
+
+void DX12Renderer::willAllocateBuffer(size_t size)
+{
+    if (myInputSharedBuffer.getSize() - myInputBufferUsedOffset < size)
+    {
+        size_t allocSize = std::max<size_t>(1024 * 200, size);
+        myInputSharedBuffer = DX12SharedBuffer(myDevice.Get(), allocSize);
+        myInputSharedAllocation.take(TED3DAllocationCreate(myInputSharedBuffer.getSharedHandle(), TED3DHandleType12CommittedNT, myInputSharedBuffer.getSize(), nullptr, nullptr));
+        myInputUploadBuffer = DX12UploadBuffer(myDevice.Get(), myInputSharedBuffer.getRequiredUploadSize());
+        myInputBufferUsedOffset = 0;
+        myInputBufferCopyOffset = 0;
+    }
+}
+
+uint64_t DX12Renderer::getNextFenceValue() const
+{
+    return mySignalledFenceValue + 1;
+}
+
+void DX12Renderer::signal()
+{
+    uint64_t next = getNextFenceValue();
+    myCommandQueue->Signal(myFence.Get(), next);
+    mySignalledFenceValue = next;
 }

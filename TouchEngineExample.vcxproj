@@ -59,6 +59,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);GLEW_STATIC</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)\src;$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -83,6 +84,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);GLEW_STATIC</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)\src;$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -94,6 +96,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\EaseInAnimation.h" />
+    <ClInclude Include="src\Application.h" />
+    <ClInclude Include="src\Color.h" />
+    <ClInclude Include="src\Document.h" />
+    <ClInclude Include="src\DX12CommandList.h" />
+    <ClInclude Include="src\DX12SharedBuffer.h" />
+    <ClInclude Include="src\DX12Buffer.h" />
     <ClInclude Include="include\TouchEngine\TEBuffer.h" />
     <ClInclude Include="include\TouchEngine\TED3D.h" />
     <ClInclude Include="include\TouchEngine\TED3D11.h" />
@@ -103,6 +112,7 @@
     <ClInclude Include="include\TouchEngine\TESemaphore.h" />
     <ClInclude Include="include\TouchEngine\TEStrings.h" />
     <ClInclude Include="include\TouchEngine\TEVulkan.h" />
+    <ClInclude Include="src\DX12UploadBuffer.h" />
     <ClInclude Include="src\DXGIUtility.h" />
     <ClInclude Include="src\DX12Image.h" />
     <ClInclude Include="src\DX12Texture.h" />
@@ -134,13 +144,26 @@
     <ClInclude Include="src/stdafx.h" />
     <ClInclude Include="src/targetver.h" />
     <ClInclude Include="src\DX11VertexShader.h" />
-    <ClInclude Include="src\DX12Utility.h" />
+    <ClInclude Include="src\DXUtility.h" />
+    <ClInclude Include="src\Engine.h" />
+    <ClInclude Include="src\Geometry.h" />
+    <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="src\OpenGLImage.h" />
     <ClInclude Include="src\OpenGLProgram.h" />
     <ClInclude Include="include\TouchEngine\TouchObject.h" />
+    <ClInclude Include="src\Picture.h" />
+    <ClInclude Include="src\Rational.h" />
     <ClInclude Include="src\Strings.h" />
+    <ClInclude Include="src\Vec.h" />
+    <ClInclude Include="src\Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\Document.cpp" />
+    <ClCompile Include="src\DX12CommandList.cpp" />
+    <ClCompile Include="src\DX12SharedBuffer.cpp" />
+    <ClCompile Include="src\DX12Buffer.cpp" />
+    <ClCompile Include="src\DX12UploadBuffer.cpp" />
     <ClCompile Include="src\DXGIUtility.cpp" />
     <ClCompile Include="src\DX12Image.cpp" />
     <ClCompile Include="src\DX12Texture.cpp" />
@@ -166,9 +189,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\DX11VertexShader.cpp" />
+    <ClCompile Include="src\Engine.cpp" />
+    <ClCompile Include="src\Geometry.cpp" />
     <ClCompile Include="src\OpenGLImage.cpp" />
     <ClCompile Include="src\OpenGLProgram.cpp" />
+    <ClCompile Include="src\Picture.cpp" />
     <ClCompile Include="src\Strings.cpp" />
+    <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src/TouchEngineExample.rc" />

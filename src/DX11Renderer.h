@@ -26,29 +26,29 @@ public:
 	DX11Renderer();
 	virtual ~DX11Renderer();
 
-	virtual TEGraphicsContext*
+	virtual Graphics getMode() const override
+	{
+		return Graphics::DX11;
+	}
+
+	virtual TouchObject<TEGraphicsContext>
 	getTEContext() const override
 	{
 		return myContext;
 	}
 
-	virtual bool	setup(HWND window) override;
-	virtual bool	configure(TEInstance* instance, std::wstring& error) override;
+	virtual void	setup(HWND window) override;
+	virtual bool	configure(TEInstance* instance, std::string& error) override;
 	virtual void	resize(int width, int height) override;
 	virtual void	stop() override;
 	virtual bool	render() override;
 
-	virtual size_t
-	getInputImageCount() const override
-	{
-		return myInputImages.size();
-	}
-	virtual void		addInputImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height) override;
-	virtual bool		getInputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
+
+	virtual TouchObject<TETexture>	getTexture(const unsigned char* rgba, size_t bytesPerRow, int width, int height) override;
 	virtual void		clearInputs() override;
-	virtual void		addOutputImage() override;
-	virtual bool		updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier) override;
-	virtual void		clearOutputImages() override;
+	virtual bool		setOutputImage(const TouchObject<TETexture>& texture, const TouchObject<TESemaphore>& semaphore, uint64_t waitValue) override;
+	virtual void		setOutputImage(const TouchObject<TETexture>& texture) override;
+	virtual void		clearOutputs() override;
 
 	ID3D11Device*
 	getDevice() const
@@ -56,16 +56,17 @@ public:
 		return myDevice.getDevice();
 	}
 
-	virtual const std::wstring& getDeviceName() const override;
+	virtual const std::string& getDeviceName() const override;
 private:
-	void		drawImages(std::vector<DX11Image> &images, float scale, float xOffset);
+	void		drawImage(DX11Image &image, float scale, float xOffset, float yOffset);
 
 	DX11Device									myDevice;
 	TouchObject<TED3D11Context>					myContext;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>	myPixelShader;
+	Microsoft::WRL::ComPtr<ID3D11BlendState>	myBlendState;
 	DX11VertexShader							myVertexShader;
-	std::vector<DX11Image>						myInputImages;
-	std::vector<DX11Image>						myOutputImages;
+	DX11Texture									myInputTexture;
+	DX11Image									myOutputImage;
 	bool										myReleaseToZero{ false };
 };
 

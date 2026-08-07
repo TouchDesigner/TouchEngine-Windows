@@ -13,10 +13,10 @@
 */
 
 #include "stdafx.h"
+#include <cmath>
 #include "Renderer.h"
 
 Renderer::Renderer()
-	: myBackgroundColor{0.0f, 0.0f, 0.0f}
 {
 }
 
@@ -25,15 +25,15 @@ Renderer::~Renderer() noexcept(false)
 {
 }
 
-bool
+void
 Renderer::setup(HWND window)
 {
 	myWindow = window;
-	return true;
 }
 
-bool Renderer::configure(TEInstance* instance, std::wstring &error)
+bool Renderer::configure(TEInstance* instance, std::string &error)
 {
+	myMinBufferAlignment = TEInstanceGetMinimumBufferAlignment(instance);
 	return true;
 }
 
@@ -52,78 +52,86 @@ Renderer::resize(int width, int height)
 void
 Renderer::stop()
 {
-	myOutputImages.clear();
+	clearInputs();
+	clearOutputs();
+	myPendingTransfers.clear();
 }
 
 void
-Renderer::setBackgroundColor(float r, float g, float b)
+Renderer::setBackgroundColor(const Color &color)
 {
-	myBackgroundColor[0] = r;
-	myBackgroundColor[1] = g;
-	myBackgroundColor[2] = b;
-}
-
-void Renderer::beginImageLayout()
-{
-}
-
-void Renderer::addInputImage(const unsigned char* rgba, size_t bytesPerRow, int width, int height)
-{
-	myInputImageUpdates.push_back(true);
+	myBackgroundColor = color;
 }
 
 void Renderer::clearInputs()
 {
-	myInputImageUpdates.clear();
-}
 
-size_t
-Renderer::getRightSideImageCount()
-{
-	return myOutputImages.size();
 }
 
 void
-Renderer::addOutputImage()
+Renderer::setOutputImage(const TouchObject<TETexture> &texture)
 {
-	myOutputImages.emplace_back();
+	myOutputImage = texture;
 }
 
-void Renderer::endImageLayout()
+void Renderer::addResourceTransfer(const TouchObject<TEObject>& resource, const TouchObject<TESemaphore>& semaphore, uint64_t value)
 {
+	myPendingTransfers.emplace_back(resource, semaphore, value);
+}
+
+void Renderer::clearResourceTransfer(const TouchObject<TEObject>& resource)
+{
+	for (auto it = myPendingTransfers.begin(); it != myPendingTransfers.end(); )
+	{
+		if (it->resource == resource)
+		{
+			it = myPendingTransfers.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
+}
+
+size_t Renderer::alignedBufferSize(size_t size) const
+{
+	return size = ((size + myMinBufferAlignment - 1) / myMinBufferAlignment) * myMinBufferAlignment;
+}
+
+const TouchObject<TETexture>& Renderer::getOutputImage() const
+{
+	return myOutputImage;
 }
 
 void
-Renderer::setOutputImage(size_t index, const TouchObject<TETexture> &texture)
+Renderer::clearOutputs()
 {
-	myOutputImages[index] = texture;
+	myOutputImage.reset();
 }
 
-const TouchObject<TETexture>& Renderer::getOutputImage(size_t index) const
+TouchObject<TEBuffer> Renderer::getHostBuffer(const void* src, size_t size)
 {
-	if (index < myOutputImages.size())
-		return myOutputImages.at(index);
-	static const TouchObject<TETexture> empty;
-	return empty;
+	TouchObject<TEMutableHostBuffer> buffer = TouchObject<TEMutableHostBuffer>::make_take(TEMutableHostBufferCreate(size, nullptr, nullptr));
+
+	void* dst = TEMutableHostBufferGetData(buffer);
+
+	memcpy(dst, src, size);
+
+	return buffer;
 }
 
-void
-Renderer::clearOutputImages()
+TouchObject<TEBuffer> Renderer::getDeviceBuffer(const void* src, size_t size)
 {
-	myOutputImages.clear();
+	// default to use host buffers for everything, derived classes can override this
+	return getHostBuffer(src, size);
 }
 
-bool Renderer::inputDidChange(size_t index) const
+void Renderer::addResourceTransfers(const TouchObject<TEInstance>& instance)
 {
-	return myInputImageUpdates[index];
-}
-
-void Renderer::markInputChange(size_t index)
-{
-	myInputImageUpdates[index] = true;
-}
-
-void Renderer::markInputUnchanged(size_t index)
-{
-	myInputImageUpdates[index] = false;
+	for (const auto& next : myPendingTransfers)
+	{
+		TEInstanceAddResourceTransfer(instance, next.resource, next.semaphore, next.value);
+	}
+	myPendingTransfers.clear();
 }

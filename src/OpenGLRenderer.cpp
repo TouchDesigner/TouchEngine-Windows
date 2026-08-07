@@ -18,6 +18,22 @@
 #include <TouchEngine/TouchEngine.h>
 #include <TouchEngine/TEOpenGL.h>
 
+static void ThrowIfFalse(BOOL result)
+{
+	if (!result)
+	{
+		throw std::runtime_error("OpenGL Renderer error");
+	}
+}
+
+static void ThrowIfNull(void* result)
+{
+	if (!result)
+	{
+		throw std::runtime_error("OpenGL Renderer error");
+	}
+}
+
 const char *OpenGLRenderer::VertexShader = "#version 330\n\
 in vec2 vertCoord; \
 in vec2 texCoord; \
@@ -59,92 +75,76 @@ OpenGLRenderer::~OpenGLRenderer()
 {
 }
 
-bool
+void
 OpenGLRenderer::setup(HWND window)
 {
-	bool success = Renderer::setup(window);
-	if (success)
-	{
-		myDC = GetDC(window);
-		PIXELFORMATDESCRIPTOR format{ 0 };
-		format.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-		format.nVersion = 1;
-		format.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
-		format.iPixelType = PFD_TYPE_RGBA;
-		format.cColorBits = 32;
-		format.cDepthBits = 32; // TODO: or not
-		format.iLayerType = PFD_MAIN_PLANE;
-		int selected = ChoosePixelFormat(myDC, &format);
+	Renderer::setup(window);
+	myDC = GetDC(window);
+	PIXELFORMATDESCRIPTOR format{ 0 };
+	format.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+	format.nVersion = 1;
+	format.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
+	format.iPixelType = PFD_TYPE_RGBA;
+	format.cColorBits = 32;
+	format.cDepthBits = 0;
+	format.iLayerType = PFD_MAIN_PLANE;
+	int selected = ChoosePixelFormat(myDC, &format);
 
-		success = SetPixelFormat(myDC, selected, &format) ? true : false;
-		if (success)
-		{
-			myRenderingContext = wglCreateContext(myDC);
-		}
-		if (!myRenderingContext)
-		{
-			success = false;
-		}
-		if (success)
-		{
-			success = wglMakeCurrent(myDC, myRenderingContext) ? true : false;
-		}
-	}
-	if (success)
+	ThrowIfFalse(SetPixelFormat(myDC, selected, &format));
+	myRenderingContext = wglCreateContext(myDC);
+	ThrowIfNull(myRenderingContext);
+	ThrowIfFalse(wglMakeCurrent(myDC, myRenderingContext));
+
+	if (glewInit() != GLEW_OK)
 	{
-		if (glewInit() != GLEW_OK)
-		{
-			success = FALSE;
-		}
+		throw std::runtime_error("glewInit failed");
 	}
-	if (success)
-	{
-		glEnable(GL_DEBUG_OUTPUT);
-		glDebugMessageCallback(MessageCallback, nullptr);
-	}
-	if (success)
+
+	glEnable(GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(MessageCallback, nullptr);
+	
 	{
 		const GLubyte* render = glGetString(GL_RENDERER);
-		myDeviceName = ConvertToWide(reinterpret_cast<const char *>(render));
+		myDeviceName = reinterpret_cast<const char *>(render);
 	}
-	if (success)
+	
 	{
 		RECT client;
 		GetClientRect(window, &client);
 		glViewport(0, 0, client.right, client.bottom);
 
-		success = myProgram.build(VertexShader, FragmentShader);
+		ThrowIfFalse(myProgram.build(VertexShader, FragmentShader));
 	}
-	if (success)
-	{
-		glUseProgram(myProgram.getName());
-		GLint tex = glGetUniformLocation(myProgram.getName(), "tex");
-		glUniform1i(tex, 0);
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	
+	glUseProgram(myProgram.getName());
+	GLint tex = glGetUniformLocation(myProgram.getName(), "tex");
+	glUniform1i(tex, 0);
 
-		myVAIndex = glGetAttribLocation(myProgram.getName(), "vertCoord");
-		myTAIndex = glGetAttribLocation(myProgram.getName(), "texCoord");
+	myVAIndex = glGetAttribLocation(myProgram.getName(), "vertCoord");
+	myTAIndex = glGetAttribLocation(myProgram.getName(), "texCoord");
 
-		glUseProgram(0);
-	}
-	if (success)
+	glUseProgram(0);
+	
+	ThrowIfFalse(myOutputImage.setup(myVAIndex, myTAIndex));
+	
+	if (TEOpenGLContextCreate(myDC, myRenderingContext, myContext.take()) != TEResultSuccess)
 	{
-		if (TEOpenGLContextCreate(myDC, myRenderingContext, myContext.take()) != TEResultSuccess)
-		{
-			success = false;
-		}
+		throw std::runtime_error("Couldn't create TEOpenGLContext");
 	}
-	return success;
 }
 
 bool
-OpenGLRenderer::configure(TEInstance* instance, std::wstring& error)
+OpenGLRenderer::configure(TEInstance* instance, std::string& error)
 {
 	if (TEOpenGLContextSupportsTexturesForInstance(myContext, instance))
 	{
 		return Renderer::configure(instance, error);
 	}
-	error = L"OpenGL is not supported. The selected GPU does not have needed features.";
-	error += L"\nThe selected GPU is: ";
+	error = "OpenGL is not supported. The selected GPU does not have needed features.";
+	error += "\nThe selected GPU is: ";
 	error += myDeviceName;
 	return false;
 }
@@ -182,16 +182,18 @@ OpenGLRenderer::render()
 {
 	wglMakeCurrent(myDC, myRenderingContext);
 	
-	glClearColor(myBackgroundColor[0], myBackgroundColor[1], myBackgroundColor[2], 1.0);
+	glClearColor(myBackgroundColor.red, myBackgroundColor.green, myBackgroundColor.blue, myBackgroundColor.alpha);
 	
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+	glClear(GL_COLOR_BUFFER_BIT);
+
 	glUseProgram(myProgram.getName());
 
-	float scale = 1.0f / (max(myInputImages.size(), myOutputImages.size()) + 1.0f);
-
-	drawImages(myInputImages, scale, -0.5f);
-	drawImages(myOutputImages, scale, 0.5f);
+	if (myOutputImage.isValid())
+	{
+		myOutputImage.fit(static_cast<float>(myWidth), static_cast<float>(myHeight));
+		myOutputImage.position(0.0f, 0.0f);
+		myOutputImage.draw();
+	}
 
 	glUseProgram(0);
 	
@@ -203,52 +205,31 @@ OpenGLRenderer::render()
 	return true;
 }
 
-size_t
-OpenGLRenderer::getInputImageCount() const
-{
-	return myInputImages.size();
-}
-
-void
-OpenGLRenderer::addInputImage(const unsigned char * rgba, size_t bytesPerRow, int width, int height)
+TouchObject<TETexture> OpenGLRenderer::getTexture(const unsigned char* rgba, size_t bytesPerRow, int width, int height)
 {
 	wglMakeCurrent(myDC, myRenderingContext);
 	
-	myInputImages.emplace_back();
-	myInputImages.back().setup(myVAIndex, myTAIndex);
-	myInputImages.back().update(OpenGLTexture(rgba, bytesPerRow, width, height));
+	myInputTexture = OpenGLTexture(rgba, bytesPerRow, width, height);
 	
 	wglMakeCurrent(nullptr, nullptr);
 
-	Renderer::addInputImage(rgba, bytesPerRow, width, height);
+	// Create a reference-counted reference to the same texture
+	OpenGLTexture* copied = new OpenGLTexture(myInputTexture);
+
+	TouchObject<TEOpenGLTexture> texture;
+	texture.take(TEOpenGLTextureCreate(copied->getName(),
+		GL_TEXTURE_2D,
+		GL_RGBA8,
+		copied->getWidth(),
+		copied->getHeight(),
+		TETextureOriginBottomLeft,
+		kTETextureComponentMapIdentity,
+		textureReleaseCallback,
+		copied));
+	return texture;
 }
 
-bool
-OpenGLRenderer::getInputImage(size_t index, TouchObject<TETexture> & texture, TouchObject<TESemaphore> & semaphore, uint64_t & waitValue)
-{
-	if (inputDidChange(index))
-	{
-		// Create a reference-counted reference to the same texture
-		OpenGLTexture* copied = new OpenGLTexture(myInputImages[index].getTexture());
-
-		TEOpenGLTexture* out = TEOpenGLTextureCreate(copied->getName(),
-			GL_TEXTURE_2D,
-			GL_RGBA8,
-			copied->getWidth(),
-			copied->getHeight(),
-			TETextureOriginBottomLeft,
-			kTETextureComponentMapIdentity,
-			textureReleaseCallback,
-			copied);
-		texture.take(out);
-		// The TEOpenGLContext handles sync for us, so we needn't set semaphore or waitValue
-		markInputUnchanged(index);
-		return true;
-	}
-	return false;
-}
-
-const std::wstring& OpenGLRenderer::getDeviceName() const
+const std::string& OpenGLRenderer::getDeviceName() const
 {
 	return myDeviceName;
 }
@@ -256,90 +237,54 @@ const std::wstring& OpenGLRenderer::getDeviceName() const
 void
 OpenGLRenderer::clearInputs()
 {
-	myInputImages.clear();
+	myInputTexture = OpenGLTexture();
 	Renderer::clearInputs();
 }
 
-void
-OpenGLRenderer::addOutputImage()
+bool OpenGLRenderer::setOutputImage(const TouchObject<TETexture>& texture, const TouchObject<TESemaphore>&, uint64_t)
 {
-	wglMakeCurrent(myDC, myRenderingContext);
-
-	myOutputImages.emplace_back();
-	myOutputImages.back().setup(myVAIndex, myTAIndex);
-
-	wglMakeCurrent(nullptr, nullptr);
-
-	Renderer::addOutputImage();
+	setOutputImage(texture);
+	return true;
 }
 
-bool OpenGLRenderer::updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier)
+void OpenGLRenderer::setOutputImage(const TouchObject<TETexture>& texture)
 {
-	bool success = false;
-	if (index < myOutputImages.size())
+	const auto& source = myOutputImage.getTexture().getSource();
+	if (source)
 	{
-		const auto& source = myOutputImages.at(index).getTexture().getSource();
-		if (source)
-		{
-			TEOpenGLTextureUnlock(source);
-		}
+		TEOpenGLTextureUnlock(source);
 	}
-	TouchObject<TETexture> texture;
-	TEResult result = TEInstanceLinkGetTextureValue(instance, identifier.c_str(), TELinkValueCurrent, texture.take());
-	if (result == TEResultSuccess)
+	
+	Renderer::setOutputImage(texture);
+
+	myOutputImage.update(OpenGLTexture());
+
+	if (texture && TETextureGetType(texture) == TETextureTypeD3DShared)
 	{
-		setOutputImage(index, texture);
-		if (texture && TETextureGetType(texture) == TETextureTypeD3DShared)
+		TouchObject<TEOpenGLTexture> created;
+		if (TEOpenGLContextGetTexture(myContext, static_cast<TED3DSharedTexture*>(texture.get()), created.take()) == TEResultSuccess)
 		{
-			TouchObject<TEOpenGLTexture> created;
-			if (TEOpenGLContextGetTexture(myContext, static_cast<TED3DSharedTexture*>(texture.get()), created.take()) == TEResultSuccess)
+			if (TEOpenGLTextureLock(created) == TEResultSuccess)
 			{
-				if (TEOpenGLTextureLock(created) == TEResultSuccess)
-				{
-					myOutputImages.at(index).update(OpenGLTexture(created));
-					success = true;
-				}
+				myOutputImage.update(OpenGLTexture(created));
 			}
 		}
 	}
-
-	if (!success)
-	{
-		myOutputImages.at(index).update(OpenGLTexture());
-		setOutputImage(index, nullptr);
-	}
-	return success;
 }
 
 void
-OpenGLRenderer::clearOutputImages()
+OpenGLRenderer::clearOutputs()
 {
-	Renderer::clearOutputImages();
+	myOutputImage = OpenGLImage();
+	Renderer::clearOutputs();
 }
 
 void
 OpenGLRenderer::textureReleaseCallback(GLuint texture, TEObjectEvent event, void *info)
 {
-	// TODO: might come from another thread
 	// Delete our reference to the texture (and the texture itself if we are the last reference)
 	if (event == TEObjectEventRelease)
 	{
 		delete reinterpret_cast<OpenGLTexture*>(info);
-	}
-}
-
-void
-OpenGLRenderer::drawImages(std::vector<OpenGLImage>& images, float scale, float xOffset)
-{
-	float numImages = (1.0f / scale) - 1.0f;
-	float spacing = 1.0f / numImages;
-	float yOffset = 1.0f - spacing;
-	float ratio = static_cast<float>(myHeight) / myWidth;
-	for (auto &image : images)
-	{
-		image.scale(scale * ratio, scale);
-		image.position(xOffset, yOffset);
-		image.draw();
-		yOffset -= spacing * 2;
 	}
 }

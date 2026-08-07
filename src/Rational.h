@@ -13,35 +13,17 @@
 */
 
 #pragma once
+#include <cstdint>
 
-#include "Drawable.h"
-#include "DX12Texture.h"
-#include <DirectXMath.h>
-
-class DX12CommandList;
-
-class DX12Image :
-	public Drawable
+struct Rational
 {
-public:
-	DX12Image();
-	DX12Image(ID3D12Device* device);
-	constexpr DX12Texture& getTexture()
+	int64_t numerator = 0;
+	int32_t denominator = 0;
+	bool operator==(const Rational&) const = default;
+	constexpr operator double() const
 	{
-		return myTexture;
+		return denominator != 0.0
+			? static_cast<double>(numerator) / static_cast<double>(denominator)
+			: 0.0;
 	}
-	void update(ID3D12Device* device, const DX12Texture& texture);
-	void draw(DX12CommandList& commandList);
-private:
-	struct BasicVertex
-	{
-		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT2 tex;
-	};
-	void											setup(ID3D12Device *device);
-	void											setupSRV(ID3D12Device* device);
-	DX12Texture										myTexture;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>	mySRVHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource>			myVertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW						myVertexBufferView{0, 0, 0};
 };

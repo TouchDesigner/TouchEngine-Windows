@@ -13,35 +13,39 @@
 */
 
 #pragma once
+#include <stdexcept>
 
-#include "Drawable.h"
-#include "DX12Texture.h"
-#include <DirectXMath.h>
-
-class DX12CommandList;
-
-class DX12Image :
-	public Drawable
+struct Color
 {
-public:
-	DX12Image();
-	DX12Image(ID3D12Device* device);
-	constexpr DX12Texture& getTexture()
+	float red = 0.0f;
+	float green = 0.0f;
+	float blue = 0.0f;
+	float alpha = 1.0f;
+	float operator[](int i) const
 	{
-		return myTexture;
+		switch (i)
+		{
+		case 0:
+			return red;
+		case 1:
+			return green;
+		case 2:
+			return blue;
+		case 3:
+			return alpha;
+		default:
+			throw std::logic_error("index out of bounds");
+			break;
+		}
+		return 0.0;
 	}
-	void update(ID3D12Device* device, const DX12Texture& texture);
-	void draw(DX12CommandList& commandList);
-private:
-	struct BasicVertex
-	{
-		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT2 tex;
-	};
-	void											setup(ID3D12Device *device);
-	void											setupSRV(ID3D12Device* device);
-	DX12Texture										myTexture;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>	mySRVHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource>			myVertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW						myVertexBufferView{0, 0, 0};
+};
+
+struct Palette {
+	static constexpr Color LightPink = { 1.0f, 0.8f, 0.8f, 1.0f };
+	static constexpr Color LightGray = { 0.8f, 0.8f, 0.8f, 1.0f };
+	static constexpr Color BrightGray = { 0.9f, 0.9f, 0.9f, 1.0f };
+	static constexpr Color LightYellow = { 0.96f, 0.93f, 0.66f, 1.0f };
+	static constexpr Color LightBlue = { 0.8f, 0.8f, 0.9f, 1.0f };
+	static constexpr Color Clear = { 0.0f, 0.0f, 0.0f, 0.0f };
 };

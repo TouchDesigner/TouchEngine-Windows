@@ -24,13 +24,11 @@ class DX11Image :
 	public Drawable
 {
 public:
-	DX11Image();
+	DX11Image() = default;
 	DX11Image(DX11Texture& texture);
 
 	bool				setup(DX11Device& device);
 	void				draw(DX11Device& device);
-	void				position(float x, float y);
-	void				scale(float scaleX, float scaleY);
 	DX11Texture &		getTexture();
 	void				update(const DX11Texture &texture);
 private:
@@ -48,8 +46,5 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer>	myVertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>	myIndexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>	myConstantBuffer;
-	bool									myMatrixDirty{ true };
-	float									myScaleX{ 1.0 };
-	float									myScaleY{ 1.0 };
 };
 

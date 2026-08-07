@@ -12,23 +12,25 @@
 * prior written permission from Derivative.
 */
 
-#pragma once
-class Drawable
+#include "stdafx.h"
+#include "DX12Buffer.h"
+#include "DXUtility.h"
+
+DX12Buffer::DX12Buffer(ID3D12Device* device, D3D12_HEAP_TYPE type, D3D12_HEAP_FLAGS flags, size_t size)
+	: mySize(size)
 {
-public:
-	Drawable();
-	Drawable(float x, float y, float width, float height);
-	~Drawable();
-	void	position(float px, float py);
-	void	scale(float sx, float sy);
-	void	fit(float w, float h);
+	CD3DX12_HEAP_PROPERTIES heapUpload(type);
+	CD3DX12_RESOURCE_DESC buffer = CD3DX12_RESOURCE_DESC::Buffer(size);
 
-	float	x;
-	float	y;
-	float	width;
-	float	height;
-	float	scaleX = 1.0;
-	float	scaleY = 1.0;
-	bool	changed = true;
-};
+	ThrowIfFailed(device->CreateCommittedResource(
+		&heapUpload,
+		flags,
+		&buffer,
+		D3D12_RESOURCE_STATE_COMMON, nullptr,
+		IID_PPV_ARGS(&myBuffer)));
+}
 
+size_t DX12Buffer::getRequiredUploadSize() const
+{
+	return GetRequiredIntermediateSize(myBuffer.Get(), 0, 1);
+}

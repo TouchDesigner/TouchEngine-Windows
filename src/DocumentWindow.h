@@ -14,116 +14,36 @@
 
 #pragma once
 
-#include <string>
-#include <map>
-#include <memory>
-#include <vector>
-#include <mutex>
-#include <TouchEngine/TouchEngine.h>
-#include "Renderer.h"
+#include "Window.h"
+#include "Rational.h"
 
-class DocumentWindow
+class DocumentWindow : public Window
 {
 public:
-	enum class Mode {
-		DirectX11,
-		DirectX12,
-		OpenGL
+	class Observer {
+	public:
+		virtual void windowUpdate() = 0;
+		virtual void windowClose() = 0;
+		virtual void windowResize(unsigned int w, unsigned int h) = 0;
+		virtual const Window& getParentWindow() const = 0;
 	};
-	static HRESULT registerClass(HINSTANCE hInstance);
-	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-	DocumentWindow(std::wstring path, Mode mode);
-	~DocumentWindow();
+	DocumentWindow(HINSTANCE h, DWORD styleFlags, const Rational &frameRate, Observer &observer);
 
-	const std::wstring		getPath() const;
-	void					openWindow(HWND parent);
-	void					linkLayoutDidChange();
-	void					update();
-	void					render(bool loaded);
+	virtual void open(int nCmdShow = SW_SHOW) override;
 
-	Mode
-	getMode() const
-	{
-		return myMode;
-	}
-
-	HWND
-	getWindow() const
-	{
-		return myWindow;
-	}
-	void didConfigure(TEResult result);
-	void
-	didLoad()
-	{
-		std::lock_guard<std::mutex> guard(myMutex);
-		myDidLoad = true;
-	}
+protected:
+	virtual void resize(unsigned int w, unsigned int h) override;
+	virtual void timer(UINT_PTR timerID) override;
+	virtual void destroy() override;
 private:
-	static const wchar_t* WindowClassName;
-	static void		eventCallback(TEInstance * instance,
-								TEEvent event,
-								TEResult result,
-								int64_t start_time_value,
-								int32_t start_time_scale,
-								int64_t end_time_value,
-								int32_t end_time_scale,
-								void * info);
+	static Config DocumentWindowConfig;
 
-	static void		linkEventCallback(TEInstance *instance, TELinkEvent event, const char *identifier, void *info);
+	static constexpr UINT_PTR	UpdateTimerID = 1;
 
-	static const double		 InputSampleRate;
-	static const int32_t	 InputChannelCount;
-	static const int64_t	 InputSampleLimit;
-	static const int64_t	 InputSamplesPerFrame;
-	static const UINT_PTR	 UpdateTimerID;
-	static constexpr int32_t FramesPerSecond{ 60 };
-	static constexpr int32_t TimeRate{ 6000 };
-	static constexpr UINT	 InitialWindowWidth{ 640 };
-	static constexpr UINT	 InitialWindowHeight{ 480 };
+	static constexpr UINT	 InitialWindowWidth{ 800 };
+	static constexpr UINT	 InitialWindowHeight{ 600 };
 
-	static constexpr size_t ImageWidth{ 1024 };
-	static constexpr size_t ImageHeight{ 1024 };
-
-	void	linkValueChange(const char* identifier);
-	void	endFrame(int64_t time_value, int32_t time_scale, TEResult result);
-	void	getState(bool& configured, bool& loaded, bool& linksChanged, bool& inFrame);
-	void	setInFrame(bool inFrame);
-	void	applyLayoutChange();
-	bool	applyOutputTextureChange();
-	int64_t	getRenderTime();
-
-	std::wstring				myPath;
-	Mode						myMode;
-	TouchObject<TEInstance>		myInstance;
-	HWND						myWindow{ 0 };
-
-	std::unique_ptr<Renderer>	myRenderer;
-	struct Color {
-		int red;
-		int green;
-		int blue;
-	};
-	struct Gradient {
-		Color start;
-		Color end;
-	};
-
-	bool			myDidLoad{ false };
-	bool			myInFrame{ false };
-	bool			myConfigureRenderer{ false };
-	bool			myConfigureError{ false };
-	double			myLastFloatValue{ 0.0 };
-	TEResult		myLastResult{ TEResultSuccess };
-	std::mutex		myMutex;
-	LARGE_INTEGER	myStartTime{ 0 };
-	LARGE_INTEGER	myPerformanceCounterFrequency{ 1 };
-
-	// TE link identifier to renderer index
-	std::map<std::string, size_t>	myOutputLinkTextureMap;
-	std::vector<std::string>		myPendingOutputTextures;
-	bool							myPendingLayoutChange{ false };
-	TEResult						myConfigureResult{ TEResultSuccess };
-	bool							myPendingResize{ false };
+	Observer& myObserver;
+	Rational myFrameRate;
 };
 

@@ -30,3 +30,41 @@ Drawable::Drawable(float ix, float iy, float iwidth, float iheight)
 Drawable::~Drawable()
 {
 }
+
+void Drawable::position(float px, float py)
+{
+	if (px != x || py != y)
+	{
+		x = px;
+		y = py;
+		changed = true;
+	}
+}
+
+void Drawable::scale(float sx, float sy)
+{
+	if (sx != scaleX || sy != scaleY)
+	{
+		scaleX = sx;
+		scaleY = sy;
+		changed = true;
+	}	
+}
+
+void Drawable::fit(float w, float h)
+{
+	float imageAspect = width / height;
+	float targetAspect = w / h;
+	float newScaleX, newScaleY;
+	if (imageAspect > targetAspect)
+	{
+		newScaleX = 1.0f;
+		newScaleY = targetAspect / imageAspect;
+	}
+	else
+	{
+		newScaleX = imageAspect / targetAspect;
+		newScaleY = 1.0f;
+	}
+	scale(newScaleX, newScaleY);
+}

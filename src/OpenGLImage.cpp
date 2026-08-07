@@ -20,7 +20,7 @@ OpenGLImage::OpenGLImage()
 }
 
 OpenGLImage::OpenGLImage(OpenGLImage&& o) noexcept
-	: myTexture(std::move(o.myTexture)), myVAO(o.myVAO), myVBO(o.myVBO), myScaleX(o.myScaleX), myScaleY(o.myScaleY), myDirty(o.myDirty)
+	: Drawable(std::move(o)), myTexture(std::move(o.myTexture)), myVAO(o.myVAO), myVBO(o.myVBO)
 {
 	o.myVAO = 0;
 	o.myVBO = 0;
@@ -32,9 +32,7 @@ OpenGLImage::operator=(OpenGLImage&& o) noexcept
 	myTexture = std::move(o.myTexture);
 	std::swap(myVAO, o.myVAO);
 	std::swap(myVBO, o.myVBO);
-	myScaleX = o.myScaleX;
-	myScaleY = o.myScaleY;
-	myDirty = o.myDirty;
+	Drawable::operator=(std::move(o));
 	return *this;
 }
 
@@ -48,6 +46,11 @@ OpenGLImage::~OpenGLImage()
 	{
 		glDeleteBuffers(1, &myVBO);
 	}
+}
+
+bool OpenGLImage::isValid() const
+{
+	return myTexture.isValid();
 }
 
 bool
@@ -69,48 +72,24 @@ OpenGLImage::setup(GLint vertexAttribLocation, GLint textureAttribLocation)
 }
 
 void
-OpenGLImage::position(float newx, float newy)
-{
-	if (newx != x || newy != y)
-	{
-		x = newx;
-		y = newy;
-		myDirty = true;
-	}
-}
-
-void
-OpenGLImage::scale(float scaleX, float scaleY)
-{
-	if (scaleX != myScaleX || scaleY != myScaleY)
-	{
-		myScaleX = scaleX;
-		myScaleY = scaleY;
-		myDirty = true;
-	}
-}
-
-void
 OpenGLImage::draw()
 {
-	if (myDirty)
+	if (changed)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, myVBO);
 
-		float ratio = width == 0.0f ? 1.0f : height / width;
-
 		GLfloat vertices[] = {
-			(-1.0f * myScaleX) + x,   (-1.0f * myScaleY * ratio) + y,   0.0f,    myTexture.getFlipped() ? 1.0f : 0.0f,
-			(-1.0f * myScaleX) + x,    (1.0f * myScaleY * ratio) + y,   0.0f,    myTexture.getFlipped() ? 0.0f : 1.0f,
-			(1.0f * myScaleX) + x,   (-1.0f * myScaleY * ratio) + y,   1.0f,    myTexture.getFlipped() ? 1.0f : 0.0f,
-			(1.0f * myScaleX) + x,    (1.0f * myScaleY * ratio) + y,   1.0f,    myTexture.getFlipped() ? 0.0f : 1.0f
+			(-1.0f * scaleX) + x,   (-1.0f * scaleY) + y,   0.0f,    myTexture.getFlipped() ? 1.0f : 0.0f,
+			(-1.0f * scaleX) + x,    (1.0f * scaleY) + y,   0.0f,    myTexture.getFlipped() ? 0.0f : 1.0f,
+			(1.0f * scaleX) + x,   (-1.0f * scaleY) + y,   1.0f,    myTexture.getFlipped() ? 1.0f : 0.0f,
+			(1.0f * scaleX) + x,    (1.0f * scaleY) + y,   1.0f,    myTexture.getFlipped() ? 0.0f : 1.0f
 		};
 
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		myDirty = false;
+		changed = false;
 	}
 
 	if (myTexture.isValid())
@@ -132,7 +111,7 @@ OpenGLImage::update(const OpenGLTexture & texture)
 	{
 		width = float(texture.getWidth());
 		height = float(texture.getHeight());
-		myDirty = true;
+		changed = true;
 	}
 	myTexture = texture;
 }

@@ -16,11 +16,6 @@
 #include "DX11Image.h"
 #include "DX11Device.h"
 
-DX11Image::DX11Image()
-	: Drawable()
-{
-}
-
 DX11Image::DX11Image(DX11Texture & texture)
 	: Drawable(0.0f, 0.0f, static_cast<float>(texture.getWidth()), static_cast<float>(texture.getHeight())),
 	myTexture(texture)
@@ -61,20 +56,19 @@ DX11Image::draw(DX11Device &device)
 {
 	if (myTexture.isValid())
 	{
-		if (myMatrixDirty)
+		if (changed)
 		{
 			ConstantBuffer cbuffer;
 
-			float ratio = height / width;
 			cbuffer.matrix = DirectX::XMMatrixIdentity();
-			cbuffer.matrix *= DirectX::XMMatrixScaling(myScaleX, myScaleY * ratio, 1.0f);
+			cbuffer.matrix *= DirectX::XMMatrixScaling(scaleX, scaleY, 1.0f);
 			cbuffer.matrix *= DirectX::XMMatrixTranslation(x, y, 0);
 			cbuffer.matrix = DirectX::XMMatrixTranspose(cbuffer.matrix);
 			cbuffer.flip.x = myTexture.getFlipped();
 
 			device.updateSubresource(myConstantBuffer.Get(), &cbuffer);
 			
-			myMatrixDirty = false;
+			changed = false;
 		}
 
 		device.setVertexBuffer<BasicVertex>(myVertexBuffer.Get());
@@ -83,28 +77,6 @@ DX11Image::draw(DX11Device &device)
 		device.setConstantBuffer(myConstantBuffer.Get());
 		device.setShaderResourceAndSampler(myTexture);
 		device.drawIndexed(4);
-	}
-}
-
-void
-DX11Image::position(float newx, float newy)
-{
-	if (x != newx || y != newy)
-	{
-		x = newx;
-		y = newy;
-		myMatrixDirty = true;
-	}
-}
-
-void
-DX11Image::scale(float scaleX, float scaleY)
-{
-	if (myScaleX != scaleX || myScaleY != scaleY)
-	{
-		myScaleX = scaleX;
-		myScaleY = scaleY;
-		myMatrixDirty = true;
 	}
 }
 
@@ -119,7 +91,7 @@ DX11Image::update(const DX11Texture & texture)
 {
 	if (myTexture.getFlipped() != texture.getFlipped() || myTexture.getWidth() != texture.getWidth() || myTexture.getHeight() != texture.getHeight())
 	{
-		myMatrixDirty = true;
+		changed = true;
 	}
 	myTexture = texture;
 	width = (float)myTexture.getWidth();

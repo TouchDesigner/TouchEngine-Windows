@@ -12,36 +12,30 @@
 * prior written permission from Derivative.
 */
 
-#pragma once
+#include "stdafx.h"
+#include "DX12SharedBuffer.h"
+#include "DXUtility.h"
 
-#include "Drawable.h"
-#include "DX12Texture.h"
-#include <DirectXMath.h>
-
-class DX12CommandList;
-
-class DX12Image :
-	public Drawable
+DX12SharedBuffer::DX12SharedBuffer(ID3D12Device* device, size_t size)
+: DX12Buffer(device, D3D12_HEAP_TYPE_DEFAULT, D3D12_HEAP_FLAG_SHARED, size)
 {
-public:
-	DX12Image();
-	DX12Image(ID3D12Device* device);
-	constexpr DX12Texture& getTexture()
+	ThrowIfFailed(device->CreateSharedHandle(myBuffer.Get(), nullptr, GENERIC_ALL, nullptr, &myHandle));
+}
+
+DX12SharedBuffer::~DX12SharedBuffer()
+{
+	if (myHandle != INVALID_HANDLE_VALUE)
 	{
-		return myTexture;
+		CloseHandle(myHandle);
 	}
-	void update(ID3D12Device* device, const DX12Texture& texture);
-	void draw(DX12CommandList& commandList);
-private:
-	struct BasicVertex
+}
+
+DX12SharedBuffer& DX12SharedBuffer::operator=(DX12SharedBuffer&& o) noexcept
+{
+	if (&o != this)
 	{
-		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT2 tex;
-	};
-	void											setup(ID3D12Device *device);
-	void											setupSRV(ID3D12Device* device);
-	DX12Texture										myTexture;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>	mySRVHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource>			myVertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW						myVertexBufferView{0, 0, 0};
-};
+		DX12Buffer::operator=(o);
+		std::swap(o.myHandle, myHandle);
+	}
+	return *this;
+}

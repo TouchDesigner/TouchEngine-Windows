@@ -16,17 +16,18 @@
 
 #include <d3d12.h>
 #include <TouchEngine/TouchObject.h>
+#include <set>
+
+class DX12CommandList;
 
 class DX12Texture
 {
 public:
 	DX12Texture();
-	DX12Texture(ID3D12Device *device, ID3D12GraphicsCommandList *commandList, const unsigned char* src, size_t bytesPerRow, int width, int height, bool genMips = false);
-	DX12Texture(ID3D12Device* device, TED3DSharedTexture *texture);
+	DX12Texture(ID3D12Device *device, DX12CommandList &commandList, const unsigned char* src, size_t bytesPerRow, int width, int height);
+	DX12Texture(ID3D12Device* device, HANDLE h);
 
-	void				uploadDidComplete();
-
-	ID3D12Resource*		getResource() const;
+	operator ID3D12Resource* () const;
 	bool				isValid() const;
 	constexpr int		getWidth() const
 	{
@@ -41,27 +42,10 @@ public:
 		return myFlipped;
 	}
 
-	ID3D12DescriptorHeap* getSRVHeap() const
-	{
-		return mySRVHeap.Get();
-	}
-	ID3D12Device* getDevice() const
-	{
-		return myDevice.Get();
-	}
-
-	TED3DSharedTexture* getTETexture() const
-	{
-		return myTETexture;
-	}
+	static constexpr DXGI_FORMAT Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 private:
-	void setupSRV(D3D12_RESOURCE_DESC &desc);
 	int myWidth = 0;
 	int myHeight = 0;
 	bool myFlipped = false;
-	Microsoft::WRL::ComPtr<ID3D12Device> myDevice;
 	Microsoft::WRL::ComPtr<ID3D12Resource>	myResource;
-	Microsoft::WRL::ComPtr<ID3D12Resource> myTextureUploadHeap;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mySRVHeap;
-	TouchObject<TED3DSharedTexture> myTETexture;
 };

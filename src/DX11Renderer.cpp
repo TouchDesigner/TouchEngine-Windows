@@ -14,6 +14,7 @@
 
 #include "stdafx.h"
 #include "DX11Renderer.h"
+#include "DXUtility.h"
 #include <TouchEngine/TouchEngine.h>
 #include <TouchEngine/TED3D11.h>
 #include <array>
@@ -29,25 +30,21 @@ DX11Renderer::~DX11Renderer()
 	
 }
 
-bool
+void
 DX11Renderer::setup(HWND window)
 {
 	Renderer::setup(window);
-	HRESULT result = myDevice.createDeviceResources();
-	if (SUCCEEDED(result))
+	ThrowIfFailed(myDevice.createDeviceResources());
+
+	// Create window resources with no depth-stencil buffer
+	ThrowIfFailed(myDevice.createWindowResources(getWindow()));
+
+	myPixelShader = myDevice.loadPixelShader(L"TestPixelShader.cso");
+	if (!myPixelShader)
 	{
-		// Create window resources with no depth-stencil buffer
-		result = myDevice.createWindowResources(getWindow(), false);
+		throw std::runtime_error("Couldn't create pixel shader.");
 	}
-	if (SUCCEEDED(result))
-	{
-		myPixelShader = myDevice.loadPixelShader(L"TestPixelShader.cso");
-		if (!myPixelShader)
-		{
-			result = EIO;
-		}
-	}
-	if (SUCCEEDED(result))
+	
 	{
 		const D3D11_INPUT_ELEMENT_DESC layoutDescription[] =
 		{
@@ -58,20 +55,22 @@ DX11Renderer::setup(HWND window)
 		myVertexShader = myDevice.loadVertexShader(L"TestVertexShader.cso", layoutDescription, ARRAYSIZE(layoutDescription));
 		if (!myVertexShader.isValid())
 		{
-			result = EIO;
+			throw std::runtime_error("Couldn't create vertex shader.");
 		}
 	}
-	if (SUCCEEDED(result))
+	myBlendState = myDevice.createBlendState();
+	
+	if (!myOutputImage.setup(myDevice))
 	{
-		if (TED3D11ContextCreate(myDevice.getDevice(), myContext.take()) != TEResultSuccess)
-		{
-			result = E_FAIL;
-		}
+		throw std::runtime_error("Couldn't create image resources.");
 	}
-	return SUCCEEDED(result);
+	if (TED3D11ContextCreate(myDevice.getDevice(), myContext.take()) != TEResultSuccess)
+	{
+		throw std::runtime_error("Couldn't create TED3D11Context.");
+	}
 }
 
-bool DX11Renderer::configure(TEInstance* instance, std::wstring& error)
+bool DX11Renderer::configure(TEInstance* instance, std::string& error)
 {
 	myReleaseToZero = TEInstanceRequiresKeyedMutexReleaseToZero(instance);
 	return Renderer::configure(instance, error);
@@ -87,8 +86,8 @@ DX11Renderer::resize(int width, int height)
 void
 DX11Renderer::stop()
 {
-	myInputImages.clear();
-	myOutputImages.clear();
+	myInputTexture = DX11Texture();
+	myOutputImage = DX11Image();
 	// Invalidate the vertex shader
 	myVertexShader = DX11VertexShader();
 	myDevice.stop();
@@ -98,66 +97,58 @@ bool
 DX11Renderer::render()
 { 
 	myDevice.setRenderTarget();
-	myDevice.clear(myBackgroundColor[0], myBackgroundColor[1], myBackgroundColor[2], 1.0f);
+	myDevice.clear(myBackgroundColor);
 
+	myDevice.setBlendState(myBlendState.Get());
 	myDevice.setPixelShader(myPixelShader.Get());
 	myDevice.setInputLayout(myVertexShader);
 	myDevice.setVertexShader(myVertexShader);
 
-	float scale = 1.0f / (max(myInputImages.size(), myOutputImages.size()) + 1.0f);
-	drawImages(myInputImages, scale, -0.5f);
-	drawImages(myOutputImages, scale, 0.5f);
+	if (myOutputImage.getTexture().isValid())
+	{
+		myOutputImage.fit(static_cast<float>(myWidth), static_cast<float>(myHeight));
+		myOutputImage.position(0.0f, 0.0f);
+		myOutputImage.draw(myDevice);
+	}
 
 	myDevice.present();
 	return true;
 }
 
-void
-DX11Renderer::addInputImage(const unsigned char* rgba, size_t bytesPerRow, int width, int height)
+TouchObject<TETexture>	DX11Renderer::getTexture(const unsigned char* rgba, size_t bytesPerRow, int width, int height)
 {
-	DX11Texture texture = myDevice.loadTexture(rgba, int32_t(bytesPerRow), width, height);
+	myInputTexture = myDevice.loadTexture(rgba, int32_t(bytesPerRow), width, height);
 
-	myInputImages.emplace_back(texture);
-	myInputImages.back().setup(myDevice);
-	Renderer::addInputImage(rgba, bytesPerRow, width, height);
-}
+	TouchObject<TETexture> texture;
 
-bool DX11Renderer::getInputImage(size_t index, TouchObject<TETexture> & texture, TouchObject<TESemaphore> & semaphore, uint64_t & waitValue)
-{
-	if (inputDidChange(index))
-	{
-		auto& source = myInputImages[index];
-		texture.take(TED3D11TextureCreate(source.getTexture().getTexture(), TETextureOriginTopLeft, kTETextureComponentMapIdentity, nullptr, nullptr));
+	texture.take(TED3D11TextureCreate(myInputTexture.getTexture(), TETextureOriginTopLeft, kTETextureComponentMapIdentity, nullptr, nullptr));
 
-		// The TED3D11Context handles sync for us, so we needn't set semaphore or waitValue
+	// The TED3D11Context handles sync for us, so we needn't add a resource transfer here
 
-		markInputUnchanged(index);
-		return true;
-	}
-	return false;
+	return texture;
 }
 
 void
 DX11Renderer::clearInputs()
 {
-	myInputImages.clear();
+	myInputTexture = DX11Texture();
 	Renderer::clearInputs();
 }
 
-void
-DX11Renderer::addOutputImage()
+bool DX11Renderer::setOutputImage(const TouchObject<TETexture>& texture, const TouchObject<TESemaphore>& semaphore, uint64_t waitValue)
 {
-	myOutputImages.emplace_back();
-	myOutputImages.back().setup(myDevice);
+	setOutputImage(texture);
 
-	Renderer::addOutputImage();
+	// DXGI Keyed Mutexes will be used for sync, so semaphore will be null
+	assert(!semaphore);
+	myOutputImage.getTexture().acquire(waitValue);
+	
+	return true;
 }
 
-bool DX11Renderer::updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier)
+void DX11Renderer::setOutputImage(const TouchObject<TETexture>& texture)
 {
-	bool success = false;
-	TEResult result = TEResultSuccess;
-	const auto& previous = getOutputImage(index);
+	const auto& previous = getOutputImage();
 	if (previous)
 	{
 		uint64_t waitValue;
@@ -168,92 +159,57 @@ bool DX11Renderer::updateOutputImage(const TouchObject<TEInstance>& instance, si
 		}
 		else
 		{
-			waitValue = myOutputImages[index].getTexture().getLastAcquireValue();
+			waitValue = myOutputImage.getTexture().getLastAcquireValue();
 			if (waitValue == UINT64_MAX)
 				waitValue = 0;
 			else
 				waitValue++;
 		}
 
-		myOutputImages[index].getTexture().release(waitValue);
+		myOutputImage.getTexture().release(waitValue);
 
 		// DXGI Keyed Mutexes use the texture as the sync object, so `semaphore` is nullptr
-		result = TEInstanceAddResourceTransfer(instance, previous, nullptr, waitValue);
+		addResourceTransfer(previous, nullptr, waitValue);
 	}
-	TouchObject<TETexture> texture;
-	if (result == TEResultSuccess)
+	if (texture && TETextureGetType(texture) == TETextureTypeD3DShared)
 	{
-		result = TEInstanceLinkGetTextureValue(instance, identifier.c_str(), TELinkValueCurrent, texture.take());
-	}
-	if (result == TEResultSuccess)
-	{
-		setOutputImage(index, texture);
-
-		if (texture && TETextureGetType(texture) == TETextureTypeD3DShared)
+		TouchObject<TED3D11Texture> created;
+		if (TED3D11ContextGetTexture(myContext, static_cast<TED3DSharedTexture*>(texture.get()), created.take()) == TEResultSuccess)
 		{
-			TouchObject<TED3D11Texture> created;
-			if (TED3D11ContextGetTexture(myContext, static_cast<TED3DSharedTexture*>(texture.get()), created.take()) == TEResultSuccess)
-			{
-				DX11Texture tex(created);
+			DX11Texture tex(created);
 
-				myOutputImages.at(index).update(tex);
-
-				success = true;
-
-				if (texture && TEInstanceHasResourceTransfer(instance, texture))
-				{
-					TouchObject<TESemaphore> semaphore;
-					uint64_t waitValue = 0;
-					// DXGI Keyed Mutexes will be used for sync, so semaphore will be null on return
-					result = TEInstanceGetResourceTransfer(instance, texture, semaphore.take(), &waitValue);
-
-					if (result == TEResultSuccess)
-					{
-						assert(!semaphore);
-						myOutputImages[index].getTexture().acquire(waitValue);
-					}
-				}
-			}
+			myOutputImage.update(tex);
+		}
+		else
+		{
+			myOutputImage.update(DX11Texture());
 		}
 	}
-	if (!success)
+	else
 	{
-		myOutputImages.at(index).update(DX11Texture());
-		Renderer::setOutputImage(index, nullptr);
-		if (!texture)
-		{
-			// Having no texture is OK
-			success = true;
-		}
+		myOutputImage.update(DX11Texture());
+		Renderer::setOutputImage(nullptr);
 	}
-	return success;
+	Renderer::setOutputImage(texture);
 }
 
 void
-DX11Renderer::clearOutputImages()
+DX11Renderer::clearOutputs()
 {
-	myOutputImages.clear();
+	myOutputImage.update(DX11Texture());
 
-	Renderer::clearOutputImages();
+	Renderer::clearOutputs();
 }
 
-const std::wstring& DX11Renderer::getDeviceName() const
+const std::string& DX11Renderer::getDeviceName() const
 {
 	return myDevice.getDeviceName();
 }
 
 void
-DX11Renderer::drawImages(std::vector<DX11Image>& images, float scale, float xOffset)
+DX11Renderer::drawImage(DX11Image& image, float scale, float xOffset, float yOffset)
 {
-	float numImages = (1.0f / scale) - 1.0f;
-	float spacing = 1.0f / numImages;
-	float yOffset = 1.0f - spacing;
-	float ratio = static_cast<float>(myHeight) / myWidth;
-	for (auto &image : images)
-	{
-		image.scale(scale * ratio, scale);
-		image.position(xOffset, yOffset);
-		image.draw(myDevice);
-		yOffset -= spacing * 2;
-	}
+	image.scale(scale, scale);
+	image.position(xOffset, yOffset);
+	image.draw(myDevice);
 }

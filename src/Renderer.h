@@ -17,10 +17,12 @@
 #include <TouchEngine/TouchEngine.h>
 #include <TouchEngine/TouchObject.h>
 #include <vector>
-#include <array>
-#include <memory>
+#include "Graphics.h"
+#include "Geometry.h"
+#include "Picture.h"
+#include "Color.h"
 
-class Renderer
+class Renderer : public Geometry::BufferProvider, public Picture::TextureProvider
 {
 public:
 	Renderer();
@@ -33,47 +35,48 @@ public:
 	{
 		return myWindow;
 	}
-	virtual DWORD
-	getWindowStyleFlags() const
-	{
-		return 0;
-	}
 
-	virtual const std::wstring& getDeviceName() const = 0;
+	virtual Graphics getMode() const = 0;
 
-	virtual bool	setup(HWND window);
-	virtual bool	configure(TEInstance* instance, std::wstring& error);
+	virtual const std::string& getDeviceName() const = 0;
+
+	virtual void	setup(HWND window);
+	virtual bool	configure(TEInstance* instance, std::string& error);
 	virtual bool	doesInputResourceTransfer() const;
 	virtual void	resize(int width, int height);
 	virtual void	stop();
 	virtual bool	render() = 0;
-	void			setBackgroundColor(float r, float g, float b);
+	void			setBackgroundColor(const Color &color);
 
-
-	virtual size_t		getInputImageCount() const = 0;
-	virtual void		beginImageLayout();
-	virtual void		addInputImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height);
-	virtual bool		getInputImage(size_t index, TouchObject<TETexture> & texture, TouchObject<TESemaphore> & semaphore, uint64_t & waitValue) = 0;
 	virtual void		clearInputs();
-	size_t				getRightSideImageCount();
-	virtual void		addOutputImage();
-	virtual void		endImageLayout();
-						
-	virtual bool		updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier) = 0;
-	const TouchObject<TETexture>& getOutputImage(size_t index) const;
-	virtual void		clearOutputImages(); // TODO: ?
-	virtual TEGraphicsContext* getTEContext() const = 0;
+	
+	virtual void		setOutputImage(const TouchObject<TETexture>& texture);
+	virtual bool		setOutputImage(const TouchObject<TETexture>&, const TouchObject<TESemaphore>&, uint64_t) = 0;
+
+	const TouchObject<TETexture>& getOutputImage() const;
+	virtual void		clearOutputs();
+	virtual TouchObject<TEGraphicsContext> getTEContext() const = 0;
+
+	virtual TouchObject<TEBuffer> getHostBuffer(const void* src, size_t size) override;
+	virtual TouchObject<TEBuffer> getDeviceBuffer(const void* src, size_t size) override;
+
+	void addResourceTransfers(const TouchObject<TEInstance>& instance);
 protected:
-	bool				inputDidChange(size_t index) const;
-	void				markInputChange(size_t index);
-	void				markInputUnchanged(size_t index);
-	void				setOutputImage(size_t index, const TouchObject<TETexture>& texture);
-	std::array<float, 3>	myBackgroundColor;
+	void				addResourceTransfer(const TouchObject<TEObject>& resource, const TouchObject<TESemaphore>& semaphore, uint64_t value);
+	void				clearResourceTransfer(const TouchObject<TEObject>& resource);
+	size_t				alignedBufferSize(size_t size) const;
+	Color	myBackgroundColor;
 	int		myWidth = 0;
 	int		myHeight = 0;
+	size_t	myMinBufferAlignment = 0;
 private:
+	struct Transfer {
+		TouchObject<TEObject> resource;
+		TouchObject<TESemaphore> semaphore;
+		uint64_t value;
+	};
 	HWND	myWindow = 0;
-	std::vector<TouchObject<TETexture>> myOutputImages;
-	std::vector<bool>			myInputImageUpdates;
+	TouchObject<TETexture> myOutputImage;
+	std::vector<Transfer> myPendingTransfers;
 };
 

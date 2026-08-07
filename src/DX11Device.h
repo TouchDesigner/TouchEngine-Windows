@@ -17,6 +17,7 @@
 #include <string>
 #include "DX11VertexShader.h"
 #include "DX11Texture.h"
+#include "Color.h"
 
 class DX11Device
 {
@@ -26,12 +27,13 @@ public:
 	DX11Device &operator=(const DX11Device &o) = delete;
 
 	HRESULT		createDeviceResources();
-	HRESULT		createWindowResources(HWND window, bool depth);
+	HRESULT		createWindowResources(HWND window);
 	HRESULT		resize();
 
 	DX11VertexShader							loadVertexShader(const std::wstring &file, const D3D11_INPUT_ELEMENT_DESC *layout, int count);
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>	loadPixelShader(const std::wstring &file);
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		loadIndexBuffer(unsigned short *indices, int count);
+	Microsoft::WRL::ComPtr<ID3D11BlendState>	createBlendState();
 
 	template <class T>
 	Microsoft::WRL::ComPtr<ID3D11Buffer>
@@ -49,7 +51,7 @@ public:
 
 	DX11Texture	loadTexture(const unsigned char *src, int bytesPerRow, int width, int height);
 	void			setRenderTarget();
-	void			clear(float r, float g, float b, float a);
+	void			clear(const Color &color);
 	void			present();
 	void			setInputLayout(DX11VertexShader &shader);
 
@@ -71,6 +73,7 @@ public:
 	void	updateSubresource(ID3D11Resource *resource, const void *data, size_t bytesPerRow, size_t bytesPerImage);
 	void	generateMips(ID3D11ShaderResourceView *view);
 	void	setConstantBuffer(ID3D11Buffer *buffer);
+	void	setBlendState(ID3D11BlendState* state);
 	void	drawIndexed(int count);
 	void	stop();
 
@@ -80,13 +83,13 @@ public:
 		return myDevice.Get();
 	}
 
-	const std::wstring& getDeviceName() const
+	const std::string& getDeviceName() const
 	{
 		return myDeviceName;
 	}
 private:
 	std::wstring							getResourcePath() const;
-	HRESULT									configureBackBuffer(bool depth);
+	HRESULT									configureBackBuffer();
 	void									releaseEverything();
 	HRESULT									releaseBackBuffer();
 	Microsoft::WRL::ComPtr<ID3D11Buffer>	loadBuffer(unsigned int size, D3D11_BIND_FLAG flags, const void *data);
@@ -97,12 +100,8 @@ private:
 	Microsoft::WRL::ComPtr<IDXGISwapChain>			mySwapChain;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D>			myBackBuffer;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>	myRenderTarget;
-	Microsoft::WRL::ComPtr<ID3D11Texture2D>			myDepthStencil;
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilView>	myDepthStencilView;
 
-	D3D11_TEXTURE2D_DESC	myBackBufferDescription{ };
 	D3D11_VIEWPORT			myViewport{};
 
-	std::wstring				myDeviceName;
+	std::string				myDeviceName;
 };
-

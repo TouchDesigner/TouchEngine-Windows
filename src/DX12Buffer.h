@@ -14,34 +14,24 @@
 
 #pragma once
 
-#include "Drawable.h"
-#include "DX12Texture.h"
-#include <DirectXMath.h>
+#include <d3d12.h>
 
-class DX12CommandList;
-
-class DX12Image :
-	public Drawable
+class DX12Buffer
 {
 public:
-	DX12Image();
-	DX12Image(ID3D12Device* device);
-	constexpr DX12Texture& getTexture()
+	DX12Buffer() = default;
+	DX12Buffer(ID3D12Device* device, D3D12_HEAP_TYPE type, D3D12_HEAP_FLAGS flags, size_t size);
+	size_t getSize() const
 	{
-		return myTexture;
+		return mySize;
 	}
-	void update(ID3D12Device* device, const DX12Texture& texture);
-	void draw(DX12CommandList& commandList);
-private:
-	struct BasicVertex
+	size_t getRequiredUploadSize() const;
+	operator ID3D12Resource* () const
 	{
-		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT2 tex;
-	};
-	void											setup(ID3D12Device *device);
-	void											setupSRV(ID3D12Device* device);
-	DX12Texture										myTexture;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>	mySRVHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource>			myVertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW						myVertexBufferView{0, 0, 0};
+		return myBuffer.Get();
+	}
+protected:
+	Microsoft::WRL::ComPtr<ID3D12Resource> myBuffer;
+private:
+	size_t mySize = 0;
 };

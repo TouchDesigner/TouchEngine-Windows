@@ -27,11 +27,11 @@ public:
 	OpenGLRenderer();
 	virtual ~OpenGLRenderer();
 
-	virtual DWORD
-	getWindowStyleFlags() const
+	virtual Graphics getMode() const override
 	{
-		return CS_OWNDC | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+		return Graphics::OpenGL;
 	}
+
 	HDC
 	getDC() const
 	{
@@ -42,32 +42,29 @@ public:
 	{
 		return myRenderingContext;
 	}
-	virtual TEGraphicsContext*
+	virtual TouchObject<TEGraphicsContext>
 	getTEContext() const override
 	{
 		return myContext;
 	}
 
-	virtual bool	setup(HWND window);
-	virtual bool	configure(TEInstance* instance, std::wstring& error) override;
+	virtual void	setup(HWND window) override;
+	virtual bool	configure(TEInstance* instance, std::string& error) override;
 	virtual void	resize(int width, int height) override;
-	virtual void	stop();
-	virtual bool	render();
-	virtual size_t	getInputImageCount() const;
-	virtual void	addInputImage(const unsigned char *rgba, size_t bytesPerRow, int width, int height) override;
+	virtual void	stop() override;
+	virtual bool	render() override;
+	virtual TouchObject<TETexture>	getTexture(const unsigned char* rgba, size_t bytesPerRow, int width, int height) override;
 	virtual void	clearInputs() override;
-	virtual void	addOutputImage() override;
-	virtual bool	updateOutputImage(const TouchObject<TEInstance>& instance, size_t index, const std::string& identifier) override;
-	virtual void	clearOutputImages() override;
-	virtual bool	getInputImage(size_t index, TouchObject<TETexture>& texture, TouchObject<TESemaphore>& semaphore, uint64_t& waitValue) override;
+	virtual bool	setOutputImage(const TouchObject<TETexture>& texture, const TouchObject<TESemaphore>& semaphore, uint64_t waitValue) override;
+	virtual void	setOutputImage(const TouchObject<TETexture>& texture) override;
+	virtual void	clearOutputs() override;
 
-	virtual const std::wstring& getDeviceName() const override;
+	virtual const std::string& getDeviceName() const override;
 private:
 	static const char* VertexShader;
 	static const char* FragmentShader;
 
 	static void		textureReleaseCallback(GLuint texture, TEObjectEvent event, void *info);
-	void			drawImages(std::vector<OpenGLImage>& images, float scale, float xOffset);
 
 	OpenGLProgram	myProgram;
 	GLuint			myVAO = 0;
@@ -77,8 +74,8 @@ private:
 	HGLRC			myRenderingContext = nullptr;
 	HDC				myDC = nullptr;
 	TouchObject<TEOpenGLContext> myContext;
-	std::vector<OpenGLImage> myInputImages;
-	std::vector<OpenGLImage> myOutputImages;
-	std::wstring	myDeviceName;
+	OpenGLTexture	myInputTexture;
+	OpenGLImage		myOutputImage;
+	std::string		myDeviceName;
 };
 
