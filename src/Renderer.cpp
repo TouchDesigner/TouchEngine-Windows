@@ -110,23 +110,6 @@ Renderer::clearOutputs()
 	myOutputImage.reset();
 }
 
-TouchObject<TEBuffer> Renderer::getHostBuffer(const void* src, size_t size)
-{
-	TouchObject<TEMutableHostBuffer> buffer = TouchObject<TEMutableHostBuffer>::make_take(TEMutableHostBufferCreate(size, nullptr, nullptr));
-
-	void* dst = TEMutableHostBufferGetData(buffer);
-
-	memcpy(dst, src, size);
-
-	return buffer;
-}
-
-TouchObject<TEBuffer> Renderer::getDeviceBuffer(const void* src, size_t size)
-{
-	// default to use host buffers for everything, derived classes can override this
-	return getHostBuffer(src, size);
-}
-
 void Renderer::addResourceTransfers(const TouchObject<TEInstance>& instance)
 {
 	for (const auto& next : myPendingTransfers)

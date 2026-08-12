@@ -23,8 +23,8 @@ namespace Geometry {
 
 class BufferProvider {
 public:
-	virtual TouchObject<TEBuffer>	getDeviceBuffer(const void* src, size_t size) = 0;
-	virtual TouchObject<TEBuffer>	getHostBuffer(const void* src, size_t size) = 0;
+	virtual TouchObject<TEBuffer>	getDeviceBuffer(const void* src, size_t size);
+	virtual TouchObject<TEBuffer>	getHostBuffer(const void* src, size_t size);
 
 	template <class T>
 	TouchObject<TEBuffer>			getDeviceBuffer(const std::vector<T>& vector)

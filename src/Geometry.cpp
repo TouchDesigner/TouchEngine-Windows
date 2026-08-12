@@ -22,6 +22,23 @@
 
 namespace Geometry {
 
+TouchObject<TEBuffer> BufferProvider::getHostBuffer(const void *src, size_t size)
+{
+	TouchObject<TEMutableHostBuffer> buffer = TouchObject<TEMutableHostBuffer>::make_take(TEMutableHostBufferCreate(size, nullptr, nullptr));
+
+	void* dst = TEMutableHostBufferGetData(buffer);
+
+	memcpy(dst, src, size);
+
+	return buffer;
+}
+
+TouchObject<TEBuffer> BufferProvider::getDeviceBuffer(const void *src, size_t size)
+{
+	// default to use host buffers for everything, derived classes can override this
+	return getHostBuffer(src, size);
+}
+
 static constexpr int getPointCount(int divisions)
 {
 	return divisions + 1;

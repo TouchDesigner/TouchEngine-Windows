@@ -57,9 +57,6 @@ public:
 	virtual void		clearOutputs();
 	virtual TouchObject<TEGraphicsContext> getTEContext() const = 0;
 
-	virtual TouchObject<TEBuffer> getHostBuffer(const void* src, size_t size) override;
-	virtual TouchObject<TEBuffer> getDeviceBuffer(const void* src, size_t size) override;
-
 	void addResourceTransfers(const TouchObject<TEInstance>& instance);
 protected:
 	void				addResourceTransfer(const TouchObject<TEObject>& resource, const TouchObject<TESemaphore>& semaphore, uint64_t value);
