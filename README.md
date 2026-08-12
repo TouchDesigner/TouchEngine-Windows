@@ -67,7 +67,7 @@ You can use `TERetain()` to increase the reference-count of an object.
 
 Some functions accept or return several types of TEObject. Use `TEGetType()` to check the type of a TEObject returned from such functions, then cast the value to the actual type.
 
-For C++ code, you may wish to use the `TouchObject` class in the example project, which wraps TEObjects and takes care of retain and release. See TouchObject.h for documentation.
+For C++ code, you may wish to use the `TouchObject` class in TouchEngine/TouchObject.h, which wraps TEObjects and takes care of retain and release. See TouchObject.h for documentation.
 
 
 Links
@@ -91,7 +91,7 @@ An instance requires two callbacks: one for instance events, and one to receive 
 		// handle the link event
 	}
 
-A single instance can be re-used to load several components. Only one component can be loaded in an instance at a time (but any number of instances can co-exist). Maximise performance by re-using an existing instance rather than creating a new one where possible.
+A single instance can be re-used to load several components. Only one component can be loaded in an instance at a time (but any number of instances can co-exist). Improve performance by re-configuring an existing instance rather than creating a new one where possible.
 
 Create an instance:
 
@@ -102,8 +102,9 @@ Create an instance:
 		// Continue to use the instance
 	}
 
-If working with textures, create and associate a TEGraphicsContext suitable for your needs. A graphics context provides functionality to work with textures using your chosen graphics API. Alternatively you can create and associate a TEAdapter to indicate a device without the full functionality of a graphics context. If neither are associated, the instance will select a device as it sees fit.
+If working with textures, create and associate a TEGraphicsContext suitable for your needs. A graphics context directs TouchEngine to use a specific graphics device, and provides functionality to work with textures using your chosen graphics API. Alternatively you can create and associate a TEAdapter to indicate a device without the full functionality of a graphics context. If neither are associated, the instance will select a device as it sees fit.
 
+	// See TEGraphicsContext.h to create a suitable context
 	if (result == TEResultSuccess)
 	{
 		result = TEInstanceAssociateGraphicsContext(instance, context);
@@ -130,9 +131,9 @@ Configure and load a component:
 
 Loading begins immediately.
 
-During loading you will receive link callbacks with the event TELinkEventAdded for any links on the instance.
+During loading you will receive link callbacks with the event `TELinkEventAdded` for any links on the instance.
 
-Once loading has completed you will receive an event callback with the event TEEventInstanceDidLoad, and a TEResult indicating success or any warning or error.
+Once loading has completed you will receive an event callback with the event `TEEventInstanceDidLoad`, and a TEResult indicating success or any warning or error.
 
 An instance is loaded suspended. Once configured, resuming the instance will permit rendering (and start playback in TETimeInternal mode):
 
@@ -141,7 +142,7 @@ An instance is loaded suspended. Once configured, resuming the instance will per
 		result = TEInstanceResume(instance);
 	}
 
-Note that if you are able to call TEInstanceConfigure() with a NULL path sometime before loading a component, the instance will perform some pre-loading setup. You can then call TEInstanceConfigure() again with a valid path, and the subsequent TEInstanceLoad() will complete much faster.
+Note that if you are able to call `TEInstanceConfigure()` with a NULL path sometime before loading a component, the instance will perform some pre-loading setup. You can then call `TEInstanceConfigure()` again with a valid path, and the subsequent `TEInstanceLoad()` will complete much faster.
 
 
 Rendering An Instance
@@ -232,6 +233,7 @@ If you are instantiating output textures directly from a shareable type (TED3DSh
 
 Setting an input (Direct3D 11):
 
+	// Here we set a short-lived texture, but see above for guidance around texture re-use
 	TED3D11Texture *texture = TED3D11TextureCreate(tex, false, NULL, NULL);
 	TEResult result = TEInstanceLinkSetTextureValue(instance, identifier, texture, context);
 	// Release the texture - the instance will have retained it if necessary
