@@ -259,6 +259,30 @@ Getting an output (Direct3D 11):
 	TERelease(&value);
 
 
+Working with TELinkTypeGeometry
+-------------------------------
+
+TELinkTypeGeometry allows the exchange of geometry data with TouchEngine. In TouchDesigner terms, these are POP inputs and outputs.
+
+TEGeometry is a combination of any number of attributes, described by TEGeometryAttributeInfo and with attribute data in TEBuffers, along with data to describe primitive topology.
+
+*Points* are the collection of attributes which may be referenced by one or more *vertices*, and vertices in turn are collected to form *primitives*. An attribute can apply to points, vertices or primitives.
+
+The TEBuffers which store points, indices and some associated data may reside in memory on the host or the GPU, or a mixture of both.
+
+Although some attributes are common, such as 'P' for point data, there is no requirement that any TEGeometry have any particular attributes at all. Any numeric data may be represented.
+
+Information about maximums is also provided, which is used to provide bounds to configure GPU processing in TouchEngine where the actual number of points, vertices or primitives may not be known outside of GPU memory.
+
+TEGeometry cannot be modified. A mutable variant, TEMutableGeometry, allows for the construction of inputs.
+
+As with textures, the TEGraphicsContext associated with the instance affects the type of buffers emitted - for example, associating a TED3D12Context will result in geometry with memory using TED3DSharedBuffer for GPU buffers.
+
+[TEGeometry.h](include/TouchEngine/TEGeometry.h) describes in detail attributes, their buffers and their layout. [TEBuffer.h](include/TouchEngine/TEBuffer.h) and the graphics-API headers have functions for working with host and GPU memory.
+
+The example app demonstrates the construction of a complete TEGeometry, in [Geometry.cpp](src/Geometry.cpp).
+
+
 GPU Synchronization
 -------------------
 
