@@ -13,6 +13,11 @@
  * Adds TEInstanceLinkGetStateForValue() for parameters with multiple values
  * Adds TEInstanceLinkGetIdentifier() to find links by domain and name
  * Some functions have been renamed and the old versions marked deprecated
+ * Fix a memory leak in TEInstanceLinkGetObjectValue()
+ * Fix incorrect result from TEOpenGLTextureUnlock()
+ * Fix an issue which could cause unexpected texture output after an instance was reconfigured
+ * Fix multiple issues affecting very large CHOP or DAT input and output
+ * Fix an issue which could cause a hang in some circumstances
 
 ## 3.3
 

@@ -3,12 +3,6 @@ TouchEngine
 
 TouchEngine provides an API to load and render TouchDesigner components.
 
-> [!IMPORTANT]
-> This is an experimental branch to preview new features and provide you with a chance to give feedback. For production use, the tagged releases on `main` are recommended.
-
-> [!NOTE]
-> This document and the example code are yet to be expanded to cover new features. Please refer to [CHANGES.md](CHANGES.md) and documentation in headers in the meantime.
-
 SDK
 ---
 
